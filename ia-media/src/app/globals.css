@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap");
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-surface text-ink-900 font-body;
+  }
+
+  ::selection {
+    @apply bg-signal/20 text-ink-950;
+  }
+}
+
+@layer components {
+  /* Article prose styling */
+  .prose-article {
+    @apply text-ink-700 leading-relaxed;
+  }
+
+  .prose-article h1 {
+    @apply font-display text-display-lg text-ink-950 mt-12 mb-6;
+  }
+
+  .prose-article h2 {
+    @apply font-display text-display-md text-ink-900 mt-10 mb-4;
+  }
+
+  .prose-article h3 {
+    @apply font-body text-lg font-bold text-ink-800 mt-8 mb-3;
+  }
+
+  .prose-article p {
+    @apply mb-6 text-base leading-[1.8];
+  }
+
+  .prose-article a {
+    @apply text-signal underline underline-offset-2 decoration-signal/40
+           hover:decoration-signal transition-colors;
+  }
+
+  .prose-article blockquote {
+    @apply border-l-2 border-signal/40 pl-6 my-8 text-ink-500 italic
+           font-display text-xl leading-relaxed;
+  }
+
+  .prose-article code {
+    @apply font-mono text-sm bg-ink-100 text-ink-700 px-1.5 py-0.5 rounded;
+  }
+
+  .prose-article pre {
+    @apply bg-ink-950 text-ink-200 rounded-lg p-6 my-8 overflow-x-auto;
+  }
+
+  .prose-article pre code {
+    @apply bg-transparent text-inherit p-0;
+  }
+
+  .prose-article img {
+    @apply rounded-lg my-8;
+  }
+
+  .prose-article ul {
+    @apply list-disc pl-6 mb-6 space-y-2;
+  }
+
+  .prose-article ol {
+    @apply list-decimal pl-6 mb-6 space-y-2;
+  }
+
+  .prose-article hr {
+    @apply border-ink-200 my-12;
+  }
+
+  /* Tag pill */
+  .tag-pill {
+    @apply inline-block text-xs font-body font-medium tracking-wide uppercase
+           px-2.5 py-1 rounded-full border transition-colors;
+  }
+
+  .tag-pill-default {
+    @apply bg-ink-100 text-ink-600 border-ink-200
+           hover:bg-ink-200 hover:text-ink-700;
+  }
+
+  .tag-pill-signal {
+    @apply bg-signal/10 text-signal-dark border-signal/20
+           hover:bg-signal/20;
+  }
+}
+
+/* Stagger animation delays for lists */
+.stagger > * {
+  opacity: 0;
+  animation: fadeUp 0.5s ease-out forwards;
+}
+
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger > *:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
