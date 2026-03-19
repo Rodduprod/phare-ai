@@ -1,0 +1,79 @@
+
+> ia-media@0.1.0 dev
+> next dev
+
+ ⚠ You are using a non-standard "NODE_ENV" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+It looks like you're trying to use TypeScript but do not have the required package(s) installed.
+Installing dependencies
+
+If you are not trying to use TypeScript, please remove the tsconfig.json file from your package root (and any TypeScript files in your pages directory).
+
+
+Installing devDependencies (npm):
+- typescript
+
+
+added 79 packages, and audited 345 packages in 3s
+
+166 packages are looking for funding
+  run `npm fund` for details
+
+1 high severity vulnerability
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+
+   We detected TypeScript in your project and reconfigured your tsconfig.json file for you. Strict-mode is set to false by default.
+   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+   	- include was updated to add '.next/types/**/*.ts'
+
+   automatically enabled Fast Refresh for 1 custom loader
+ ✓ Ready in 5s
+ ○ Compiling / ...
+ ⨯ ./src/lib/articles.ts:1:1
+Module not found: Can't resolve 'fs'
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m fs [36mfrom[39m [32m"fs"[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[0m
+[0m [90m 2 |[39m [36mimport[39m path [36mfrom[39m [32m"path"[39m[33m;[39m[0m
+[0m [90m 3 |[39m [36mimport[39m matter [36mfrom[39m [32m"gray-matter"[39m[33m;[39m[0m
+[0m [90m 4 |[39m [36mimport[39m readingTime [36mfrom[39m [32m"reading-time"[39m[33m;[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/page.tsx
+ ⨯ ./src/lib/articles.ts:1:1
+Module not found: Can't resolve 'fs'
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m fs [36mfrom[39m [32m"fs"[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[0m
+[0m [90m 2 |[39m [36mimport[39m path [36mfrom[39m [32m"path"[39m[33m;[39m[0m
+[0m [90m 3 |[39m [36mimport[39m matter [36mfrom[39m [32m"gray-matter"[39m[33m;[39m[0m
+[0m [90m 4 |[39m [36mimport[39m readingTime [36mfrom[39m [32m"reading-time"[39m[33m;[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/page.tsx
+   automatically enabled Fast Refresh for 1 custom loader
+ ⨯ ./src/lib/articles.ts:1:1
+Module not found: Can't resolve 'fs'
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m fs [36mfrom[39m [32m"fs"[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[0m
+[0m [90m 2 |[39m [36mimport[39m path [36mfrom[39m [32m"path"[39m[33m;[39m[0m
+[0m [90m 3 |[39m [36mimport[39m matter [36mfrom[39m [32m"gray-matter"[39m[33m;[39m[0m
+[0m [90m 4 |[39m [36mimport[39m readingTime [36mfrom[39m [32m"reading-time"[39m[33m;[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/page.tsx
+ HEAD / 500 in 12186ms
+[?25h

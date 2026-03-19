@@ -1,4 +1,4 @@
-import { Article } from "@/lib/articles";
+import { Article } from "@/lib/articles-types";
 import { siteConfig } from "@/lib/config";
 
 interface ArticleSchemaProps {

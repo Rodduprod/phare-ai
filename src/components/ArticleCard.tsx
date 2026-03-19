@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArticleMeta, levelConfig } from "@/lib/articles";
+import { ArticleMeta, levelConfig } from "@/lib/articles-types";
 import { formatDate } from "@/lib/utils";
 import { OptimizedImage } from "./OptimizedImage";
 

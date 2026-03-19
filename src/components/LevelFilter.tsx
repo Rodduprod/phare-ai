@@ -1,6 +1,6 @@
 'use client';
 
-import { ArticleLevel, levelConfig } from "@/lib/articles";
+import { ArticleLevel, levelConfig } from "@/lib/articles-types";
 import { useState } from "react";
 
 interface LevelFilterProps {

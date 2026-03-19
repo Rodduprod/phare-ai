@@ -2,7 +2,7 @@ import { siteConfig } from "@/lib/config";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { AboutSchema } from "@/components/AboutSchema";
-import { levelConfig } from "@/lib/articles";
+import { levelConfig } from "@/lib/articles-types";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
