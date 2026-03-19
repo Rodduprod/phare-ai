@@ -39,7 +39,7 @@ npm run generate-content
 ### Automatisation (GitHub Actions)
 
 Le workflow `ai-content-generator.yml` s'exécute :
-- **Toutes les heures** à la minute 15
+- **Toutes les 2 heures** à la minute 15
 - **Manuellement** via GitHub Actions UI
 
 ## 📊 Sources d'actualités

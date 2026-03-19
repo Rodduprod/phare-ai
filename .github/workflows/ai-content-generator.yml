@@ -2,8 +2,8 @@ name: 🤖 AI Content Generator
 
 on:
   schedule:
-    # Toutes les heures à la minute 15
-    - cron: '15 * * * *'
+    # Toutes les 2 heures à la minute 15
+    - cron: '15 */2 * * *'
   workflow_dispatch: # Permet déclenchement manuel
 
 env:

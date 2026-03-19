@@ -5,6 +5,8 @@
  * 
  * Scrapes AI news, identifies trending topics, and generates
  * articles in 3 technical levels (débutant/amateur/confirmé)
+ * 
+ * Runs every 2 hours via GitHub Actions
  */
 
 import fs from 'fs';
