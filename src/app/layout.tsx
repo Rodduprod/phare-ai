@@ -25,6 +25,13 @@ export const metadata: Metadata = {
   alternates: {
     types: { "application/rss+xml": "/rss.xml" },
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/images/logo-icon.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+    apple: { url: "/images/logo-icon.svg", sizes: "180x180" },
+  },
 };
 
 export default function RootLayout({

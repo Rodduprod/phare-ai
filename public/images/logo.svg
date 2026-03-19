@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <!-- Icon: hexagonal molecule / lab structure -->
+  <g transform="translate(50, 58)">
+    <!-- Central hexagon -->
+    <polygon points="0,-28 24,-14 24,14 0,28 -24,14 -24,-14" 
+             fill="none" stroke="#9cf" stroke-width="2.2" stroke-linejoin="round"/>
+    <!-- Nodes at vertices -->
+    <circle cx="0" cy="-28" r="3" fill="#9cf"/>
+    <circle cx="24" cy="-14" r="3" fill="#9cf"/>
+    <circle cx="24" cy="14" r="3" fill="#9cf"/>
+    <circle cx="0" cy="28" r="3" fill="#9cf"/>
+    <circle cx="-24" cy="14" r="3" fill="#9cf"/>
+    <circle cx="-24" cy="-14" r="3" fill="#9cf"/>
+    <!-- Center dot -->
+    <circle cx="0" cy="0" r="4" fill="#9cf" opacity="0.6"/>
+    <!-- Internal connections (star pattern) -->
+    <line x1="0" y1="0" x2="0" y2="-28" stroke="#9cf" stroke-width="0.8" opacity="0.35"/>
+    <line x1="0" y1="0" x2="24" y2="14" stroke="#9cf" stroke-width="0.8" opacity="0.35"/>
+    <line x1="0" y1="0" x2="-24" y2="14" stroke="#9cf" stroke-width="0.8" opacity="0.35"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="100" y="72" font-family="'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="48" font-weight="300" fill="#333" letter-spacing="-1">
+    <tspan fill="#9cf" font-weight="500">le</tspan><tspan fill="#333" font-weight="300">labo</tspan><tspan fill="#9cf" font-weight="300">.ai</tspan>
+  </text>
+</svg>

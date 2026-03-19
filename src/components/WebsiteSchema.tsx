@@ -26,9 +26,9 @@ export function WebsiteSchema() {
     description: siteConfig.description,
     logo: {
       "@type": "ImageObject", 
-      url: `${siteConfig.url}/images/logo.png`, // À créer plus tard
-      width: 512,
-      height: 512,
+      url: `${siteConfig.url}/images/logo.svg`,
+      width: 400,
+      height: 120,
     },
     sameAs: [
       `https://twitter.com/${siteConfig.author.twitter.replace('@', '')}`,
