@@ -5,12 +5,15 @@ import readingTime from "reading-time";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/articles");
 
+export type ArticleLevel = 'débutant' | 'amateur' | 'confirmé';
+
 export interface ArticleMeta {
   slug: string;
   title: string;
   description: string;
   date: string;
   tags: string[];
+  level: ArticleLevel;
   image?: string;
   readingTime: string;
   published: boolean;
@@ -37,6 +40,7 @@ export function getAllArticles(): ArticleMeta[] {
         description: data.description || "",
         date: data.date || new Date().toISOString(),
         tags: data.tags || [],
+        level: data.level || "amateur", // Défaut amateur si pas spécifié
         image: data.image || null,
         readingTime: readingTime(content).text.replace("min read", "min"),
         published: data.published !== false,
@@ -61,6 +65,7 @@ export function getArticleBySlug(slug: string): Article | null {
     description: data.description || "",
     date: data.date || new Date().toISOString(),
     tags: data.tags || [],
+    level: data.level || "amateur",
     image: data.image || null,
     readingTime: readingTime(content).text.replace("min read", "min"),
     published: data.published !== false,
@@ -74,3 +79,36 @@ export function getAllTags(): string[] {
   articles.forEach((a) => a.tags.forEach((t) => tags.add(t)));
   return Array.from(tags).sort();
 }
+
+export function getArticlesByLevel(level: ArticleLevel): ArticleMeta[] {
+  return getAllArticles().filter(article => article.level === level);
+}
+
+export function getAllLevels(): ArticleLevel[] {
+  return ['débutant', 'amateur', 'confirmé'];
+}
+
+// Métadonnées des niveaux pour l'UI
+export const levelConfig = {
+  débutant: {
+    label: 'Débutant',
+    icon: '🌱',
+    color: '#34c759', // Vert
+    description: 'Pour ceux qui découvrent l\'IA',
+    audience: 'Aucune connaissance technique requise'
+  },
+  amateur: {
+    label: 'Amateur', 
+    icon: '🔧',
+    color: '#99ccff', // Bleu labo (primary)
+    description: 'Pour les professionnels tech qui découvrent l\'IA',
+    audience: 'Familier avec la tech, nouveau en IA'
+  },
+  confirmé: {
+    label: 'Confirmé',
+    icon: '⚡', 
+    color: '#e53e3e', // Rouge
+    description: 'Deep dives techniques et architecture',
+    audience: 'Devs, architectes, consultants tech'
+  }
+} as const;

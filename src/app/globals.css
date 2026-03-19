@@ -187,6 +187,33 @@
     color: var(--color-primary-deep);
   }
 
+  /* Badges niveau technique */
+  .level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .level-débutant {
+    background-color: rgba(52, 199, 89, 0.1);
+    color: #34c759;
+  }
+
+  .level-amateur {
+    background-color: rgba(153, 204, 255, 0.1);
+    color: var(--color-primary-deep);
+  }
+
+  .level-confirmé {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: #e53e3e;
+  }
+
   /* Cartes d'articles selon charte */
   .article-card {
     background: var(--color-bg);

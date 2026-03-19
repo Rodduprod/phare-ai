@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArticleMeta } from "@/lib/articles";
+import { ArticleMeta, levelConfig } from "@/lib/articles";
 import { formatDate } from "@/lib/utils";
 import { OptimizedImage } from "./OptimizedImage";
 
@@ -22,8 +22,15 @@ export function ArticleCard({ article }: { article: ArticleMeta }) {
 
         {/* Contenu de la carte */}
         <div className="article-card-content">
-          {/* Tags */}
+          {/* Niveau + Tags */}
           <div className="flex items-center gap-2 mb-3">
+            {/* Badge niveau */}
+            <span className={`level-badge level-${article.level}`}>
+              <span>{levelConfig[article.level].icon}</span>
+              <span>{levelConfig[article.level].label}</span>
+            </span>
+            
+            {/* Tags existants */}
             {article.tags.slice(0, 2).map((tag) => (
               <span key={tag} className="tag-pill tag-pill-default">
                 {tag}

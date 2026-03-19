@@ -1,11 +1,31 @@
-import { getAllArticles } from "@/lib/articles";
+'use client';
+
+import { getAllArticles, ArticleLevel, levelConfig, getArticlesByLevel } from "@/lib/articles";
 import { ArticleCard } from "@/components/ArticleCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { LevelFilter } from "@/components/LevelFilter";
 import { siteConfig } from "@/lib/config";
 import { WebsiteSchema } from "@/components/WebsiteSchema";
+import { useState, useMemo } from "react";
 
 export default function HomePage() {
-  const articles = getAllArticles();
+  const allArticles = getAllArticles();
+  const [selectedLevel, setSelectedLevel] = useState<ArticleLevel | 'all'>('all');
+
+  // Calcul des compteurs par niveau
+  const articleCounts = useMemo(() => {
+    const counts = { débutant: 0, amateur: 0, confirmé: 0 } as Record<ArticleLevel, number>;
+    allArticles.forEach(article => {
+      counts[article.level]++;
+    });
+    return counts;
+  }, [allArticles]);
+
+  // Filtrage des articles selon le niveau sélectionné
+  const filteredArticles = useMemo(() => {
+    if (selectedLevel === 'all') return allArticles;
+    return getArticlesByLevel(selectedLevel);
+  }, [allArticles, selectedLevel]);
 
   return (
     <>
@@ -26,26 +46,44 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* Grille d'articles selon charte : 1/2/3 colonnes */}
-        {articles.length > 0 && (
-          <section className="py-8unit">
-            <h2 className="text-display-lg text-text mb-8">Articles récents</h2>
-            
+        {/* Navigation par niveau et articles */}
+        <section className="py-8unit">
+          <h2 className="text-display-lg text-text mb-8">Découvrir par niveau</h2>
+          
+          {/* Filtre par niveau */}
+          <LevelFilter 
+            selectedLevel={selectedLevel}
+            onLevelChange={setSelectedLevel}
+            articleCounts={articleCounts}
+          />
+          
+          {/* Grille d'articles filtrés */}
+          {filteredArticles.length > 0 ? (
             <div className="grid gap-3unit sm:grid-cols-2 lg:grid-cols-3 stagger">
-              {articles.map((article) => (
+              {filteredArticles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
             </div>
-          </section>
-        )}
-
-        {articles.length === 0 && (
-          <section className="py-8unit text-center">
-            <p className="text-text-muted">
-              Aucun article pour le moment. Revenez bientôt !
-            </p>
-          </section>
-        )}
+          ) : selectedLevel === 'all' ? (
+            <div className="text-center py-8">
+              <p className="text-text-muted">
+                Aucun article pour le moment. Revenez bientôt ! 🚀
+              </p>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-alt rounded-lg">
+                <span className="text-2xl">{levelConfig[selectedLevel].icon}</span>
+                <p className="text-text-muted">
+                  Aucun article niveau <strong>{levelConfig[selectedLevel].label}</strong> pour le moment.
+                </p>
+              </div>
+              <p className="text-text-muted text-sm mt-2">
+                Ils arrivent bientôt ! 🚀
+              </p>
+            </div>
+          )}
+        </section>
 
         {/* Newsletter */}
         <NewsletterSignup />
