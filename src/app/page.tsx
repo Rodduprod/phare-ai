@@ -6,56 +6,49 @@ import { WebsiteSchema } from "@/components/WebsiteSchema";
 
 export default function HomePage() {
   const articles = getAllArticles();
-  const featured = articles[0];
-  const rest = articles.slice(1);
 
   return (
     <>
       {/* JSON-LD Schema */}
       <WebsiteSchema />
       
-      <div className="max-w-5xl mx-auto px-6">
-      {/* Hero */}
-      <section className="py-20 sm:py-28 border-b border-ink-100">
-        <p className="text-signal font-body text-sm font-medium tracking-wide uppercase mb-5 animate-fade-up">
-          Veille & décryptages
-        </p>
-        <h1 className="font-display text-display-xl text-ink-950 max-w-3xl animate-fade-up"
-            style={{ animationDelay: "0.1s" }}>
-          {siteConfig.tagline}
-        </h1>
-        <p className="font-body text-lg text-ink-500 mt-6 max-w-xl animate-fade-up"
-           style={{ animationDelay: "0.2s" }}>
-          {siteConfig.description}
-        </p>
-      </section>
-
-      {/* Featured article */}
-      {featured && (
-        <section className="py-12">
-          <p className="text-xs font-body font-medium tracking-widest uppercase text-ink-400 mb-6">
-            Dernier article
+      <div className="max-w-content mx-auto px-4unit">
+        {/* Hero section */}
+        <section className="py-8unit border-b border-border">
+          <p className="text-primary font-medium text-meta tracking-wide uppercase mb-5">
+            Veille & décryptages
           </p>
-          <ArticleCard article={featured} />
-        </section>
-      )}
-
-      {/* Article list */}
-      {rest.length > 0 && (
-        <section>
-          <p className="text-xs font-body font-medium tracking-widest uppercase text-ink-400 mb-2">
-            Précédents
+          <h1 className="text-display-xl text-text max-w-3xl mb-6">
+            {siteConfig.tagline}
+          </h1>
+          <p className="text-intro text-text-body max-w-xl">
+            {siteConfig.description}
           </p>
-          <div className="stagger">
-            {rest.map((article) => (
-              <ArticleCard key={article.slug} article={article} />
-            ))}
-          </div>
         </section>
-      )}
 
-      {/* Newsletter */}
-      <NewsletterSignup />
+        {/* Grille d'articles selon charte : 1/2/3 colonnes */}
+        {articles.length > 0 && (
+          <section className="py-8unit">
+            <h2 className="text-display-lg text-text mb-8">Articles récents</h2>
+            
+            <div className="grid gap-3unit sm:grid-cols-2 lg:grid-cols-3 stagger">
+              {articles.map((article) => (
+                <ArticleCard key={article.slug} article={article} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {articles.length === 0 && (
+          <section className="py-8unit text-center">
+            <p className="text-text-muted">
+              Aucun article pour le moment. Revenez bientôt !
+            </p>
+          </section>
+        )}
+
+        {/* Newsletter */}
+        <NewsletterSignup />
       </div>
     </>
   );

@@ -5,51 +5,47 @@ import { OptimizedImage } from "./OptimizedImage";
 
 export function ArticleCard({ article }: { article: ArticleMeta }) {
   return (
-    <article className="group">
-      <Link href={`/articles/${article.slug}`} className="block">
-        <div className="py-8 border-b border-ink-100 group-hover:border-ink-300 transition-colors">
-          <div className={`${article.image ? 'flex gap-6 items-start' : ''}`}>
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              {/* Tags */}
-              <div className="flex items-center gap-2 mb-3">
-                {article.tags.slice(0, 2).map((tag) => (
-                  <span key={tag} className="tag-pill tag-pill-default">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+    <article className="article-card">
+      <Link href={`/articles/${article.slug}`} className="block h-full">
+        {/* Image de couverture en haut si présente */}
+        {article.image && (
+          <div className="aspect-video overflow-hidden">
+            <OptimizedImage
+              src={article.image}
+              alt={article.title}
+              width={400}
+              height={225}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
 
-              {/* Title */}
-              <h2 className="font-display text-display-md text-ink-900 group-hover:text-signal transition-colors mb-2">
-                {article.title}
-              </h2>
+        {/* Contenu de la carte */}
+        <div className="article-card-content">
+          {/* Tags */}
+          <div className="flex items-center gap-2 mb-3">
+            {article.tags.slice(0, 2).map((tag) => (
+              <span key={tag} className="tag-pill tag-pill-default">
+                {tag}
+              </span>
+            ))}
+          </div>
 
-              {/* Description */}
-              <p className="text-ink-500 font-body leading-relaxed mb-4 max-w-2xl">
-                {article.description}
-              </p>
+          {/* Titre */}
+          <h2 className="text-display-lg text-text group-hover:text-primary transition-colors duration-200 mb-2">
+            {article.title}
+          </h2>
 
-              {/* Meta */}
-              <div className="flex items-center gap-4 text-sm text-ink-400 font-body">
-                <time dateTime={article.date}>{formatDate(article.date)}</time>
-                <span className="w-1 h-1 rounded-full bg-ink-300" />
-                <span>{article.readingTime}</span>
-              </div>
-            </div>
+          {/* Description */}
+          <p className="text-text-body leading-relaxed mb-4">
+            {article.description}
+          </p>
 
-            {/* Cover Image */}
-            {article.image && (
-              <div className="flex-shrink-0 w-32 h-24 sm:w-40 sm:h-28">
-                <OptimizedImage
-                  src={article.image}
-                  alt={article.title}
-                  width={160}
-                  height={112}
-                  className="w-full h-full rounded-lg border border-ink-100"
-                />
-              </div>
-            )}
+          {/* Métadonnées */}
+          <div className="flex items-center gap-3 text-meta text-text-muted">
+            <time dateTime={article.date}>{formatDate(article.date)}</time>
+            <span className="w-1 h-1 rounded-full bg-border" />
+            <span>{article.readingTime}</span>
           </div>
         </div>
       </Link>
