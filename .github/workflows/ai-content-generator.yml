@@ -1,0 +1,51 @@
+name: 🤖 AI Content Generator
+
+on:
+  schedule:
+    # Toutes les heures à la minute 15
+    - cron: '15 * * * *'
+  workflow_dispatch: # Permet déclenchement manuel
+
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  generate-content:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🔍 Scrape AI News & Generate Article
+      run: node scripts/ai-content-generator.js
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    - name: 📝 Commit and push if content generated
+      run: |
+        git config --local user.email "ai-bot@lelabo.ai"
+        git config --local user.name "Le Labo AI Bot"
+        
+        # Check if new files were created
+        if [ -n "$(git status --porcelain)" ]; then
+          git add .
+          git commit -m "🤖 Auto-generated AI article - $(date '+%Y-%m-%d %H:%M UTC')"
+          git push
+          echo "✅ New article generated and published!"
+        else
+          echo "ℹ️ No new content to publish this hour"
+        fi
