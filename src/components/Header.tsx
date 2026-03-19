@@ -10,9 +10,9 @@ export function Header() {
           <Image
             src="/images/logo.svg"
             alt="Le Labo AI"
-            width={160}
-            height={48}
-            className="h-10 w-auto group-hover:opacity-80 transition-opacity"
+            width={200}
+            height={60}
+            className="h-12 w-auto group-hover:opacity-80 transition-opacity"
           />
         </Link>
 
