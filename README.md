@@ -1,4 +1,4 @@
-# Signal IA
+# Le Labo AI 🧪
 
 > L'intelligence artificielle, décryptée en français.
 
@@ -13,8 +13,9 @@ Média / veille IA francophone. Site statique Next.js avec contenu MDX, conçu p
 | Styling | Tailwind CSS |
 | BDD | Supabase (PostgreSQL) |
 | Email | Resend |
-| Déploiement | Vercel |
+| Déploiement | Vercel (lelabo.ai) |
 | Agent | OpenClaw → Telegram |
+| SEO | robots.txt, sitemap.xml, JSON-LD, breadcrumbs |
 
 ## Structure du projet
 

@@ -1,13 +1,13 @@
 export const siteConfig = {
-  name: "Signal IA",
+  name: "Le Labo AI",
   tagline: "L'intelligence artificielle, décryptée en français.",
   description:
     "Veille, analyses et décryptages pour suivre l'évolution rapide de l'IA. En français, sans jargon inutile.",
-  url: "https://signal-ia.fr",
+  url: "https://lelabo.ai",
   locale: "fr-FR",
   author: {
-    name: "Signal IA",
-    twitter: "@signal_ia",
+    name: "Le Labo AI",
+    twitter: "@lelabo_ai",
   },
   nav: [
     { label: "Articles", href: "/articles" },

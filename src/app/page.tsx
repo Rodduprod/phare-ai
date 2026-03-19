@@ -2,6 +2,7 @@ import { getAllArticles } from "@/lib/articles";
 import { ArticleCard } from "@/components/ArticleCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { siteConfig } from "@/lib/config";
+import { WebsiteSchema } from "@/components/WebsiteSchema";
 
 export default function HomePage() {
   const articles = getAllArticles();
@@ -9,7 +10,11 @@ export default function HomePage() {
   const rest = articles.slice(1);
 
   return (
-    <div className="max-w-5xl mx-auto px-6">
+    <>
+      {/* JSON-LD Schema */}
+      <WebsiteSchema />
+      
+      <div className="max-w-5xl mx-auto px-6">
       {/* Hero */}
       <section className="py-20 sm:py-28 border-b border-ink-100">
         <p className="text-signal font-body text-sm font-medium tracking-wide uppercase mb-5 animate-fade-up">
@@ -51,6 +56,7 @@ export default function HomePage() {
 
       {/* Newsletter */}
       <NewsletterSignup />
-    </div>
+      </div>
+    </>
   );
 }

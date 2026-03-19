@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://lelabo.ai/sitemap.xml
+
+# Optimize crawl budget
+Crawl-delay: 1
+
+# Block common bot paths (optional)
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/

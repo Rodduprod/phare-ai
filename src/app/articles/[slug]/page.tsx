@@ -7,6 +7,9 @@ import rehypeHighlight from "rehype-highlight";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/config";
+import { ArticleSchema } from "@/components/ArticleSchema";
+import { OptimizedImage } from "@/components/OptimizedImage";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 interface PageProps {
   params: { slug: string };
@@ -45,81 +48,110 @@ export default function ArticlePage({ params }: PageProps) {
   if (!article) notFound();
 
   return (
-    <div className="max-w-3xl mx-auto px-6">
-      {/* Back link */}
-      <div className="pt-8">
-        <Link
-          href="/articles"
-          className="text-sm text-ink-400 hover:text-ink-700 font-body transition-colors inline-flex items-center gap-1.5"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-60">
-            <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Tous les articles
-        </Link>
-      </div>
+    <>
+      {/* JSON-LD Schema */}
+      <ArticleSchema article={article} />
 
-      {/* Article header */}
-      <header className="pt-10 pb-10 border-b border-ink-100">
-        <div className="flex items-center gap-2 mb-4">
-          {article.tags.map((tag) => (
-            <span key={tag} className="tag-pill tag-pill-signal">
-              {tag}
-            </span>
-          ))}
+      <div className="max-w-3xl mx-auto px-6">
+        {/* Breadcrumbs */}
+        <div className="pt-8">
+          <Breadcrumbs 
+            items={[
+              { label: "Articles", href: "/articles" },
+              { label: article.title }
+            ]} 
+          />
         </div>
-
-        <h1 className="font-display text-display-lg text-ink-950 mb-4">
-          {article.title}
-        </h1>
-
-        {article.description && (
-          <p className="text-lg text-ink-500 font-body leading-relaxed mb-6 max-w-2xl">
-            {article.description}
-          </p>
-        )}
-
-        <div className="flex items-center gap-4 text-sm text-ink-400 font-body">
-          <time dateTime={article.date}>{formatDate(article.date)}</time>
-          <span className="w-1 h-1 rounded-full bg-ink-300" />
-          <span>{article.readingTime}</span>
-        </div>
-      </header>
-
-      {/* Article body */}
-      <div className="prose-article py-12">
-        <MDXRemote
-          source={article.content}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm],
-              rehypePlugins: [rehypeHighlight],
-            },
-          }}
-        />
-      </div>
-
-      {/* Article footer */}
-      <footer className="border-t border-ink-100 py-12">
-        <div className="flex items-center justify-between">
+        
+        {/* Back link */}
+        <div className="mb-4">
           <Link
             href="/articles"
-            className="text-sm text-ink-500 hover:text-signal font-body font-medium transition-colors"
+            className="text-sm text-ink-400 hover:text-ink-700 font-body transition-colors inline-flex items-center gap-1.5"
           >
-            ← Retour aux articles
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-60">
+              <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Tous les articles
           </Link>
-          <div className="flex gap-3">
-            <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(`${siteConfig.url}/articles/${article.slug}`)}`}
-              target="_blank"
-              rel="noopener"
-              className="text-sm text-ink-400 hover:text-signal transition-colors"
-            >
-              Partager sur X
-            </a>
-          </div>
         </div>
-      </footer>
-    </div>
+
+        {/* Article header */}
+        <header className="pt-10 pb-10 border-b border-ink-100">
+          <div className="flex items-center gap-2 mb-4">
+            {article.tags.map((tag) => (
+              <span key={tag} className="tag-pill tag-pill-signal">
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <h1 className="font-display text-display-lg text-ink-950 mb-4">
+            {article.title}
+          </h1>
+
+          {article.description && (
+            <p className="text-lg text-ink-500 font-body leading-relaxed mb-6 max-w-2xl">
+              {article.description}
+            </p>
+          )}
+
+          {/* Cover Image */}
+          {article.image && (
+            <div className="mb-6">
+              <OptimizedImage
+                src={article.image}
+                alt={article.title}
+                width={768}
+                height={432}
+                className="w-full h-64 sm:h-80 rounded-xl border border-ink-100"
+                priority
+              />
+            </div>
+          )}
+
+          <div className="flex items-center gap-4 text-sm text-ink-400 font-body">
+            <time dateTime={article.date}>{formatDate(article.date)}</time>
+            <span className="w-1 h-1 rounded-full bg-ink-300" />
+            <span>{article.readingTime}</span>
+          </div>
+        </header>
+
+        {/* Article body */}
+        <div className="prose-article py-12">
+          <MDXRemote
+            source={article.content}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+                rehypePlugins: [rehypeHighlight],
+              },
+            }}
+          />
+        </div>
+
+        {/* Article footer */}
+        <footer className="border-t border-ink-100 py-12">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/articles"
+              className="text-sm text-ink-500 hover:text-signal font-body font-medium transition-colors"
+            >
+              ← Retour aux articles
+            </Link>
+            <div className="flex gap-3">
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(`${siteConfig.url}/articles/${article.slug}`)}`}
+                target="_blank"
+                rel="noopener"
+                className="text-sm text-ink-400 hover:text-signal transition-colors"
+              >
+                Partager sur X
+              </a>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 }

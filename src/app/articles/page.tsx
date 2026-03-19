@@ -1,6 +1,7 @@
 import { getAllArticles, getAllTags } from "@/lib/articles";
 import { ArticleCard } from "@/components/ArticleCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const metadata = {
   title: "Articles",
@@ -13,7 +14,11 @@ export default function ArticlesPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6">
-      <section className="py-16 border-b border-ink-100">
+      <div className="pt-8">
+        <Breadcrumbs items={[{ label: "Articles" }]} />
+      </div>
+      
+      <section className="py-8 border-b border-ink-100">
         <h1 className="font-display text-display-lg text-ink-950 mb-4">
           Articles
         </h1>
