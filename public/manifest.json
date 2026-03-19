@@ -1,0 +1,26 @@
+{
+  "name": "Le Labo AI",
+  "short_name": "Le Labo AI", 
+  "description": "L'intelligence artificielle, décryptée en français",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#99ccff",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["education", "news", "technology"],
+  "lang": "fr",
+  "dir": "ltr"
+}
