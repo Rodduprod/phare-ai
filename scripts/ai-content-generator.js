@@ -322,13 +322,23 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
 
   if (!modelId) throw new Error('Aucun modèle Anthropic disponible — vérifier la clé API et les modèles autorisés.');
 
-  const message = await anthropic.messages.create({
-    model: modelId,
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }]
-  });
-
-  return message.content[0].text;
+  try {
+    const message = await anthropic.messages.create({
+      model: modelId,
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+    return message.content[0].text;
+  } catch (err) {
+    // Log détaillé pour diagnostiquer
+    console.error(`❌ Erreur API détaillée:`);
+    console.error(`   Status: ${err.status}`);
+    console.error(`   Type: ${err.error?.type}`);
+    console.error(`   Message: ${JSON.stringify(err.error?.message)}`);
+    console.error(`   Error body: ${JSON.stringify(err.error)}`);
+    console.error(`   Headers: ${JSON.stringify(err.headers)}`);
+    throw err;
+  }
 }
 
 /**
