@@ -35,6 +35,9 @@ jobs:
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
+    - name: 🧪 Valider les articles générés
+      run: node scripts/validate-articles.js
+
     - name: 📝 Commit and push if content generated
       run: |
         git config --local user.email "ai-bot@lelabo.ai"

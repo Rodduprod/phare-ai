@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-content": "node scripts/ai-content-generator.js"
+    "generate-content": "node scripts/ai-content-generator.js",
+    "test": "node scripts/validate-articles.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
@@ -17,7 +18,6 @@
     "@next/mdx": "^14.2.0",
     "@supabase/supabase-js": "^2.43.0",
     "feed": "^4.2.2",
-    "gray-matter": "^4.0.3",
     "next": "^14.2.0",
     "next-mdx-remote": "^6.0.0",
     "react": "^18.3.0",
@@ -32,8 +32,10 @@
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.0",
+    "gray-matter": "^4.0.3",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.0"
   }
 }
