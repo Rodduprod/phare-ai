@@ -278,25 +278,46 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
-  // Récupère dynamiquement les modèles disponibles sur ce compte
-  let modelId = 'claude-3-haiku-20240307'; // fallback ultime
+  // Découverte dynamique du modèle via l'API
+  let modelId = null;
   try {
     const modelsPage = await anthropic.models.list({ limit: 20 });
     const models = modelsPage.data ?? [];
     console.log(`   📋 Modèles disponibles: ${models.map(m => m.id).join(', ')}`);
 
     // Préférence : sonnet > haiku > opus (ratio qualité/coût)
-    const preferred = models.find(m => m.id.includes('sonnet'))
-      ?? models.find(m => m.id.includes('haiku'))
-      ?? models.find(m => m.id.includes('claude'));
+    const preferred = models.find(m => m.id.toLowerCase().includes('sonnet'))
+      ?? models.find(m => m.id.toLowerCase().includes('haiku'))
+      ?? models.find(m => m.id.toLowerCase().includes('claude'));
 
     if (preferred) {
       modelId = preferred.id;
       console.log(`   ✅ Modèle sélectionné: ${modelId}`);
     }
   } catch (err) {
-    console.log(`   ⚠️ Impossible de lister les modèles (${err.message}), fallback: ${modelId}`);
+    console.log(`   ⚠️ models.list() indisponible: ${err.message}`);
   }
+
+  // Fallback si la liste ne fonctionne pas
+  if (!modelId) {
+    const FALLBACKS = [
+      'claude-3-5-haiku-20241022',
+      'claude-3-5-sonnet-20241022',
+      'claude-3-haiku-20240307',
+    ];
+    for (const m of FALLBACKS) {
+      try {
+        await anthropic.messages.create({ model: m, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] });
+        modelId = m;
+        console.log(`   ✅ Fallback model OK: ${modelId}`);
+        break;
+      } catch (err) {
+        console.log(`   ⚠️ ${m}: ${err.status ?? '?'} ${err.message?.slice(0, 60)}`);
+      }
+    }
+  }
+
+  if (!modelId) throw new Error('Aucun modèle Anthropic disponible — vérifier la clé API et les modèles autorisés.');
 
   const message = await anthropic.messages.create({
     model: modelId,
