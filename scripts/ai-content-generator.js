@@ -278,38 +278,33 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
-  // Modèles à essayer dans l'ordre (du plus récent au plus stable)
-  const MODELS_TO_TRY = [
-    'claude-opus-4-5',
-    'claude-sonnet-4-5',
-    'claude-haiku-4-5',
-    'claude-3-5-sonnet-20241022',
-    'claude-3-5-haiku-20241022',
-    'claude-3-haiku-20240307',
-  ];
+  // Récupère dynamiquement les modèles disponibles sur ce compte
+  let modelId = 'claude-3-haiku-20240307'; // fallback ultime
+  try {
+    const modelsPage = await anthropic.models.list({ limit: 20 });
+    const models = modelsPage.data ?? [];
+    console.log(`   📋 Modèles disponibles: ${models.map(m => m.id).join(', ')}`);
 
-  let lastError;
-  for (const model of MODELS_TO_TRY) {
-    try {
-      console.log(`   🔄 Trying model: ${model}`);
-      const message = await anthropic.messages.create({
-        model,
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }]
-      });
-      console.log(`   ✅ Model OK: ${model}`);
-      return message.content[0].text;
-    } catch (err) {
-      if (err.status === 404) {
-        console.log(`   ⚠️ Model not found: ${model}, trying next...`);
-        lastError = err;
-        continue;
-      }
-      throw err; // Autre erreur (auth, rate limit...) → on remonte
+    // Préférence : sonnet > haiku > opus (ratio qualité/coût)
+    const preferred = models.find(m => m.id.includes('sonnet'))
+      ?? models.find(m => m.id.includes('haiku'))
+      ?? models.find(m => m.id.includes('claude'));
+
+    if (preferred) {
+      modelId = preferred.id;
+      console.log(`   ✅ Modèle sélectionné: ${modelId}`);
     }
+  } catch (err) {
+    console.log(`   ⚠️ Impossible de lister les modèles (${err.message}), fallback: ${modelId}`);
   }
 
-  throw new Error(`Aucun modèle disponible. Dernière erreur: ${lastError?.message}`);
+  const message = await anthropic.messages.create({
+    model: modelId,
+    max_tokens: 4000,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  return message.content[0].text;
 }
 
 /**
