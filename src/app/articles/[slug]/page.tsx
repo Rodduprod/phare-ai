@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAllArticles, getArticleBySlug, getArticleSiblings } from "@/lib/articles";
+import { getAllArticles, getArticleBySlug, getArticleSiblings, getRelatedArticles } from "@/lib/articles";
 import { levelConfig } from "@/lib/articles-types";
 import { formatDate } from "@/lib/utils";
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -12,6 +12,7 @@ import { ArticleSchema } from "@/components/ArticleSchema";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { LevelSwitcher } from "@/components/LevelSwitcher";
+import { RelatedArticles } from "@/components/RelatedArticles";
 import type { ArticleVersion } from "@/lib/articles-types";
 
 interface PageProps {
@@ -58,6 +59,11 @@ export default function ArticlePage({ params }: PageProps) {
   ];
   const isMultiVersion = allVersions.length > 1;
   const currentLevelConfig = levelConfig[article.level];
+
+  // Articles liés (même niveau ou tags similaires, hors siblings)
+  const siblingsSlugs = siblings.map((s) => s.slug);
+  const related = getRelatedArticles(params.slug, 3)
+    .filter((a) => !siblingsSlugs.includes(a.slug));
 
   return (
     <>
@@ -159,6 +165,9 @@ export default function ArticlePage({ params }: PageProps) {
             }}
           />
         </div>
+
+        {/* Articles liés */}
+        <RelatedArticles articles={related} />
 
         {/* Article footer */}
         <footer className="border-t border-ink-100 py-12">

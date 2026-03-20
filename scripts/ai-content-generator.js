@@ -147,6 +147,43 @@ function shouldGenerateContent() {
 }
 
 /**
+ * Retourne la liste des articles existants formatée pour injection dans le prompt
+ */
+function getExistingArticlesContext() {
+  if (!fs.existsSync(CONTENT_DIR)) return '';
+
+  const files = fs.readdirSync(CONTENT_DIR).filter(f => f.endsWith('.mdx'));
+  if (files.length === 0) return '';
+
+  const articles = files.map(filename => {
+    const raw = fs.readFileSync(path.join(CONTENT_DIR, filename), 'utf-8');
+    const match = raw.match(/^---\n([\s\S]*?)\n---/);
+    if (!match) return null;
+
+    const slug = filename.replace('.mdx', '');
+    const titleMatch = match[1].match(/title:\s*"(.+?)"/);
+    const tagsMatch = match[1].match(/tags:\s*\[(.+?)\]/);
+    const levelMatch = match[1].match(/level:\s*"(.+?)"/);
+
+    if (!titleMatch) return null;
+    return {
+      slug,
+      title: titleMatch[1],
+      tags: tagsMatch ? tagsMatch[1] : '',
+      level: levelMatch ? levelMatch[1] : 'amateur',
+    };
+  }).filter(Boolean);
+
+  if (articles.length === 0) return '';
+
+  const list = articles
+    .map(a => `- [${a.title}](/articles/${a.slug}) (niveau: ${a.level})`)
+    .join('\n');
+
+  return `\n\n## Articles existants sur le site (pour le maillage interne)\n\nIntègre naturellement des liens vers ces articles quand le sujet s'y prête. Utilise la syntaxe Markdown standard [texte](url).\n\n${list}\n\nRule: au minimum 2 liens internes par article, intégrés naturellement dans le texte (pas dans une section dédiée).`;
+}
+
+/**
  * Generate article content using Claude
  */
 async function generateArticle(topic, level) {
@@ -206,6 +243,8 @@ Structure:
 Maximum de précision technique et d'insights d'expert.`
   };
 
+  const internalLinksContext = getExistingArticlesContext();
+
   const prompt = levelPrompts[level] + `
 
 Important: 
@@ -214,8 +253,9 @@ Important:
 - Adapte le niveau technique exactement comme demandé
 - Utilise des exemples français/européens quand possible
 - Termine par un appel à l'action subtil
+- **Maillage interne obligatoire** : intègre au minimum 2 liens vers des articles existants du site quand le sujet s'y prête (voir liste ci-dessous)
 
-Description du sujet: ${topic.description}`;
+Description du sujet: ${topic.description}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
