@@ -1,0 +1,120 @@
+---
+title: "Cursor vs GitHub Copilot : quel assistant de code IA choisir ?"
+description: "Les deux outils phares pour coder avec l'IA face à face. Comparatif complet : fonctionnalités, prix, cas d'usage — pour les développeurs qui veulent faire le bon choix."
+date: "2026-03-20"
+tags: ["outils", "code", "développement", "comparatif"]
+level: "intermédiaire"
+published: true
+---
+
+## Le coding assisté par IA, c'est quoi concrètement ?
+
+En 2026, coder sans assistance IA commence à ressembler à écrire à la machine à écrire alors que vous avez un ordinateur. Pas impossible, mais pourquoi ?
+
+Les deux outils qui dominent le marché : **GitHub Copilot** (Microsoft/OpenAI) et **Cursor** (startup indépendante). Ils font des choses similaires mais avec des approches différentes.
+
+## GitHub Copilot
+
+### Ce que c'est
+Un plugin qui s'intègre à votre IDE existant (VS Code, JetBrains, Neovim...). Il reste dans votre environnement habituel et ajoute de l'IA par-dessus.
+
+### Ce qu'il fait
+- **Complétion de code** : suggestions ligne par ligne ou bloc entier en temps réel
+- **Chat dans l'IDE** : posez des questions sur votre code sans quitter l'éditeur
+- **Génération depuis commentaires** : écrivez ce que vous voulez en commentaire, Copilot génère le code
+- **Explication de code** : sélectionnez un bloc, demandez une explication
+- **Suggestions de tests** : génère automatiquement des cas de test
+
+### Points forts
+- **Intégration naturelle** : vous gardez votre éditeur habituel
+- **Contexte du fichier** : comprend bien le fichier en cours
+- **Maturité** : service stable, massivement adopté (millions d'utilisateurs)
+- **Prix raisonnable** : 10$/mois individuel, intégré à GitHub
+
+### Limites
+- Contexte limité au fichier ou à quelques fichiers
+- Moins puissant pour les refactorisations complexes sur tout un projet
+- L'interface chat est moins aboutie que Cursor
+
+## Cursor
+
+### Ce que c'est
+Un IDE complet, basé sur VS Code (mêmes extensions compatibles) avec l'IA au cœur de l'architecture — pas en plugin. Cursor a accès à **tout votre codebase** par défaut.
+
+### Ce qu'il fait
+- Tout ce que fait Copilot, plus :
+- **Contexte projet complet** : @codebase pour que l'IA comprenne l'ensemble de votre projet
+- **Mode Composer** : donnez un objectif, Cursor écrit ou modifie plusieurs fichiers à la fois
+- **Agent** : peut exécuter du code, lire des erreurs, et corriger en boucle
+- **Références précises** : @fichier, @fonction pour pointer l'IA sur un élément précis
+
+### Points forts
+- **Compréhension projet** : comprend les dépendances, l'architecture, le contexte global
+- **Refactoring puissant** : peut modifier 10 fichiers simultanément avec cohérence
+- **Mode agent** : debug + correction automatisés
+- **Choix du modèle** : Claude, GPT-4, o1 — vous choisissez
+
+### Limites
+- Nécessite de changer d'IDE (frein pour les habitués de JetBrains)
+- Prix plus élevé en Pro (20$/mois)
+- Plus gourmand en ressources
+
+## Comparatif direct
+
+| Critère | GitHub Copilot | Cursor |
+|---------|---------------|--------|
+| Intégration | Plugin dans votre IDE | IDE à part entière |
+| Contexte | Fichier(s) ouvert(s) | Tout le projet |
+| Refactoring multi-fichiers | Limité | Excellent |
+| Mode agent | Basique | Avancé |
+| Prix | 10$/mois | 20$/mois (Pro) |
+| Courbe d'apprentissage | Faible | Moyenne |
+| Stabilité | Excellent | Très bon |
+
+## Pour qui recommande-t-on quoi ?
+
+### Choisissez GitHub Copilot si...
+- Vous travaillez principalement sur un fichier à la fois
+- Vous êtes attaché à votre environnement JetBrains ou autre IDE non-VS Code
+- Vous débutez avec les outils IA et voulez une intégration progressive
+- Votre équipe est déjà sur GitHub Enterprise (Copilot est inclus)
+
+### Choisissez Cursor si...
+- Vous travaillez sur des projets de moyenne à grande taille
+- Vous avez besoin de refactoring sur plusieurs fichiers
+- Vous voulez pouvoir dire "refais cette feature en suivant le pattern du reste du projet"
+- Vous êtes prêt à changer d'IDE pour un gain significatif de productivité
+
+## La surprise du test : le mode agent de Cursor
+
+En pratique, la différence la plus marquante n'est pas la complétion de code (les deux sont bons). C'est le **mode agent** de Cursor.
+
+Exemple réel : "Cette API renvoie des erreurs 500 en production. Voici les logs. Trouve le problème et corrige-le."
+
+Cursor va :
+1. Lire les logs
+2. Identifier le fichier concerné
+3. Analyser le code
+4. Proposer un fix
+5. Appliquer le fix si vous validez
+6. Vérifier que les tests passent
+
+GitHub Copilot peut aider à chaque étape, mais vous devez orchestrer vous-même.
+
+## Et les alternatives ?
+
+- **Amazon Q Developer** : solide si vous êtes dans l'écosystème AWS
+- **Tabnine** : orienté confidentialité (modèle local possible)
+- **Continue.dev** : open-source, self-hostable, si la confidentialité des données est critique
+
+## Notre recommandation
+
+**Pour 80% des développeurs :** Commencez avec Copilot. Si au bout d'un mois vous avez l'impression d'être limité sur les tâches complexes, passez sur Cursor.
+
+**Si vous faites du refactoring régulier ou travaillez sur de grands projets :** Cursor dès le départ.
+
+Le vrai conseil : les deux ont une période d'essai. Testez Cursor 2 semaines sur un vrai projet. Si vous ne voulez plus retourner en arrière, vous avez votre réponse.
+
+---
+
+*Dans les deux cas : l'outil est aussi bon que la qualité des instructions que vous lui donnez. Le prompt engineering s'applique aussi au code.*
