@@ -278,13 +278,38 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }]
-  });
+  // Modèles à essayer dans l'ordre (du plus récent au plus stable)
+  const MODELS_TO_TRY = [
+    'claude-opus-4-5',
+    'claude-sonnet-4-5',
+    'claude-haiku-4-5',
+    'claude-3-5-sonnet-20241022',
+    'claude-3-5-haiku-20241022',
+    'claude-3-haiku-20240307',
+  ];
 
-  return message.content[0].text;
+  let lastError;
+  for (const model of MODELS_TO_TRY) {
+    try {
+      console.log(`   🔄 Trying model: ${model}`);
+      const message = await anthropic.messages.create({
+        model,
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      });
+      console.log(`   ✅ Model OK: ${model}`);
+      return message.content[0].text;
+    } catch (err) {
+      if (err.status === 404) {
+        console.log(`   ⚠️ Model not found: ${model}, trying next...`);
+        lastError = err;
+        continue;
+      }
+      throw err; // Autre erreur (auth, rate limit...) → on remonte
+    }
+  }
+
+  throw new Error(`Aucun modèle disponible. Dernière erreur: ${lastError?.message}`);
 }
 
 /**
