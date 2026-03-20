@@ -17,7 +17,10 @@ const ARTICLES_DIR = path.join(__dirname, '..', 'content', 'articles');
 const VALID_LEVELS = ['débutant', 'amateur', 'confirmé'];
 const REQUIRED_FIELDS = ['title', 'description', 'date', 'tags', 'level', 'published'];
 const DATE_REGEX = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+// Slug: kebab-case pur OU pattern topic--level (double tiret)
+const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$/;
+// Valeurs valides pour le champ topic (slug kebab-case simple)
+const TOPIC_SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 // ─── Parser frontmatter YAML simple (sans dépendance) ────────────────────────
 
@@ -138,11 +141,21 @@ function validateArticle(filename) {
     );
   });
 
-  test('slug (nom de fichier) en kebab-case ASCII', () => {
+  test('slug (nom de fichier) en kebab-case ASCII (ou topic--level)', () => {
     assert(
       SLUG_REGEX.test(slug),
-      `Slug invalide: "${slug}" — utiliser uniquement lettres minuscules, chiffres et tirets`
+      `Slug invalide: "${slug}" — format attendu: kebab-case ou topic--level`
     );
+  });
+
+  test('topic (si présent) est un slug kebab-case valide', () => {
+    if (data.topic !== undefined) {
+      assert(typeof data.topic === 'string', `topic doit être une string`);
+      assert(
+        TOPIC_SLUG_REGEX.test(data.topic),
+        `topic invalide: "${data.topic}" — utiliser uniquement lettres minuscules, chiffres et tirets`
+      );
+    }
   });
 
   test('contenu markdown non vide (> 100 caractères)', () => {

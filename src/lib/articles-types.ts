@@ -7,9 +7,28 @@ export interface ArticleMeta {
   date: string;
   tags: string[];
   level: ArticleLevel;
+  topic?: string;       // Groupe thématique (ex: "chatgpt-vs-claude"). Si absent, slug = topic.
   image?: string;
   readingTime: string;
   published: boolean;
+}
+
+// Un groupe d'articles sur le même sujet, déclinés par level
+export interface ArticleVersion {
+  level: ArticleLevel;
+  slug: string;
+  readingTime: string;
+}
+
+export interface ArticleGroup {
+  topic: string;          // identifiant du groupe
+  title: string;          // titre partagé (du canonical)
+  description: string;
+  date: string;
+  tags: string[];
+  image?: string;
+  versions: ArticleVersion[];          // les versions existantes (1 à 3)
+  canonical: ArticleMeta;              // version par défaut (amateur > débutant > confirmé)
 }
 
 export interface Article extends ArticleMeta {

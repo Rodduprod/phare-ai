@@ -4,7 +4,9 @@ export {
   getArticleBySlug, 
   getArticlesByLevel, 
   getArticlesByTag, 
-  getRelatedArticles 
+  getRelatedArticles,
+  getArticleGroups,
+  getArticleSiblings,
 } from './articles-server';
 
 // Client-side types and configs (safe for client components)
@@ -12,6 +14,8 @@ export {
   type ArticleLevel, 
   type ArticleMeta, 
   type Article, 
+  type ArticleGroup,
+  type ArticleVersion,
   levelConfig 
 } from './articles-types';
 

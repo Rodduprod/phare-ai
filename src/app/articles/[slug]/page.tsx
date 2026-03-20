@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getAllArticles, getArticleBySlug } from "@/lib/articles";
+import { getAllArticles, getArticleBySlug, getArticleSiblings } from "@/lib/articles";
+import { levelConfig } from "@/lib/articles-types";
 import { formatDate } from "@/lib/utils";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
@@ -10,6 +11,8 @@ import { siteConfig } from "@/lib/config";
 import { ArticleSchema } from "@/components/ArticleSchema";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { LevelSwitcher } from "@/components/LevelSwitcher";
+import type { ArticleVersion } from "@/lib/articles-types";
 
 interface PageProps {
   params: { slug: string };
@@ -47,6 +50,15 @@ export default function ArticlePage({ params }: PageProps) {
   const article = getArticleBySlug(params.slug);
   if (!article) notFound();
 
+  // Récupère les siblings (autres niveaux du même topic)
+  const siblings = getArticleSiblings(params.slug);
+  const allVersions: ArticleVersion[] = [
+    { level: article.level, slug: article.slug, readingTime: article.readingTime },
+    ...siblings.map((s) => ({ level: s.level, slug: s.slug, readingTime: s.readingTime })),
+  ];
+  const isMultiVersion = allVersions.length > 1;
+  const currentLevelConfig = levelConfig[article.level];
+
   return (
     <>
       {/* JSON-LD Schema */}
@@ -79,6 +91,19 @@ export default function ArticlePage({ params }: PageProps) {
         {/* Article header */}
         <header className="pt-10 pb-10 border-b border-ink-100">
           <div className="flex items-center gap-2 mb-4">
+            {/* Badge niveau */}
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-sm font-medium"
+              style={{
+                borderColor: currentLevelConfig.color,
+                color: currentLevelConfig.color,
+                backgroundColor: `${currentLevelConfig.color}15`,
+              }}
+            >
+              <span>{currentLevelConfig.icon}</span>
+              <span>{currentLevelConfig.label}</span>
+            </span>
+
             {article.tags.map((tag) => (
               <span key={tag} className="tag-pill tag-pill-signal">
                 {tag}
@@ -94,6 +119,11 @@ export default function ArticlePage({ params }: PageProps) {
             <p className="text-lg text-ink-500 font-body leading-relaxed mb-6 max-w-2xl">
               {article.description}
             </p>
+          )}
+
+          {/* Level switcher — visible seulement si d'autres versions existent */}
+          {isMultiVersion && (
+            <LevelSwitcher currentLevel={article.level} versions={allVersions} />
           )}
 
           {/* Cover Image */}

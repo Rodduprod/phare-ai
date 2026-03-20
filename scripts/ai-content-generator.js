@@ -229,11 +229,10 @@ Description du sujet: ${topic.description}`;
 }
 
 /**
- * Create MDX file with proper frontmatter
+ * Génère un slug ASCII kebab-case depuis un titre
  */
-function createMDXFile(topic, content, level) {
-  const date = new Date().toISOString().split('T')[0];
-  const slug = topic.title
+function titleToSlug(title) {
+  return title
     .toLowerCase()
     .replace(/[àáâãäå]/g, 'a')
     .replace(/[èéêë]/g, 'e')
@@ -243,6 +242,16 @@ function createMDXFile(topic, content, level) {
     .replace(/[ç]/g, 'c')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Create MDX file with proper frontmatter
+ */
+function createMDXFile(topic, content, level, topicSlug) {
+  const date = new Date().toISOString().split('T')[0];
+
+  // Niveau en ASCII pour le slug
+  const levelSlug = level === 'débutant' ? 'debutant' : level === 'confirmé' ? 'confirme' : level;
 
   const frontmatter = `---
 title: "${topic.title}"
@@ -250,12 +259,13 @@ description: "${topic.description}"
 date: "${date}"
 tags: [${topic.tags.map(tag => `"${tag}"`).join(', ')}]
 level: "${level}"
+topic: "${topicSlug}"
 published: true
 ---
 
 ${content}`;
 
-  const filename = `${slug}-${level}-${date}.mdx`;
+  const filename = `${topicSlug}--${levelSlug}.mdx`;
   const filepath = path.join(CONTENT_DIR, filename);
 
   // Ensure directory exists
@@ -313,22 +323,28 @@ async function main() {
       console.log(`🎯 Using default topic: ${topic.title}`);
     }
 
-    // Generate article for one random level (to avoid spam)
+    // Générer les 3 niveaux pour ce topic
     const levels = ['débutant', 'amateur', 'confirmé'];
-    const selectedLevel = levels[Math.floor(Math.random() * levels.length)];
-    
-    console.log(`📝 Generating article for level: ${selectedLevel}`);
-    
-    // Generate content
-    const content = await generateArticle(topic, selectedLevel);
-    
-    // Create MDX file
-    const created = createMDXFile(topic, content, selectedLevel);
-    
-    if (created) {
-      console.log('🎉 Successfully generated new AI article!');
-      console.log(`📊 Level: ${selectedLevel}`);
-      console.log(`🎯 Topic: ${topic.title}`);
+    const topicSlug = titleToSlug(topic.title);
+
+    console.log(`📝 Generating 3 levels for topic: "${topic.title}" (slug: ${topicSlug})`);
+
+    let createdCount = 0;
+    for (const level of levels) {
+      try {
+        const content = await generateArticle(topic, level);
+        const created = createMDXFile(topic, content, level, topicSlug);
+        if (created) createdCount++;
+        // Pause entre les appels API pour éviter le rate limiting
+        await new Promise(r => setTimeout(r, 2000));
+      } catch (err) {
+        console.error(`❌ Failed to generate ${level} version:`, err.message);
+      }
+    }
+
+    if (createdCount > 0) {
+      console.log(`🎉 Generated ${createdCount}/3 versions for: ${topic.title}`);
+      console.log(`📂 Topic slug: ${topicSlug}`);
     }
 
   } catch (error) {
