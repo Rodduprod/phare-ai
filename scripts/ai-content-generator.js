@@ -298,11 +298,14 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
     console.log(`   ⚠️ models.list() indisponible: ${err.message}`);
   }
 
-  // Fallback si la liste ne fonctionne pas
+  // Fallback si la liste ne fonctionne pas — Sonnet en priorité
   if (!modelId) {
     const FALLBACKS = [
-      'claude-3-5-haiku-20241022',
+      'claude-sonnet-4-5',
+      'claude-sonnet-4-6',
+      'claude-3-7-sonnet-20250219',
       'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022',
       'claude-3-haiku-20240307',
     ];
     for (const m of FALLBACKS) {
