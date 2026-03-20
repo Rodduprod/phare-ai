@@ -117,32 +117,51 @@ function getDefaultAITopics() {
 }
 
 /**
- * Check if we should generate content (rate limiting)
+ * Lit la date (ou generated_at) dans le frontmatter d'un fichier MDX.
+ * Les articles auto-générés ont un champ generated_at ISO précis.
+ */
+function readArticleDate(filepath) {
+  try {
+    const raw = fs.readFileSync(filepath, 'utf-8');
+    // Priorité au timestamp précis de génération
+    const tsMatch = raw.match(/^---\n[\s\S]*?generated_at:\s*"?([^"\n]+)"?/m);
+    if (tsMatch) return new Date(tsMatch[1]);
+    // Fallback sur la date du frontmatter
+    const dateMatch = raw.match(/^---\n[\s\S]*?date:\s*"?(\d{4}-\d{2}-\d{2})"?/m);
+    if (dateMatch) return new Date(dateMatch[1]);
+  } catch {}
+  return null;
+}
+
+/**
+ * Check if we should generate content (rate limiting).
+ * Utilise la date du frontmatter (pas le mtime) pour éviter les faux positifs
+ * lors des git checkouts qui remettent les mtimes à zéro.
  */
 function shouldGenerateContent() {
   if (!fs.existsSync(CONTENT_DIR)) {
     return true;
   }
-  
+
   const files = fs.readdirSync(CONTENT_DIR).filter(f => f.endsWith('.mdx'));
   if (files.length === 0) return true;
-  
-  // Check last article timestamp
-  const lastFile = files
-    .map(f => {
-      const filePath = path.join(CONTENT_DIR, f);
-      const stats = fs.statSync(filePath);
-      return { file: f, mtime: stats.mtime };
-    })
-    .sort((a, b) => b.mtime - a.mtime)[0];
-  
-  const timeSinceLastArticle = Date.now() - lastFile.mtime.getTime();
-  
+
+  // Utilise la date dans le frontmatter, pas le mtime du fichier
+  const dates = files
+    .map(f => readArticleDate(path.join(CONTENT_DIR, f)))
+    .filter(Boolean);
+
+  if (dates.length === 0) return true;
+
+  const mostRecent = new Date(Math.max(...dates.map(d => d.getTime())));
+  const timeSinceLastArticle = Date.now() - mostRecent.getTime();
+
   if (timeSinceLastArticle < CONFIG.minTimeBetweenArticles) {
-    console.log(`⏱️ Last article generated ${Math.round(timeSinceLastArticle / (60 * 1000))} minutes ago. Waiting...`);
+    console.log(`⏱️ Last article date: ${mostRecent.toISOString().slice(0,10)}. Rate limit active, skipping.`);
     return false;
   }
-  
+
+  console.log(`✅ Last article was ${Math.round(timeSinceLastArticle / (60 * 60 * 1000))}h ago — generating new content.`);
   return true;
 }
 
@@ -293,10 +312,13 @@ function createMDXFile(topic, content, level, topicSlug) {
   // Niveau en ASCII pour le slug
   const levelSlug = level === 'débutant' ? 'debutant' : level === 'confirmé' ? 'confirme' : level;
 
+  const generatedAt = new Date().toISOString();
+
   const frontmatter = `---
 title: "${topic.title}"
 description: "${topic.description}"
 date: "${date}"
+generated_at: "${generatedAt}"
 tags: [${topic.tags.map(tag => `"${tag}"`).join(', ')}]
 level: "${level}"
 topic: "${topicSlug}"
