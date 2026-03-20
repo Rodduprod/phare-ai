@@ -322,23 +322,27 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
 
   if (!modelId) throw new Error('Aucun modèle Anthropic disponible — vérifier la clé API et les modèles autorisés.');
 
+  // Probe avec un appel minimal pour vérifier que le modèle répond
+  console.log(`   🔬 Test minimal du modèle ${modelId}...`);
   try {
-    const message = await anthropic.messages.create({
+    const probe = await anthropic.messages.create({
       model: modelId,
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }]
+      max_tokens: 10,
+      messages: [{ role: 'user', content: 'ping' }]
     });
-    return message.content[0].text;
-  } catch (err) {
-    // Log détaillé pour diagnostiquer
-    console.error(`❌ Erreur API détaillée:`);
-    console.error(`   Status: ${err.status}`);
-    console.error(`   Type: ${err.error?.type}`);
-    console.error(`   Message: ${JSON.stringify(err.error?.message)}`);
-    console.error(`   Error body: ${JSON.stringify(err.error)}`);
-    console.error(`   Headers: ${JSON.stringify(err.headers)}`);
-    throw err;
+    console.log(`   ✅ Probe OK: ${JSON.stringify(probe.content)}`);
+  } catch (probeErr) {
+    console.error(`   ❌ Probe failed: ${probeErr.status} — ${JSON.stringify(probeErr.error)}`);
+    throw new Error(`Modèle ${modelId} inaccessible: ${probeErr.status}`);
   }
+
+  const message = await anthropic.messages.create({
+    model: modelId,
+    max_tokens: 4000,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  return message.content[0].text;
 }
 
 /**
