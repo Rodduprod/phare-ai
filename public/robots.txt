@@ -1,13 +1,27 @@
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemap principal
 Sitemap: https://lelabo.ai/sitemap.xml
 
-# Optimize crawl budget
-Crawl-delay: 1
+# Google News Sitemap
+Sitemap: https://lelabo.ai/news-sitemap.xml
 
-# Block common bot paths (optional)
+# Flux RSS
+# https://lelabo.ai/rss.xml
+
+# Optimisation du crawl budget
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
+
+# Éviter les doublons sur les URLs avec paramètres de recherche
+Disallow: /*?*
+
+# Autoriser explicitement les ressources statiques
+Allow: /images/
+Allow: /favicon.ico
+Allow: /og-image-default.png
+
+# Délai de courtoisie pour les bots
+Crawl-delay: 1

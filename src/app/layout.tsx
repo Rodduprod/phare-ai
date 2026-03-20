@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { WebsiteSchema } from "@/components/WebsiteSchema";
 import { siteConfig } from "@/lib/config";
 import "./globals.css";
 
@@ -31,7 +32,24 @@ export const metadata: Metadata = {
     creator: siteConfig.author.twitter,
   },
   alternates: {
+    canonical: siteConfig.url,
+    languages: {
+      'fr':    siteConfig.url,
+      'fr-FR': siteConfig.url,
+      'x-default': siteConfig.url,
+    },
     types: { "application/rss+xml": "/rss.xml" },
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
   },
   manifest: "/manifest.json",
   icons: {
@@ -52,7 +70,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      <head>
+        {/* Preconnect pour accélérer les ressources critiques */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* DNS prefetch pour les domaines externes fréquents */}
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//vercel-insights.com" />
+      </head>
       <body className="min-h-screen flex flex-col">
+        <WebsiteSchema />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

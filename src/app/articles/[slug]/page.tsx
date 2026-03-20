@@ -24,25 +24,86 @@ export async function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }));
 }
 
+const LEVEL_SECTION: Record<string, string> = {
+  débutant: 'IA pour débutants',
+  amateur:  'IA pour professionnels',
+  confirmé: 'IA avancée',
+};
+
+const LEVEL_EDUCATIONAL: Record<string, string> = {
+  débutant: 'Beginner',
+  amateur:  'Intermediate',
+  confirmé: 'Advanced',
+};
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const article = getArticleBySlug(params.slug);
   if (!article) return {};
 
+  const canonicalUrl = `${siteConfig.url}/articles/${article.slug}`;
+  const ogImage = article.image
+    ? (article.image.startsWith('http') ? article.image : `${siteConfig.url}${article.image}`)
+    : `${siteConfig.url}/og-image-default.png`;
+
   return {
     title: article.title,
     description: article.description,
+    keywords: [
+      ...article.tags,
+      'intelligence artificielle',
+      'IA',
+      LEVEL_SECTION[article.level] ?? '',
+    ].filter(Boolean).join(', '),
+    authors: [{ name: siteConfig.author.name, url: siteConfig.url }],
+    alternates: {
+      canonical: canonicalUrl,
+      languages: {
+        'fr':    canonicalUrl,
+        'fr-FR': canonicalUrl,
+        'x-default': canonicalUrl,
+      },
+      types: { 'application/rss+xml': '/rss.xml' },
+    },
     openGraph: {
       title: article.title,
       description: article.description,
-      type: "article",
-      publishedTime: article.date,
+      type: 'article',
+      publishedTime: `${article.date}T00:00:00.000Z`,
+      modifiedTime:  `${article.date}T00:00:00.000Z`,
+      authors: [siteConfig.author.name],
       tags: article.tags,
-      url: `${siteConfig.url}/articles/${article.slug}`,
+      url: canonicalUrl,
+      siteName: siteConfig.name,
+      locale: 'fr_FR',
+      images: [{
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: article.title,
+      }],
+      section: LEVEL_SECTION[article.level] ?? 'Intelligence Artificielle',
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: article.title,
       description: article.description,
+      creator: siteConfig.author.twitter,
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    other: {
+      'article:section': LEVEL_SECTION[article.level] ?? 'Intelligence Artificielle',
+      'article:tag': article.tags.join(','),
+      'educational-level': LEVEL_EDUCATIONAL[article.level] ?? 'Intermediate',
     },
   };
 }
@@ -68,7 +129,13 @@ export default function ArticlePage({ params }: PageProps) {
   return (
     <>
       {/* JSON-LD Schema */}
-      <ArticleSchema article={article} />
+      <ArticleSchema
+        article={article}
+        breadcrumbs={[
+          { name: "Articles", url: `${siteConfig.url}/articles` },
+          { name: article.title, url: `${siteConfig.url}/articles/${article.slug}` },
+        ]}
+      />
 
       <div className="max-w-3xl mx-auto px-6">
         {/* Breadcrumbs */}
