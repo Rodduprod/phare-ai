@@ -23,11 +23,25 @@ const CONFIG = {
   maxArticlesPerHour: 1,
   minTimeBetweenArticles: 2 * 60 * 60 * 1000, // 2 heures
   sources: {
-    hackernews: 'https://hacker-news.firebaseio.com/v0/topstories.json',
-    reddit: 'https://www.reddit.com/r/MachineLearning/hot.json',
-    arxiv: 'http://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=10'
+    hackernews:       'https://hacker-news.firebaseio.com/v0/topstories.json',
+    reddit_ml:        'https://www.reddit.com/r/MachineLearning/hot.json?limit=15',
+    reddit_ai:        'https://www.reddit.com/r/artificial/hot.json?limit=15',
+    reddit_chatgpt:   'https://www.reddit.com/r/ChatGPT/hot.json?limit=10',
+    gnews_fr:         'https://news.google.com/rss/search?q=intelligence+artificielle+IA&hl=fr&gl=FR&ceid=FR:fr',
+    gnews_en:         'https://news.google.com/rss/search?q=artificial+intelligence+LLM&hl=en-US&gl=US&ceid=US:en',
+    techcrunch:       'https://techcrunch.com/category/artificial-intelligence/feed/',
+    venturebeat:      'https://venturebeat.com/category/ai/feed/',
+    arxiv:            'http://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=15',
   }
 };
+
+// Mots-clés IA pour le filtrage
+const AI_KEYWORDS = [
+  'ai', 'artificial intelligence', 'machine learning', 'llm', 'gpt', 'claude', 'gemini',
+  'openai', 'anthropic', 'google ai', 'deepmind', 'mistral', 'llama', 'chatgpt',
+  'neural', 'transformer', 'rag', 'agent', 'copilot', 'diffusion', 'generative',
+  'model', 'chatbot', 'nlp', 'computer vision', 'robotics', 'automation', 'deepseek',
+];
 
 // Initialize Anthropic
 const anthropic = new Anthropic({
@@ -35,55 +49,201 @@ const anthropic = new Anthropic({
 });
 
 /**
- * Scrape AI news from multiple sources
+ * Vérifie si un titre est lié à l'IA
+ */
+function isAIRelated(title) {
+  const t = title.toLowerCase();
+  return AI_KEYWORDS.some(k => t.includes(k));
+}
+
+/**
+ * Parse un flux RSS simple (XML) — retourne array de { title, url, description }
+ */
+function parseRSS(xml) {
+  const items = [];
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null) {
+    const block = match[1];
+    const title = (block.match(/<title[^>]*><!\[CDATA\[(.*?)\]\]><\/title>/) ||
+                   block.match(/<title[^>]*>(.*?)<\/title>/) || [])[1]?.trim();
+    const link  = (block.match(/<link[^>]*>(.*?)<\/link>/) ||
+                   block.match(/<guid[^>]*>(https?[^<]+)<\/guid>/) || [])[1]?.trim();
+    const desc  = (block.match(/<description[^>]*><!\[CDATA\[(.*?)\]\]><\/description>/) ||
+                   block.match(/<description[^>]*>(.*?)<\/description>/) || [])[1]
+                   ?.replace(/<[^>]+>/g, '').trim().slice(0, 300);
+    if (title && link) items.push({ title, url: link, description: desc || '' });
+  }
+  return items;
+}
+
+/**
+ * Fetch avec timeout
+ */
+async function fetchWithTimeout(url, ms = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'lelabo-ai-bot/1.0 (https://lelabo.ai)' }
+    });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Tente de récupérer un extrait de l'article source (300 mots max)
+ */
+async function fetchArticleExcerpt(url) {
+  try {
+    const res = await fetchWithTimeout(url, 6000);
+    const html = await res.text();
+    // Extrait le texte brut (supprime balises, scripts, styles)
+    const text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 1500);
+    return text;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Regroupe les stories similaires par overlap de mots-clés
+ * Retourne des clusters triés par nombre de sources
+ */
+function clusterTopics(stories) {
+  const stopwords = new Set(['the','a','an','of','in','to','for','and','or','is','are','on','at','by','with','this','that','it','as','be','was','were','from','about','its','their','our','has','have','not','but']);
+
+  function keywords(title) {
+    return new Set(
+      title.toLowerCase()
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 3 && !stopwords.has(w))
+    );
+  }
+
+  const clusters = [];
+
+  for (const story of stories) {
+    const kw = keywords(story.title);
+    let bestCluster = null;
+    let bestOverlap = 0;
+
+    for (const cluster of clusters) {
+      const clusterKw = keywords(cluster.title);
+      const overlap = [...kw].filter(w => clusterKw.has(w)).length;
+      if (overlap >= 2 && overlap > bestOverlap) {
+        bestOverlap = overlap;
+        bestCluster = cluster;
+      }
+    }
+
+    if (bestCluster) {
+      bestCluster.sources.push(story.source);
+      bestCluster.urls.push(story.url);
+      bestCluster.score += story.score || 1;
+    } else {
+      clusters.push({
+        title: story.title,
+        url: story.url,
+        sources: [story.source],
+        urls: [story.url],
+        description: story.description || '',
+        score: story.score || 1,
+      });
+    }
+  }
+
+  // Tri : nombre de sources (coverage) puis score
+  return clusters.sort((a, b) =>
+    b.sources.length !== a.sources.length
+      ? b.sources.length - a.sources.length
+      : b.score - a.score
+  );
+}
+
+/**
+ * Scrape AI news from multiple sources and return clustered topics
  */
 async function scrapeAINews() {
   console.log('🔍 Scraping AI news from multiple sources...');
-  
-  const news = [];
-  
+  const allStories = [];
+
+  // --- HackerNews ---
   try {
-    // HackerNews AI stories
-    const hnResponse = await fetch(CONFIG.sources.hackernews);
-    const topStories = await hnResponse.json();
-    
-    // Get top 10 stories
+    const hnRes = await fetchWithTimeout(CONFIG.sources.hackernews);
+    const ids = await hnRes.json();
     const stories = await Promise.all(
-      topStories.slice(0, 10).map(async (id) => {
-        const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-        return response.json();
-      })
-    );
-    
-    // Filter AI-related stories
-    const aiStories = stories.filter(story => 
-      story.title && (
-        story.title.toLowerCase().includes('ai') ||
-        story.title.toLowerCase().includes('artificial intelligence') ||
-        story.title.toLowerCase().includes('machine learning') ||
-        story.title.toLowerCase().includes('llm') ||
-        story.title.toLowerCase().includes('claude') ||
-        story.title.toLowerCase().includes('gpt') ||
-        story.title.toLowerCase().includes('anthropic') ||
-        story.title.toLowerCase().includes('openai')
+      ids.slice(0, 20).map(id =>
+        fetchWithTimeout(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
+          .then(r => r.json()).catch(() => null)
       )
     );
-    
-    news.push(...aiStories.map(story => ({
-      title: story.title,
-      url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
-      score: story.score || 0,
-      source: 'HackerNews',
-      timestamp: new Date(story.time * 1000)
-    })));
-    
-    console.log(`📰 Found ${aiStories.length} AI stories from HackerNews`);
-    
-  } catch (error) {
-    console.error('❌ Error scraping HackerNews:', error.message);
+    const hn = stories.filter(s => s?.title && isAIRelated(s.title));
+    hn.forEach(s => allStories.push({ title: s.title, url: s.url || `https://news.ycombinator.com/item?id=${s.id}`, score: s.score || 0, source: 'HackerNews', description: '' }));
+    console.log(`  ✅ HackerNews: ${hn.length} stories IA`);
+  } catch (e) { console.log(`  ⚠️ HackerNews: ${e.message}`); }
+
+  // --- Reddit (ML + AI + ChatGPT) ---
+  for (const [key, url] of [['reddit_ml', CONFIG.sources.reddit_ml], ['reddit_ai', CONFIG.sources.reddit_ai], ['reddit_chatgpt', CONFIG.sources.reddit_chatgpt]]) {
+    try {
+      const res = await fetchWithTimeout(url);
+      const json = await res.json();
+      const posts = json.data?.children?.map(c => c.data) || [];
+      const ai = posts.filter(p => p.title && isAIRelated(p.title));
+      ai.forEach(p => allStories.push({ title: p.title, url: p.url || `https://reddit.com${p.permalink}`, score: p.score || 0, source: key, description: p.selftext?.slice(0, 200) || '' }));
+      console.log(`  ✅ ${key}: ${ai.length} posts IA`);
+    } catch (e) { console.log(`  ⚠️ ${key}: ${e.message}`); }
   }
-  
-  return news.sort((a, b) => b.score - a.score);
+
+  // --- RSS Feeds (Google News FR/EN, TechCrunch, VentureBeat) ---
+  for (const [key, url] of [
+    ['GoogleNews-FR', CONFIG.sources.gnews_fr],
+    ['GoogleNews-EN', CONFIG.sources.gnews_en],
+    ['TechCrunch', CONFIG.sources.techcrunch],
+    ['VentureBeat', CONFIG.sources.venturebeat],
+  ]) {
+    try {
+      const res = await fetchWithTimeout(url);
+      const xml = await res.text();
+      const items = parseRSS(xml).filter(i => isAIRelated(i.title));
+      items.forEach(i => allStories.push({ title: i.title, url: i.url, score: 10, source: key, description: i.description || '' }));
+      console.log(`  ✅ ${key}: ${items.length} articles IA`);
+    } catch (e) { console.log(`  ⚠️ ${key}: ${e.message}`); }
+  }
+
+  // --- arXiv (papers récents) ---
+  try {
+    const res = await fetchWithTimeout(CONFIG.sources.arxiv);
+    const xml = await res.text();
+    const titleMatches = xml.match(/<title>(.*?)<\/title>/g) || [];
+    const urlMatches = xml.match(/<id>(https?[^<]+)<\/id>/g) || [];
+    const summaryMatches = xml.match(/<summary>([\s\S]*?)<\/summary>/g) || [];
+    titleMatches.slice(1).forEach((t, i) => { // slice(1) pour ignorer le titre du feed
+      const title = t.replace(/<\/?title>/g, '').trim();
+      const url = (urlMatches[i] || '').replace(/<\/?id>/g, '').trim();
+      const desc = (summaryMatches[i] || '').replace(/<\/?summary>/g, '').trim().slice(0, 200);
+      if (title) allStories.push({ title, url, score: 5, source: 'arXiv', description: desc });
+    });
+    console.log(`  ✅ arXiv: ${titleMatches.length - 1} papers`);
+  } catch (e) { console.log(`  ⚠️ arXiv: ${e.message}`); }
+
+  console.log(`📊 Total: ${allStories.length} stories collectées`);
+
+  // Regroupe les stories similaires en clusters
+  const clusters = clusterTopics(allStories);
+  console.log(`🧩 ${clusters.length} topics identifiés (top: "${clusters[0]?.title}" — ${clusters[0]?.sources.length} sources)`);
+
+  return clusters;
 }
 
 /**
@@ -273,8 +433,9 @@ Important:
 - Utilise des exemples français/européens quand possible
 - Termine par un appel à l'action subtil
 - **Maillage interne obligatoire** : intègre au minimum 2 liens vers des articles existants du site quand le sujet s'y prête (voir liste ci-dessous)
+- **Synthèse multi-sources** : si des sources sont fournies, appuie-toi sur elles pour les faits et données — mentionne les sources dans le texte naturellement (ex: "selon TechCrunch", "d'après les chercheurs d'arXiv")
 
-Description du sujet: ${topic.description}${internalLinksContext}`;
+Description du sujet: ${topic.description}${topic.sourcesContext || ''}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
@@ -461,7 +622,7 @@ async function main() {
     const news = await scrapeAINews();
 
     let topic;
-    // Parcourt les news jusqu'à trouver un topic non couvert
+    // Parcourt les clusters jusqu'à trouver un topic non couvert
     const candidatesFromNews = news.filter(n => {
       const slug = titleToSlug(n.title);
       if (existingSlugs.has(slug)) {
@@ -472,12 +633,31 @@ async function main() {
     });
 
     if (candidatesFromNews.length > 0) {
-      const topNews = candidatesFromNews[0];
+      const best = candidatesFromNews[0];
+      const sourceNames = [...new Set(best.sources)].join(', ');
+      console.log(`📈 Topic sélectionné: "${best.title}" (${best.sources.length} source(s): ${sourceNames})`);
+
+      // Tente de récupérer un extrait du contenu source
+      let sourceExcerpts = [];
+      for (const url of best.urls.slice(0, 3)) {
+        console.log(`  📄 Fetch contenu source: ${url}`);
+        const excerpt = await fetchArticleExcerpt(url);
+        if (excerpt.length > 100) {
+          sourceExcerpts.push({ source: best.sources[best.urls.indexOf(url)] || 'Source', url, excerpt });
+        }
+      }
+
+      const sourcesContext = sourceExcerpts.length > 0
+        ? '\n\nSources disponibles (extrait du contenu original) :\n' +
+          sourceExcerpts.map((s, i) => `[Source ${i+1} — ${s.source}] ${s.url}\n${s.excerpt.slice(0, 500)}`).join('\n\n')
+        : '';
+
       topic = {
-        title: topNews.title,
-        description: `Analyse de l'actualité IA trending: ${topNews.title}`,
-        tags: ["actualité", "trending", "innovation"],
-        source: topNews.source
+        title: best.title,
+        description: `Analyse et décryptage : ${best.title}`,
+        tags: ["actualité", "ia", "innovation"],
+        sources: best.sources,
+        sourcesContext,
       };
       console.log(`📈 Using trending topic: ${topic.title}`);
     } else {
