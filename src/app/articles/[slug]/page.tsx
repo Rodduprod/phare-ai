@@ -6,7 +6,6 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/config";
@@ -16,7 +15,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { LevelSwitcher } from "@/components/LevelSwitcher";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import { ReadingProgress } from "@/components/ReadingProgress";
-import { TableOfContents, extractHeadings } from "@/components/TableOfContents";
+import { TableOfContents } from "@/components/TableOfContents";
+import { extractHeadings } from "@/lib/toc";
 import type { ArticleVersion } from "@/lib/articles-types";
 
 interface PageProps {
@@ -220,7 +220,6 @@ export default function ArticlePage({ params }: PageProps) {
                     rehypePlugins: [
                       rehypeHighlight,
                       rehypeSlug,
-                      [rehypeAutolinkHeadings, { behavior: 'wrap' }],
                     ],
                   },
                 }}
