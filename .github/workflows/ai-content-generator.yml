@@ -6,15 +6,11 @@ on:
     - cron: '15 */2 * * *'
   workflow_dispatch: # Permet déclenchement manuel
 
-env:
-  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   generate-content:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # Nécessaire pour le push
 
     steps:
     - name: 📥 Checkout repository
@@ -36,16 +32,21 @@ jobs:
       run: node scripts/ai-content-generator.js
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # continue-on-error pour ne pas bloquer le workflow si l'API est down
+      continue-on-error: false
 
     - name: 🧪 Valider les articles générés
       run: node scripts/validate-articles.js
 
     - name: 📝 Commit and push if content generated
       run: |
+        # Auteur = compte Vercel du propriétaire (obligatoire pour le deploy auto)
         git config --local user.email "rodolphedupeloux@gmail.com"
         git config --local user.name "Rodolphe du Peloux"
-        
-        # Check if new files were created
+
+        # Pull les éventuels commits distants avant de pousser (évite les conflits)
+        git pull --rebase origin main
+
         if [ -n "$(git status --porcelain)" ]; then
           git add .
           git commit -m "🤖 Auto-generated AI article - $(date '+%Y-%m-%d %H:%M UTC')"
