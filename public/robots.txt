@@ -8,7 +8,7 @@ Sitemap: https://lelabo.ai/sitemap.xml
 Sitemap: https://lelabo.ai/news-sitemap.xml
 
 # Flux RSS
-# https://lelabo.ai/rss.xml
+Sitemap: https://lelabo.ai/rss.xml
 
 # Optimisation du crawl budget
 Disallow: /api/
