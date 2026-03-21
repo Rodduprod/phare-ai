@@ -163,21 +163,18 @@ export default function ArticlePage({ params }: PageProps) {
           </Link>
         </div>
 
-        {/* Cover image hero — pleine largeur avant le header */}
+        {/* Cover image hero */}
         {article.image && (
-          <div className="mt-6 -mx-6 sm:-mx-0 mb-8">
-            <div className="overflow-hidden rounded-none sm:rounded-xl aspect-[16/7] relative">
-              <OptimizedImage
-                src={article.image}
-                alt={article.title}
-                width={768}
-                height={336}
-                className="w-full h-full object-cover"
-                priority
-              />
-              {/* Gradient overlay bas pour lisibilité */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            </div>
+          <div className="mt-6 mb-8 overflow-hidden rounded-xl aspect-[16/7] relative">
+            <OptimizedImage
+              src={article.image}
+              alt={article.title}
+              width={768}
+              height={336}
+              className="w-full h-full object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           </div>
         )}
 

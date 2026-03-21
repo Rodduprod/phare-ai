@@ -51,6 +51,7 @@
     background-color: var(--color-bg);
     color: var(--color-text-body);
     line-height: 1.7;
+    overflow-x: hidden; /* Empêche le scroll horizontal global */
   }
 
   ::selection {
