@@ -41,9 +41,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!article) return {};
 
   const canonicalUrl = `${siteConfig.url}/articles/${article.slug}`;
+
+  // OG image : cover de l'article si dispo, sinon image générée dynamiquement
   const ogImage = article.image
     ? (article.image.startsWith('http') ? article.image : `${siteConfig.url}${article.image}`)
-    : `${siteConfig.url}/og-image-default.png`;
+    : `${siteConfig.url}/api/og?title=${encodeURIComponent(article.title)}&description=${encodeURIComponent(article.description)}&level=${encodeURIComponent(article.level)}&tags=${encodeURIComponent(article.tags.slice(0, 4).join(','))}`;
 
   return {
     title: article.title,

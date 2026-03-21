@@ -148,6 +148,16 @@ function validateArticle(filename) {
     );
   });
 
+  test('image (si présente) est une URL valide', () => {
+    if (data.image !== undefined) {
+      assert(typeof data.image === 'string', `image doit être une string`);
+      assert(
+        data.image.startsWith('http') || data.image.startsWith('/'),
+        `image invalide: "${data.image}" — doit être une URL http(s) ou un chemin /...`
+      );
+    }
+  });
+
   test('topic (si présent) est un slug kebab-case valide', () => {
     if (data.topic !== undefined) {
       assert(typeof data.topic === 'string', `topic doit être une string`);

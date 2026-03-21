@@ -346,6 +346,30 @@ Description du sujet: ${topic.description}${internalLinksContext}`;
 }
 
 /**
+ * Bibliothèque de photos Unsplash par thème IA/tech
+ */
+const COVER_BY_TOPIC = {
+  'agents':       ['1485827404703-89b55fcc595e', '1677442135703-1787eea5ce01'],
+  'outils':       ['1611532736597-de2d4265fba3', '1531297484001-80022131f5a1'],
+  'code':         ['1555066931-4365d14ad3cd', '1461749280684-dccba630e2f6'],
+  'automatisation':['1485827404703-89b55fcc595e', '1593642632559-0c6d3fc62b89'],
+  'entrepreneurs':['1507679799987-c73779587ccf', '1454165804606-c3d57bc86b40'],
+  'créateurs':    ['1611162617213-7d7a39e9b1d7', '1535016120720-40c647be5912'],
+  'google':       ['1573804633927-bfcbcd909acd', '1526374965328-7f61d4dc18c5'],
+  'default':      ['1677442135703-1787eea5ce01', '1620712943543-bcc4688e7485',
+                   '1485827404703-89b55fcc595e', '1531297484001-80022131f5a1',
+                   '1555066931-4365d14ad3cd', '1526374965328-7f61d4dc18c5'],
+};
+
+function getCoverImage(tags, slug) {
+  const matched = tags.find(t => COVER_BY_TOPIC[t.toLowerCase()]);
+  const photos = (matched && COVER_BY_TOPIC[matched.toLowerCase()]) || COVER_BY_TOPIC['default'];
+  const hash = slug.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const id = photos[hash % photos.length];
+  return `https://images.unsplash.com/photo-${id}?w=1200&q=80&auto=format&fit=crop`;
+}
+
+/**
  * Génère un slug ASCII kebab-case depuis un titre
  */
 function titleToSlug(title) {
@@ -371,6 +395,7 @@ function createMDXFile(topic, content, level, topicSlug) {
   const levelSlug = level === 'débutant' ? 'debutant' : level === 'confirmé' ? 'confirme' : level;
 
   const generatedAt = new Date().toISOString();
+  const coverImage = getCoverImage(topic.tags, `${topicSlug}--${levelSlug}`);
 
   const frontmatter = `---
 title: "${topic.title}"
@@ -380,6 +405,7 @@ generated_at: "${generatedAt}"
 tags: [${topic.tags.map(tag => `"${tag}"`).join(', ')}]
 level: "${level}"
 topic: "${topicSlug}"
+image: "${coverImage}"
 published: true
 ---
 
