@@ -1,11 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { ArticleGroup, ArticleLevel, levelConfig } from '@/lib/articles-types';
+import { ArticleGroup, levelConfig } from '@/lib/articles-types';
 import { formatDate } from '@/lib/utils';
 import { OptimizedImage } from './OptimizedImage';
-
-const ALL_LEVELS: ArticleLevel[] = ['débutant', 'amateur', 'confirmé'];
 
 interface ArticleGroupCardProps {
   group: ArticleGroup;
@@ -14,9 +12,10 @@ interface ArticleGroupCardProps {
 export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
   const { canonical, versions } = group;
   const isMultiVersion = versions.length > 1;
+  const lv = levelConfig[canonical.level];
 
   return (
-    <article className="article-card group">
+    <article className="article-card group flex flex-col">
       {/* Image */}
       {canonical.image && (
         <Link href={`/articles/${canonical.slug}`} className="block overflow-hidden">
@@ -32,7 +31,7 @@ export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
         </Link>
       )}
 
-      <div className="article-card-content">
+      <div className="article-card-content flex flex-col flex-1">
         {/* Tags — liens vers les pages tag */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {canonical.tags.slice(0, 2).map((tag) => (
@@ -46,9 +45,9 @@ export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
           ))}
         </div>
 
-        {/* Titre — lien vers le canonical */}
-        <Link href={`/articles/${canonical.slug}`} className="block group">
-          <h2 className="text-display-lg text-text group-hover:text-primary transition-colors duration-200 mb-2">
+        {/* Titre */}
+        <Link href={`/articles/${canonical.slug}`} className="block group/title flex-1">
+          <h2 className="text-display-lg text-text group-hover/title:text-primary transition-colors duration-200 mb-2">
             {canonical.title}
           </h2>
           <p className="text-text-body leading-relaxed mb-4">
@@ -56,89 +55,36 @@ export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
           </p>
         </Link>
 
-        {/* Level switcher inline dans la card */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          {isMultiVersion ? (
-            ALL_LEVELS.map((level) => {
-              const version = versions.find((v) => v.level === level);
-              const config = levelConfig[level];
-
-              if (!version) {
-                return (
-                  <span
-                    key={level}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-dashed border-border text-xs text-text-muted opacity-40 cursor-not-allowed"
-                    title="Version à venir"
-                  >
-                    <span>{config.icon}</span>
-                    <span>{config.label}</span>
-                  </span>
-                );
-              }
-
-              const isCanonical = version.slug === canonical.slug;
-
-              return (
-                <Link
-                  key={level}
-                  href={`/articles/${version.slug}`}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-medium transition-all duration-150 hover:shadow-sm"
-                  style={{
-                    borderColor: isCanonical ? config.color : 'var(--color-border)',
-                    color: isCanonical ? config.color : 'var(--color-text-muted)',
-                    backgroundColor: isCanonical ? `${config.color}12` : 'transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isCanonical) {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.color = config.color;
-                      el.style.borderColor = config.color;
-                      el.style.backgroundColor = `${config.color}10`;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isCanonical) {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.color = '';
-                      el.style.borderColor = '';
-                      el.style.backgroundColor = '';
-                    }
-                  }}
-                >
-                  <span>{config.icon}</span>
-                  <span>{config.label}</span>
-                </Link>
-              );
-            })
-          ) : (
-            // Article standalone — affiche simplement le badge niveau
+        {/* Footer : niveau + badge multi-niveaux + méta */}
+        <div className="flex items-center justify-between gap-3 flex-wrap mt-auto">
+          <div className="flex items-center gap-2">
+            {/* Badge niveau */}
             <span
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-medium"
               style={{
-                borderColor: levelConfig[canonical.level].color,
-                color: levelConfig[canonical.level].color,
-                backgroundColor: `${levelConfig[canonical.level].color}12`,
+                borderColor: lv.color,
+                color: lv.color,
+                backgroundColor: `${lv.color}12`,
               }}
             >
-              <span>{levelConfig[canonical.level].icon}</span>
-              <span>{levelConfig[canonical.level].label}</span>
+              <span>{lv.icon}</span>
+              <span>{lv.label}</span>
             </span>
-          )}
-        </div>
 
-        {/* Métadonnées */}
-        <div className="flex items-center gap-3 text-meta text-text-muted">
-          <time dateTime={canonical.date}>{formatDate(canonical.date)}</time>
-          <span className="w-1 h-1 rounded-full bg-border" />
-          <span>{canonical.readingTime}</span>
-          {isMultiVersion && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-border" />
-              <span className="text-xs">
-                {versions.length} version{versions.length > 1 ? 's' : ''}
+            {/* Badge multi-niveaux discret */}
+            {isMultiVersion && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-dashed border-border text-xs text-text-muted">
+                {versions.length} niveaux
               </span>
-            </>
-          )}
+            )}
+          </div>
+
+          {/* Méta */}
+          <div className="flex items-center gap-2 text-meta text-text-muted">
+            <time dateTime={canonical.date}>{formatDate(canonical.date)}</time>
+            <span className="w-1 h-1 rounded-full bg-border" />
+            <span>{canonical.readingTime}</span>
+          </div>
         </div>
       </div>
     </article>
