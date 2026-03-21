@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { ArticleGroup, ArticleLevel, levelConfig } from '@/lib/articles-types';
 import { formatDate } from '@/lib/utils';
