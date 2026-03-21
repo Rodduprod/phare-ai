@@ -102,6 +102,27 @@ export function getArticleGroups(): ArticleGroup[] {
   return groups.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
+/**
+ * Retourne le slug canonique d'un article multi-niveaux.
+ * Pour un topic donné, le canonical est toujours la version amateur (ou débutant/confirmé en fallback).
+ * Pour un article standalone, retourne son propre slug.
+ */
+export function getCanonicalSlug(slug: string): string {
+  const allArticles = getAllArticles();
+  const current = allArticles.find((a) => a.slug === slug);
+  if (!current || !current.topic) return slug; // standalone = son propre canonical
+
+  const LEVEL_PRIORITY: ArticleLevel[] = ['amateur', 'débutant', 'confirmé'];
+  const topic = resolveTopic(current);
+  const siblings = allArticles.filter((a) => resolveTopic(a) === topic);
+
+  const canonical = LEVEL_PRIORITY
+    .map((l) => siblings.find((a) => a.level === l))
+    .find(Boolean);
+
+  return canonical?.slug ?? slug;
+}
+
 // Retourne les autres versions du même topic que l'article donné
 export function getArticleSiblings(slug: string): ArticleMeta[] {
   const allArticles = getAllArticles();

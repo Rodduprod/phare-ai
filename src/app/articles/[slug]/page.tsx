@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAllArticles, getArticleBySlug, getArticleSiblings, getRelatedArticles } from "@/lib/articles";
+import { getAllArticles, getArticleBySlug, getArticleSiblings, getRelatedArticles, getCanonicalSlug } from "@/lib/articles";
 import { levelConfig } from "@/lib/articles-types";
 import { formatDate } from "@/lib/utils";
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -40,7 +40,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = getArticleBySlug(params.slug);
   if (!article) return {};
 
-  const canonicalUrl = `${siteConfig.url}/articles/${article.slug}`;
+  // Pour les articles multi-niveaux, le canonical pointe toujours vers la version amateur
+  const canonicalSlug = getCanonicalSlug(params.slug);
+  const canonicalUrl = `${siteConfig.url}/articles/${canonicalSlug}`;
 
   // OG image : cover de l'article si dispo, sinon image générée dynamiquement
   const ogImage = article.image

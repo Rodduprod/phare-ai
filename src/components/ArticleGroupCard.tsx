@@ -31,12 +31,16 @@ export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
       )}
 
       <div className="article-card-content">
-        {/* Tags */}
+        {/* Tags — liens vers les pages tag */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {canonical.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="tag-pill tag-pill-default">
+            <Link
+              key={tag}
+              href={`/articles/tag/${tag.toLowerCase()}`}
+              className="tag-pill tag-pill-default hover:text-primary hover:border-primary/40 transition-colors"
+            >
               {tag}
-            </span>
+            </Link>
           ))}
         </div>
 

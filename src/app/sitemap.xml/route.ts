@@ -27,6 +27,9 @@ function formatDate(dateStr: string): string {
 export async function GET() {
   const articles = getAllArticles().filter((a) => a.published);
 
+  // Tags uniques
+  const tags = Array.from(new Set(articles.flatMap((a) => a.tags.map((t) => t.toLowerCase()))));
+
   const staticPages = [
     { url: siteConfig.url,             priority: '1.0',  changefreq: 'daily',   lastmod: new Date().toISOString() },
     { url: `${siteConfig.url}/articles`, priority: '0.9',  changefreq: 'daily',   lastmod: new Date().toISOString() },
@@ -40,7 +43,14 @@ export async function GET() {
     lastmod: formatDate(article.date),
   }));
 
-  const allUrls = [...staticPages, ...articleUrls];
+  const tagUrls = tags.map((tag) => ({
+    url: `${siteConfig.url}/articles/tag/${tag}`,
+    priority: '0.70',
+    changefreq: 'weekly',
+    lastmod: new Date().toISOString(),
+  }));
+
+  const allUrls = [...staticPages, ...articleUrls, ...tagUrls];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset

@@ -7,6 +7,7 @@ export {
   getRelatedArticles,
   getArticleGroups,
   getArticleSiblings,
+  getCanonicalSlug,
 } from './articles-server';
 
 // Client-side types and configs (safe for client components)
