@@ -62,78 +62,208 @@
 
 @layer components {
   /* Article prose styling selon charte */
-  .prose-article {
-    color: var(--color-text-body);
-    line-height: 1.7;
-    max-width: 680px; /* Largeur max de lecture */
+  /* ── Layout article ───────────────────────────── */
+  .article-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
   }
 
-  .prose-article h1 {
-    font-size: 2.25rem; /* 36px */
-    font-weight: 700;
-    line-height: 1.2;
+  @media (min-width: 1024px) {
+    .article-layout {
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: 4rem;
+      align-items: start;
+    }
+  }
+
+  .article-main {
+    min-width: 0;
+  }
+
+  .article-sidebar {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .article-sidebar {
+      display: block;
+    }
+  }
+
+  .toc-sticky {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+    padding-bottom: 2rem;
+  }
+
+  /* ── Titre et chapô ────────────────────────────── */
+  .article-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.15;
     color: var(--color-text);
-    margin-top: 3rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.25rem;
+  }
+
+  .article-lead {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-text-muted);
     margin-bottom: 1.5rem;
+    max-width: 60ch;
+    border-left: 3px solid var(--color-primary);
+    padding-left: 1rem;
+  }
+
+  /* ── Table des matières ────────────────────────── */
+  .toc-nav { }
+
+  .toc-link {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+    margin-left: -0.75rem;
+  }
+
+  .toc-link:hover {
+    color: var(--color-text);
+    border-left-color: var(--color-border);
+  }
+
+  .toc-link-active {
+    color: var(--color-primary) !important;
+    border-left-color: var(--color-primary) !important;
+    font-weight: 500;
+  }
+
+  /* ── Boutons de partage ────────────────────────── */
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    transition: var(--transition);
+  }
+
+  .share-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-primary);
+    background-color: rgba(153, 204, 255, 0.08);
+  }
+
+  /* ── Prose article ─────────────────────────────── */
+  .prose-article {
+    color: var(--color-text-body);
+    line-height: 1.75;
+  }
+
+  /* Premier paragraphe mis en valeur */
+  .prose-article > p:first-of-type {
+    font-size: 1.125rem;
+    color: var(--color-text);
+    line-height: 1.7;
   }
 
   .prose-article h2 {
-    font-size: 1.5rem; /* 24px */
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
     line-height: 1.3;
     color: var(--color-text);
-    margin-top: 2.5rem;
+    margin-top: 3rem;
     margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+    scroll-margin-top: 5rem;
+  }
+
+  .prose-article h2 a {
+    color: inherit !important;
+    text-decoration: none !important;
   }
 
   .prose-article h3 {
-    font-size: 1.25rem; /* 20px */
+    font-size: 1.1875rem;
     font-weight: 600;
     line-height: 1.35;
     color: var(--color-text);
     margin-top: 2rem;
     margin-bottom: 0.75rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .prose-article h3 a {
+    color: inherit !important;
+    text-decoration: none !important;
   }
 
   .prose-article p {
-    font-size: 1.0625rem; /* 17px corps de texte selon charte */
-    line-height: 1.7;
+    font-size: 1.0625rem;
+    line-height: 1.75;
     margin-bottom: 1.5rem;
+  }
+
+  .prose-article strong {
+    color: var(--color-text);
+    font-weight: 600;
   }
 
   .prose-article a {
     color: var(--color-primary);
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-color: rgba(153, 204, 255, 0.4);
+    text-underline-offset: 3px;
     transition: var(--transition);
   }
 
   .prose-article a:hover {
     color: var(--color-primary-hover);
-    text-decoration: underline;
+    text-decoration-color: var(--color-primary);
   }
 
   .prose-article blockquote {
-    border-left: 2px solid var(--color-primary);
-    padding-left: 1.5rem;
-    margin: 2rem 0;
-    color: var(--color-text-muted);
+    border-left: 3px solid var(--color-primary);
+    padding: 1rem 1.5rem;
+    margin: 2.5rem 0;
+    background: rgba(153, 204, 255, 0.06);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--color-text);
     font-style: italic;
-    font-size: 1.25rem; /* 20px chapô/intro */
-    line-height: 1.6;
+    font-size: 1.125rem;
+    line-height: 1.65;
+  }
+
+  .prose-article blockquote p {
+    margin-bottom: 0;
+    font-size: inherit;
   }
 
   .prose-article code {
     font-family: var(--font-mono);
-    font-size: 0.875rem; /* 14px */
-    background-color: var(--color-bg-alt);
+    font-size: 0.875rem;
+    background-color: rgba(153, 204, 255, 0.1);
     color: var(--color-text);
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-md);
+    padding: 0.2rem 0.45rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(153, 204, 255, 0.2);
   }
 
   .prose-article pre {
-    background-color: var(--color-bg-alt);
-    border: 1px solid var(--color-border);
+    background-color: #0d1117;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: var(--radius-md);
     padding: 1.5rem;
     margin: 2rem 0;
@@ -142,25 +272,111 @@
 
   .prose-article pre code {
     background: transparent;
+    border: none;
     padding: 0;
+    font-size: 0.875rem;
+    color: #e6edf3;
   }
 
   .prose-article img {
     border-radius: var(--radius-md);
     margin: 2rem 0;
+    border: 1px solid var(--color-border);
   }
 
-  .prose-article ul, .prose-article ol {
+  .prose-article ul {
+    padding-left: 0;
+    margin-bottom: 1.5rem;
+    list-style: none;
+  }
+
+  .prose-article ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.625rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  .prose-article ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    opacity: 0.7;
+  }
+
+  .prose-article ol {
     padding-left: 1.5rem;
     margin-bottom: 1.5rem;
+    counter-reset: list-counter;
+    list-style: none;
   }
 
-  .prose-article li {
-    margin-bottom: 0.5rem;
+  .prose-article ol li {
+    position: relative;
+    padding-left: 1rem;
+    margin-bottom: 0.625rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    counter-increment: list-counter;
+  }
+
+  .prose-article ol li::before {
+    content: counter(list-counter) ".";
+    position: absolute;
+    left: -1.5rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.9em;
+  }
+
+  /* Tableaux */
+  .prose-article table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: 0.9375rem;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+
+  .prose-article thead {
+    background: rgba(153, 204, 255, 0.08);
+  }
+
+  .prose-article th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .prose-article td {
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--color-text-body);
+    line-height: 1.5;
+  }
+
+  .prose-article tr:last-child td {
+    border-bottom: none;
+  }
+
+  .prose-article tr:hover td {
+    background: rgba(153, 204, 255, 0.03);
   }
 
   .prose-article hr {
-    border-color: var(--color-border);
+    border: none;
+    border-top: 1px solid var(--color-border);
     margin: 3rem 0;
   }
 
