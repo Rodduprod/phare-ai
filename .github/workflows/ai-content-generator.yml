@@ -41,8 +41,8 @@ jobs:
     - name: 📝 Commit and push if content generated
       run: |
         # Auteur = compte Vercel du propriétaire (obligatoire pour le deploy auto)
-        git config --local user.email "rodolphedupeloux@gmail.com"
-        git config --local user.name "Rodolphe du Peloux"
+        git config --local user.email "19566325+Rodduprod@users.noreply.github.com"
+        git config --local user.name "Rodduprod"
 
         # Pull les éventuels commits distants avant de pousser (évite les conflits)
         git pull --rebase origin main
