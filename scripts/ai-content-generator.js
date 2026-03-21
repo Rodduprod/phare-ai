@@ -395,7 +395,8 @@ function createMDXFile(topic, content, level, topicSlug) {
   const levelSlug = level === 'débutant' ? 'debutant' : level === 'confirmé' ? 'confirme' : level;
 
   const generatedAt = new Date().toISOString();
-  const coverImage = getCoverImage(topic.tags, `${topicSlug}--${levelSlug}`);
+  // Image partagée pour toutes les versions du même topic (slug du topic sans niveau)
+  const coverImage = getCoverImage(topic.tags, topicSlug);
 
   const frontmatter = `---
 title: "${topic.title}"
