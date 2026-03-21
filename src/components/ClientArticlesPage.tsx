@@ -71,7 +71,7 @@ export function ClientArticlesPage({ groups }: ClientArticlesPageProps) {
       </div>
 
       {/* Grille d'articles */}
-      <div className="stagger">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {displayedGroups.map((group) => (
           <ArticleGroupCard key={group.topic} group={group} />
         ))}
