@@ -515,7 +515,15 @@ Règles importantes :
   const generatedTags        = tagsMatch?.[1]?.split(',').map(t => t.trim()).filter(Boolean) || topic.tags;
   const generatedContent     = contentMatch?.[1]?.trim() || raw;
 
-  return { title: generatedTitle, description: generatedDescription, tags: generatedTags, content: generatedContent };
+  // Sanity: remplace les <N et >N hors blocs code (ex: <7B, <100ms) — invalide en MDX car interprété comme JSX
+  const sanitizedContent = generatedContent
+    .split(/(?=(```[\s\S]*?```))/)  // sépare les blocs code
+    .map((chunk, i) => i % 2 === 0  // les chunks pairs sont hors code
+      ? chunk.replace(/<(\d)/g, '&lt;$1').replace(/>(\d)/g, '&gt;$1')
+      : chunk
+    ).join('');
+
+  return { title: generatedTitle, description: generatedDescription, tags: generatedTags, content: sanitizedContent };
 }
 
 /**
