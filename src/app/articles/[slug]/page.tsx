@@ -163,8 +163,26 @@ export default function ArticlePage({ params }: PageProps) {
           </Link>
         </div>
 
+        {/* Cover image hero — pleine largeur avant le header */}
+        {article.image && (
+          <div className="mt-6 -mx-6 sm:-mx-0 mb-8">
+            <div className="overflow-hidden rounded-none sm:rounded-xl aspect-[16/7] relative">
+              <OptimizedImage
+                src={article.image}
+                alt={article.title}
+                width={768}
+                height={336}
+                className="w-full h-full object-cover"
+                priority
+              />
+              {/* Gradient overlay bas pour lisibilité */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+          </div>
+        )}
+
         {/* Article header */}
-        <header className="pt-10 pb-10 border-b border-ink-100">
+        <header className="pb-10 border-b border-ink-100">
           <div className="flex items-center gap-2 mb-4">
             {/* Badge niveau */}
             <span
@@ -201,21 +219,7 @@ export default function ArticlePage({ params }: PageProps) {
             <LevelSwitcher currentLevel={article.level} versions={allVersions} />
           )}
 
-          {/* Cover Image */}
-          {article.image && (
-            <div className="mb-6">
-              <OptimizedImage
-                src={article.image}
-                alt={article.title}
-                width={768}
-                height={432}
-                className="w-full h-64 sm:h-80 rounded-xl border border-ink-100"
-                priority
-              />
-            </div>
-          )}
-
-          <div className="flex items-center gap-4 text-sm text-ink-400 font-body">
+          <div className="flex items-center gap-4 text-sm text-ink-400 font-body mt-4">
             <time dateTime={article.date}>{formatDate(article.date)}</time>
             <span className="w-1 h-1 rounded-full bg-ink-300" />
             <span>{article.readingTime}</span>

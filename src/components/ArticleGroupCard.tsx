@@ -14,17 +14,17 @@ export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
   const isMultiVersion = versions.length > 1;
 
   return (
-    <article className="article-card">
+    <article className="article-card group">
       {/* Image */}
       {canonical.image && (
-        <Link href={`/articles/${canonical.slug}`} className="block">
+        <Link href={`/articles/${canonical.slug}`} className="block overflow-hidden">
           <div className="aspect-video overflow-hidden">
             <OptimizedImage
               src={canonical.image}
               alt={canonical.title}
               width={400}
               height={225}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
         </Link>
