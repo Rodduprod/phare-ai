@@ -32,12 +32,11 @@ const CONFIG = {
     techcrunch:       'https://techcrunch.com/category/artificial-intelligence/feed/',
     venturebeat:      'https://venturebeat.com/category/ai/feed/',
     arxiv:            'http://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=15',
-    // Sources chinoises (précurseurs IA : DeepSeek, Baidu, Alibaba, Tencent...)
-    xinhua:           'http://www.xinhuanet.com/english/rss/scienceandtechnology.xml',
-    cgtn:             'https://www.cgtn.com/subscribe/feeds/sciencetech.xml',
-    scmp_tech:        'https://www.scmp.com/rss/5/feed', // SCMP Tech & Innovation
-    chinadaily:       'https://www.chinadaily.com.cn/rss/technology_rss.xml',
-    gnews_cn:         'https://news.google.com/rss/search?q=artificial+intelligence+China+DeepSeek+Baidu&hl=en-US&gl=US&ceid=US:en',
+    // Sources chinoises via Google News (DeepSeek, Baidu, Alibaba Qwen, ByteDance...)
+    gnews_cn_deepseek: 'https://news.google.com/rss/search?q=DeepSeek+AI&hl=en-US&gl=US&ceid=US:en',
+    gnews_cn_baidu:    'https://news.google.com/rss/search?q=Baidu+ERNIE+AI&hl=en-US&gl=US&ceid=US:en',
+    gnews_cn_alibaba:  'https://news.google.com/rss/search?q=Alibaba+Qwen+AI+model&hl=en-US&gl=US&ceid=US:en',
+    gnews_cn_general:  'https://news.google.com/rss/search?q=China+artificial+intelligence+AI+2025&hl=en-US&gl=US&ceid=US:en',
   }
 };
 
@@ -218,13 +217,12 @@ async function scrapeAINews() {
   for (const [key, url] of [
     ['GoogleNews-FR', CONFIG.sources.gnews_fr],
     ['GoogleNews-EN', CONFIG.sources.gnews_en],
-    ['GoogleNews-CN', CONFIG.sources.gnews_cn],
-    ['TechCrunch',    CONFIG.sources.techcrunch],
-    ['VentureBeat',   CONFIG.sources.venturebeat],
-    ['Xinhua',        CONFIG.sources.xinhua],
-    ['CGTN',          CONFIG.sources.cgtn],
-    ['SCMP',          CONFIG.sources.scmp_tech],
-    ['ChinaDaily',    CONFIG.sources.chinadaily],
+    ['GoogleNews-CN-DeepSeek', CONFIG.sources.gnews_cn_deepseek],
+    ['GoogleNews-CN-Baidu',   CONFIG.sources.gnews_cn_baidu],
+    ['GoogleNews-CN-Alibaba', CONFIG.sources.gnews_cn_alibaba],
+    ['GoogleNews-CN-General', CONFIG.sources.gnews_cn_general],
+    ['TechCrunch',            CONFIG.sources.techcrunch],
+    ['VentureBeat',           CONFIG.sources.venturebeat],
   ]) {
     try {
       const res = await fetchWithTimeout(url);
