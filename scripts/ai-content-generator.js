@@ -378,76 +378,63 @@ function getExistingArticlesContext() {
  * Generate article content using Claude
  */
 async function generateArticle(topic, level) {
+  const levelDescriptions = {
+    débutant: `pour le grand public (débutants complets en IA). Accessible, sans jargon, métaphores du quotidien, ton enthousiaste. 800-1000 mots. Structure : intro accrocheuse → explication simple → exemples concrets → impact quotidien → conclusion optimiste.`,
+    amateur:  `pour des professionnels tech qui découvrent l'IA. Technique mais accessible, implications business, exemples d'architectures. 1000-1200 mots. Structure : contexte & enjeux → fonctionnement → cas d'usage business → APIs disponibles → ROI & impact équipes.`,
+    confirmé: `pour des architectes et ingénieurs ML. Deep dive technique, architectures, benchmarks, code, optimisations. 1200-1500 mots. Structure : fondements techniques → implémentation → benchmarks → limitations → recherche & évolutions futures.`,
+  };
+
   const levelPrompts = {
-    débutant: `Écris un article de vulgarisation sur "${topic.title}" pour des débutants complets en IA.
-    
-Style:
-- Accessible au grand public
-- Métaphores et exemples concrets du quotidien
-- Aucun jargon technique non expliqué
-- Ton enthousiaste et pédagogue
-- 800-1000 mots
+    débutant: `Tu es rédacteur expert pour Le Labo AI, un média français d'IA pour le grand public.
 
-Structure:
-1. Introduction accrocheuse
-2. Explication simple du concept
-3. Exemples concrets et applications
-4. Impact sur la vie quotidienne
-5. Conclusion optimiste
+Sujet source (actu internationale) : "${topic.title}"
+Niveau cible : ${levelDescriptions['débutant']}
 
-Évite les termes techniques complexes, privilégie la clarté.`,
+Réponds UNIQUEMENT avec ce format exact (respecte les séparateurs) :
 
-    amateur: `Écris un article technique sur "${topic.title}" pour des professionnels tech découvrant l'IA.
-    
-Style:
-- Accessible aux développeurs/chefs de projet
-- Context technique mais pas trop poussé
-- Implications business et intégrations
-- Exemples d'architectures et d'APIs
-- 1000-1200 mots
+TITRE: [titre accrocheur en français, max 80 caractères, sans guillemets]
+DESCRIPTION: [résumé en 1-2 phrases en français, 120-160 caractères]
+TAGS: [3-5 mots-clés en minuscules sans accents, séparés par des virgules]
+---
+[contenu complet de l'article en markdown]`,
 
-Structure:
-1. Contexte et enjeux techniques
-2. Comment ça fonctionne (niveau architecture)
-3. Cas d'usage business concrets
-4. Intégrations et APIs disponibles
-5. ROI et impact sur les équipes
+    amateur: `Tu es rédacteur expert pour Le Labo AI, un média français d'IA pour les professionnels.
 
-Balance entre technique et business.`,
+Sujet source (actu internationale) : "${topic.title}"
+Niveau cible : ${levelDescriptions['amateur']}
 
-    confirmé: `Écris un article expert sur "${topic.title}" pour des architectes et ingénieurs ML.
-    
-Style:
-- Deep dive technique complet
-- Architectures, performance, optimisations
-- Code, benchmarks, métriques
-- Implications techniques avancées
-- 1200-1500 mots
+Réponds UNIQUEMENT avec ce format exact (respecte les séparateurs) :
 
-Structure:
-1. Architecture et fondements techniques
-2. Implémentation et optimisations
-3. Benchmarks et performance
-4. Limitations et défis techniques
-5. Évolutions futures et recherche
+TITRE: [titre accrocheur en français, max 80 caractères, sans guillemets]
+DESCRIPTION: [résumé en 1-2 phrases en français, 120-160 caractères]
+TAGS: [3-5 mots-clés en minuscules sans accents, séparés par des virgules]
+---
+[contenu complet de l'article en markdown]`,
 
-Maximum de précision technique et d'insights d'expert.`
+    confirmé: `Tu es rédacteur expert pour Le Labo AI, un média français d'IA pour les ingénieurs ML.
+
+Sujet source (actu internationale) : "${topic.title}"
+Niveau cible : ${levelDescriptions['confirmé']}
+
+Réponds UNIQUEMENT avec ce format exact (respecte les séparateurs) :
+
+TITRE: [titre accrocheur en français, max 80 caractères, sans guillemets]
+DESCRIPTION: [résumé en 1-2 phrases en français, 120-160 caractères]
+TAGS: [3-5 mots-clés en minuscules sans accents, séparés par des virgules]
+---
+[contenu complet de l'article en markdown]`,
   };
 
   const internalLinksContext = getExistingArticlesContext();
 
   const prompt = levelPrompts[level] + `
 
-Important: 
-- Contenu 100% original et en français
-- Pas de plagiat, inspire-toi mais ne copies pas
-- Adapte le niveau technique exactement comme demandé
-- Utilise des exemples français/européens quand possible
-- Termine par un appel à l'action subtil
-- **Maillage interne obligatoire** : intègre au minimum 2 liens vers des articles existants du site quand le sujet s'y prête (voir liste ci-dessous)
-- **Synthèse multi-sources** : si des sources sont fournies, appuie-toi sur elles pour les faits et données — mentionne les sources dans le texte naturellement (ex: "selon TechCrunch", "d'après les chercheurs d'arXiv")
-
-Description du sujet: ${topic.description}${topic.sourcesContext || ''}${internalLinksContext}`;
+Règles importantes :
+- Tout le contenu (titre, description, tags, article) doit être en français
+- Contenu 100% original, inspiré des sources mais jamais copié
+- **Maillage interne obligatoire** : minimum 2 liens internes dans le corps du texte (voir liste ci-dessous)
+- **Synthèse multi-sources** : cite les sources naturellement dans le texte ("selon TechCrunch", "d'après Google News"...)
+- Titre accrocheur, clair, informatif — pas un titre de communiqué de presse${topic.sourcesContext || ''}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
@@ -515,7 +502,20 @@ Description du sujet: ${topic.description}${topic.sourcesContext || ''}${interna
     messages: [{ role: 'user', content: prompt }]
   });
 
-  return message.content[0].text;
+  const raw = message.content[0].text;
+
+  // Parse le format structuré : TITRE / DESCRIPTION / TAGS / --- / contenu
+  const titreMatch    = raw.match(/^TITRE:\s*(.+)$/m);
+  const descMatch     = raw.match(/^DESCRIPTION:\s*(.+)$/m);
+  const tagsMatch     = raw.match(/^TAGS:\s*(.+)$/m);
+  const contentMatch  = raw.match(/^---\s*\n([\s\S]+)$/m);
+
+  const generatedTitle       = titreMatch?.[1]?.trim().replace(/^["']|["']$/g, '') || topic.title;
+  const generatedDescription = descMatch?.[1]?.trim() || topic.description;
+  const generatedTags        = tagsMatch?.[1]?.split(',').map(t => t.trim()).filter(Boolean) || topic.tags;
+  const generatedContent     = contentMatch?.[1]?.trim() || raw;
+
+  return { title: generatedTitle, description: generatedDescription, tags: generatedTags, content: generatedContent };
 }
 
 /**
@@ -561,29 +561,30 @@ function titleToSlug(title) {
 /**
  * Create MDX file with proper frontmatter
  */
-function createMDXFile(topic, content, level, topicSlug) {
+function createMDXFile(topic, generated, level, topicSlug) {
+  // `generated` = { title, description, tags, content } produit par Claude
   const date = new Date().toISOString().split('T')[0];
-
-  // Niveau en ASCII pour le slug
   const levelSlug = level === 'débutant' ? 'debutant' : level === 'confirmé' ? 'confirme' : level;
-
   const generatedAt = new Date().toISOString();
-  // Image partagée pour toutes les versions du même topic (slug du topic sans niveau)
-  const coverImage = getCoverImage(topic.tags, topicSlug);
+  const coverImage = getCoverImage(generated.tags, topicSlug);
+
+  // Échappe les guillemets dans le titre pour le YAML
+  const safeTitle = generated.title.replace(/"/g, '\\"');
+  const safeDesc  = generated.description.replace(/"/g, '\\"');
 
   const frontmatter = `---
-title: "${topic.title}"
-description: "${topic.description}"
+title: "${safeTitle}"
+description: "${safeDesc}"
 date: "${date}"
 generated_at: "${generatedAt}"
-tags: [${topic.tags.map(tag => `"${tag}"`).join(', ')}]
+tags: [${generated.tags.map(t => `"${t}"`).join(', ')}]
 level: "${level}"
 topic: "${topicSlug}"
 image: "${coverImage}"
 published: true
 ---
 
-${content}`;
+${generated.content}`;
 
   const filename = `${topicSlug}--${levelSlug}.mdx`;
   const filepath = path.join(CONTENT_DIR, filename);
@@ -692,12 +693,21 @@ async function main() {
     console.log(`📝 Generating 3 levels for topic: "${topic.title}" (slug: ${topicSlug})`);
 
     let createdCount = 0;
+    let frenchTitle = null; // titre FR généré par Claude (partagé entre les 3 niveaux)
+
     for (const level of levels) {
       try {
-        const content = await generateArticle(topic, level);
-        const created = createMDXFile(topic, content, level, topicSlug);
+        const generated = await generateArticle(topic, level);
+
+        // Le topic slug se base sur le titre français du premier niveau généré
+        if (!frenchTitle) {
+          frenchTitle = generated.title;
+          console.log(`🇫🇷 Titre FR généré: "${frenchTitle}"`);
+        }
+        const frenchSlug = titleToSlug(frenchTitle);
+
+        const created = createMDXFile(topic, generated, level, frenchSlug);
         if (created) createdCount++;
-        // Pause entre les appels API pour éviter le rate limiting
         await new Promise(r => setTimeout(r, 2000));
       } catch (err) {
         console.error(`❌ Failed to generate ${level} version:`, err.message);
@@ -705,8 +715,7 @@ async function main() {
     }
 
     if (createdCount > 0) {
-      console.log(`🎉 Generated ${createdCount}/3 versions for: ${topic.title}`);
-      console.log(`📂 Topic slug: ${topicSlug}`);
+      console.log(`🎉 Generated ${createdCount}/3 versions for: ${frenchTitle || topic.title}`);
     }
 
   } catch (error) {
