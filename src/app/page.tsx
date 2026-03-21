@@ -1,18 +1,14 @@
-import { getAllArticles } from "@/lib/articles-server";
-import { siteConfig } from "@/lib/config";
+import { getArticleGroups } from "@/lib/articles-server";
 import { WebsiteSchema } from "@/components/WebsiteSchema";
 import { ClientHomePage } from "@/components/ClientHomePage";
 
 export default function HomePage() {
-  const allArticles = getAllArticles();
+  const groups = getArticleGroups();
 
   return (
     <>
-      {/* JSON-LD Schema */}
       <WebsiteSchema />
-      
-      {/* Client-side interactive homepage */}
-      <ClientHomePage articles={allArticles} />
+      <ClientHomePage groups={groups} />
     </>
   );
 }

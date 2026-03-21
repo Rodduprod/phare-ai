@@ -1,37 +1,47 @@
 'use client';
 
-import { ArticleLevel, levelConfig, ArticleMeta } from "@/lib/articles-types";
-import { ArticleCard } from "@/components/ArticleCard";
+import { ArticleLevel, ArticleGroup, levelConfig } from "@/lib/articles-types";
+import { ArticleGroupCard } from "@/components/ArticleGroupCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LevelFilter } from "@/components/LevelFilter";
 import { siteConfig } from "@/lib/config";
 import { useState, useMemo } from "react";
 
 interface ClientHomePageProps {
-  articles: ArticleMeta[];
+  groups: ArticleGroup[];
 }
 
-export function ClientHomePage({ articles }: ClientHomePageProps) {
+export function ClientHomePage({ groups }: ClientHomePageProps) {
   const [selectedLevel, setSelectedLevel] = useState<ArticleLevel | 'all'>('all');
 
-  // Calcul des compteurs par niveau
+  // Comptage par niveau (toutes versions confondues)
   const articleCounts = useMemo(() => {
     const counts = { débutant: 0, amateur: 0, confirmé: 0 } as Record<ArticleLevel, number>;
-    articles.forEach(article => {
-      counts[article.level]++;
-    });
+    groups.forEach(g => g.versions.forEach(v => { counts[v.level]++; }));
     return counts;
-  }, [articles]);
+  }, [groups]);
 
-  // Filtrage des articles selon le niveau sélectionné
-  const filteredArticles = useMemo(() => {
-    if (selectedLevel === 'all') return articles;
-    return articles.filter(article => article.level === selectedLevel);
-  }, [articles, selectedLevel]);
+  // Filtrage : groupes ayant au moins une version du niveau sélectionné
+  const filteredGroups = useMemo(() => {
+    if (selectedLevel === 'all') return groups;
+    return groups.filter(g => g.versions.some(v => v.level === selectedLevel)).map(group => {
+      const matchingVersion = group.versions.find(v => v.level === selectedLevel);
+      if (!matchingVersion) return group;
+      return {
+        ...group,
+        canonical: {
+          ...group.canonical,
+          level: selectedLevel,
+          slug: matchingVersion.slug,
+          readingTime: matchingVersion.readingTime,
+        },
+      };
+    });
+  }, [groups, selectedLevel]);
 
   return (
     <div className="max-w-content mx-auto px-4unit">
-      {/* Hero section */}
+      {/* Hero */}
       <section className="py-8unit border-b border-border">
         <p className="text-primary font-medium text-meta tracking-wide uppercase mb-5">
           Veille & décryptages
@@ -44,30 +54,24 @@ export function ClientHomePage({ articles }: ClientHomePageProps) {
         </p>
       </section>
 
-      {/* Navigation par niveau et articles */}
+      {/* Articles */}
       <section className="py-8unit">
         <h2 className="text-display-lg text-text mb-8">Découvrir par niveau</h2>
-        
-        {/* Filtre par niveau */}
-        <LevelFilter 
+
+        <LevelFilter
           selectedLevel={selectedLevel}
           onLevelChange={setSelectedLevel}
           articleCounts={articleCounts}
         />
-        
-        {/* Grille d'articles filtrés */}
-        {filteredArticles.length > 0 ? (
-          <div className="grid gap-3unit sm:grid-cols-2 lg:grid-cols-3 stagger">
-            {filteredArticles.map((article) => (
-              <ArticleCard key={article.slug} article={article} />
+
+        {filteredGroups.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredGroups.map(group => (
+              <ArticleGroupCard key={group.topic} group={group} />
             ))}
           </div>
         ) : selectedLevel === 'all' ? (
-          <div className="text-center py-8">
-            <p className="text-text-muted">
-              Aucun article pour le moment. Revenez bientôt ! 🚀
-            </p>
-          </div>
+          <p className="text-center text-text-muted py-8">Aucun article pour le moment. Revenez bientôt ! 🚀</p>
         ) : (
           <div className="text-center py-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-alt rounded-lg">
@@ -76,14 +80,10 @@ export function ClientHomePage({ articles }: ClientHomePageProps) {
                 Aucun article niveau <strong>{levelConfig[selectedLevel].label}</strong> pour le moment.
               </p>
             </div>
-            <p className="text-text-muted text-sm mt-2">
-              Ils arrivent bientôt ! 🚀
-            </p>
           </div>
         )}
       </section>
 
-      {/* Newsletter */}
       <NewsletterSignup />
     </div>
   );
