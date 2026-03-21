@@ -450,13 +450,29 @@ async function main() {
   }
 
   try {
+    // Slugs des topics déjà couverts (articles existants)
+    const existingSlugs = new Set(
+      fs.readdirSync(CONTENT_DIR)
+        .filter(f => f.endsWith('.mdx'))
+        .map(f => f.replace(/--[a-z]+\.mdx$/, '').replace('.mdx', ''))
+    );
+
     // Get AI news
     const news = await scrapeAINews();
-    
+
     let topic;
-    if (news.length > 0) {
-      // Use trending news
-      const topNews = news[0];
+    // Parcourt les news jusqu'à trouver un topic non couvert
+    const candidatesFromNews = news.filter(n => {
+      const slug = titleToSlug(n.title);
+      if (existingSlugs.has(slug)) {
+        console.log(`⏭️  Déjà couvert, skip: ${n.title}`);
+        return false;
+      }
+      return true;
+    });
+
+    if (candidatesFromNews.length > 0) {
+      const topNews = candidatesFromNews[0];
       topic = {
         title: topNews.title,
         description: `Analyse de l'actualité IA trending: ${topNews.title}`,
@@ -465,8 +481,12 @@ async function main() {
       };
       console.log(`📈 Using trending topic: ${topic.title}`);
     } else {
-      // Use default AI topic
-      topic = getDefaultAITopics();
+      // Tous les topics trending sont déjà couverts → topic par défaut non couvert
+      let defaultTopic;
+      do {
+        defaultTopic = getDefaultAITopics();
+      } while (existingSlugs.has(titleToSlug(defaultTopic.title)));
+      topic = defaultTopic;
       console.log(`🎯 Using default topic: ${topic.title}`);
     }
 
