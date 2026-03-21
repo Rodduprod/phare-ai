@@ -610,11 +610,14 @@ ${content}`;
 async function main() {
   console.log('🚀 Starting AI Content Generator...');
 
+  const forceGenerate = process.argv.includes('--force') || process.env.FORCE_GENERATE === 'true';
+
   // Check if we should generate content
-  if (!shouldGenerateContent()) {
+  if (!forceGenerate && !shouldGenerateContent()) {
     console.log('⏹️ Rate limit active, skipping this hour');
     return;
   }
+  if (forceGenerate) console.log('⚡ Force mode — rate limit ignoré');
 
   // Check API key
   if (!process.env.ANTHROPIC_API_KEY) {

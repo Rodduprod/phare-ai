@@ -4,7 +4,13 @@ on:
   schedule:
     # Toutes les 2 heures à la minute 15
     - cron: '15 */2 * * *'
-  workflow_dispatch: # Permet déclenchement manuel
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Forcer la génération (ignore le rate limit)'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   generate-content:
@@ -32,6 +38,7 @@ jobs:
       run: node scripts/ai-content-generator.js
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        FORCE_GENERATE: ${{ github.event.inputs.force || 'false' }}
       # continue-on-error pour ne pas bloquer le workflow si l'API est down
       continue-on-error: false
 
