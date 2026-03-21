@@ -32,6 +32,12 @@ const CONFIG = {
     techcrunch:       'https://techcrunch.com/category/artificial-intelligence/feed/',
     venturebeat:      'https://venturebeat.com/category/ai/feed/',
     arxiv:            'http://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=15',
+    // Sources chinoises (précurseurs IA : DeepSeek, Baidu, Alibaba, Tencent...)
+    xinhua:           'http://www.xinhuanet.com/english/rss/scienceandtechnology.xml',
+    cgtn:             'https://www.cgtn.com/subscribe/feeds/sciencetech.xml',
+    scmp_tech:        'https://www.scmp.com/rss/5/feed', // SCMP Tech & Innovation
+    chinadaily:       'https://www.chinadaily.com.cn/rss/technology_rss.xml',
+    gnews_cn:         'https://news.google.com/rss/search?q=artificial+intelligence+China+DeepSeek+Baidu&hl=en-US&gl=US&ceid=US:en',
   }
 };
 
@@ -40,7 +46,10 @@ const AI_KEYWORDS = [
   'ai', 'artificial intelligence', 'machine learning', 'llm', 'gpt', 'claude', 'gemini',
   'openai', 'anthropic', 'google ai', 'deepmind', 'mistral', 'llama', 'chatgpt',
   'neural', 'transformer', 'rag', 'agent', 'copilot', 'diffusion', 'generative',
-  'model', 'chatbot', 'nlp', 'computer vision', 'robotics', 'automation', 'deepseek',
+  'model', 'chatbot', 'nlp', 'computer vision', 'robotics', 'automation',
+  // Acteurs chinois
+  'deepseek', 'baidu', 'ernie', 'alibaba', 'qwen', 'tencent', 'hunyuan',
+  'zhipu', 'minimax', 'moonshot', 'kimi', 'bytedance', 'doubao',
 ];
 
 // Initialize Anthropic
@@ -209,8 +218,13 @@ async function scrapeAINews() {
   for (const [key, url] of [
     ['GoogleNews-FR', CONFIG.sources.gnews_fr],
     ['GoogleNews-EN', CONFIG.sources.gnews_en],
-    ['TechCrunch', CONFIG.sources.techcrunch],
-    ['VentureBeat', CONFIG.sources.venturebeat],
+    ['GoogleNews-CN', CONFIG.sources.gnews_cn],
+    ['TechCrunch',    CONFIG.sources.techcrunch],
+    ['VentureBeat',   CONFIG.sources.venturebeat],
+    ['Xinhua',        CONFIG.sources.xinhua],
+    ['CGTN',          CONFIG.sources.cgtn],
+    ['SCMP',          CONFIG.sources.scmp_tech],
+    ['ChinaDaily',    CONFIG.sources.chinadaily],
   ]) {
     try {
       const res = await fetchWithTimeout(url);
