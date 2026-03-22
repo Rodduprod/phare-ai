@@ -641,19 +641,35 @@ async function main() {
       existingFiles.map(f => f.replace(/--[a-z]+\.mdx$/, '').replace('.mdx', ''))
     );
 
-    // Titres existants extraits du frontmatter pour la déduplication sémantique
-    const existingTitles = existingFiles
+    // Titres + dates des articles existants pour la déduplication sémantique temporelle
+    const TODAY = new Date();
+    const existingArticles = existingFiles
       .filter(f => f.endsWith('--debutant.mdx') || !f.includes('--'))
       .map(f => {
         try {
           const content = fs.readFileSync(path.join(CONTENT_DIR, f), 'utf-8');
-          const m = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
-          return m ? m[1] : '';
-        } catch { return ''; }
+          const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+          const dateMatch  = content.match(/^date:\s*["']?(\d{4}-\d{2}-\d{2})["']?\s*$/m);
+          const title = titleMatch ? titleMatch[1] : '';
+          const date  = dateMatch  ? new Date(dateMatch[1]) : null;
+          const ageDays = date ? Math.floor((TODAY - date) / 86400000) : 999;
+          return title ? { title, ageDays } : null;
+        } catch { return null; }
       })
       .filter(Boolean);
 
-    // Détecte si un nouveau titre est sémantiquement trop proche d'un titre existant
+    // Seuil de similarité selon l'âge de l'article existant :
+    //   < 7 jours  → 0.30 (très strict  — même sujet cette semaine = doublon)
+    //   7–30 jours → 0.45 (strict       — même sujet ce mois = doublon probable)
+    //   30–90 jours→ 0.60 (modéré       — même société mais angle différent = OK)
+    //   > 90 jours → 0.80 (permissif    — sujet ancien peut avoir du nouveau)
+    function thresholdForAge(ageDays) {
+      if (ageDays <  7) return 0.30;
+      if (ageDays < 30) return 0.45;
+      if (ageDays < 90) return 0.60;
+      return 0.80;
+    }
+
     const STOPWORDS_FR = new Set([
       'le','la','les','un','une','des','de','du','et','ou','en','sur','par','pour',
       'que','qui','avec','dans','est','son','ses','leur','leurs','cette','tout',
@@ -662,21 +678,22 @@ async function main() {
     function extractKeywords(title) {
       return new Set(
         title.toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
           .replace(/[^a-z0-9 ]/g, ' ')
           .split(/\s+/)
           .filter(w => w.length > 3 && !STOPWORDS_FR.has(w))
       );
     }
-    function isTooSimilar(newTitle, threshold = 0.30) {
+    function isTooSimilar(newTitle) {
       const newKw = extractKeywords(newTitle);
       if (newKw.size === 0) return false;
-      for (const existingTitle of existingTitles) {
+      for (const { title: existingTitle, ageDays } of existingArticles) {
+        const threshold = thresholdForAge(ageDays);
         const existKw = extractKeywords(existingTitle);
         const overlap = [...newKw].filter(w => existKw.has(w)).length;
         const score = overlap / Math.min(newKw.size, existKw.size);
         if (score >= threshold) {
-          console.log(`⏭️  Trop similaire à "${existingTitle}" (score: ${(score*100).toFixed(0)}%), skip: ${newTitle}`);
+          console.log(`⏭️  Trop similaire à "${existingTitle}" (score: ${(score*100).toFixed(0)}%, âge: ${ageDays}j, seuil: ${(threshold*100).toFixed(0)}%), skip: ${newTitle}`);
           return true;
         }
       }
