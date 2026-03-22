@@ -635,24 +635,66 @@ async function main() {
   }
 
   try {
-    // Slugs des topics déjà couverts (articles existants)
+    // Slugs + titres des topics déjà couverts (articles existants)
+    const existingFiles = fs.readdirSync(CONTENT_DIR).filter(f => f.endsWith('.mdx'));
     const existingSlugs = new Set(
-      fs.readdirSync(CONTENT_DIR)
-        .filter(f => f.endsWith('.mdx'))
-        .map(f => f.replace(/--[a-z]+\.mdx$/, '').replace('.mdx', ''))
+      existingFiles.map(f => f.replace(/--[a-z]+\.mdx$/, '').replace('.mdx', ''))
     );
+
+    // Titres existants extraits du frontmatter pour la déduplication sémantique
+    const existingTitles = existingFiles
+      .filter(f => f.endsWith('--debutant.mdx') || !f.includes('--'))
+      .map(f => {
+        try {
+          const content = fs.readFileSync(path.join(CONTENT_DIR, f), 'utf-8');
+          const m = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+          return m ? m[1] : '';
+        } catch { return ''; }
+      })
+      .filter(Boolean);
+
+    // Détecte si un nouveau titre est sémantiquement trop proche d'un titre existant
+    const STOPWORDS_FR = new Set([
+      'le','la','les','un','une','des','de','du','et','ou','en','sur','par','pour',
+      'que','qui','avec','dans','est','son','ses','leur','leurs','cette','tout',
+      'mais','plus','comme','aussi','entre','vers','dont','aux','au','the','this','is',
+    ]);
+    function extractKeywords(title) {
+      return new Set(
+        title.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+          .replace(/[^a-z0-9 ]/g, ' ')
+          .split(/\s+/)
+          .filter(w => w.length > 3 && !STOPWORDS_FR.has(w))
+      );
+    }
+    function isTooSimilar(newTitle, threshold = 0.30) {
+      const newKw = extractKeywords(newTitle);
+      if (newKw.size === 0) return false;
+      for (const existingTitle of existingTitles) {
+        const existKw = extractKeywords(existingTitle);
+        const overlap = [...newKw].filter(w => existKw.has(w)).length;
+        const score = overlap / Math.min(newKw.size, existKw.size);
+        if (score >= threshold) {
+          console.log(`⏭️  Trop similaire à "${existingTitle}" (score: ${(score*100).toFixed(0)}%), skip: ${newTitle}`);
+          return true;
+        }
+      }
+      return false;
+    }
 
     // Get AI news
     const news = await scrapeAINews();
 
     let topic;
-    // Parcourt les clusters jusqu'à trouver un topic non couvert
+    // Parcourt les clusters jusqu'à trouver un topic non couvert (slug exact + similarité sémantique)
     const candidatesFromNews = news.filter(n => {
       const slug = titleToSlug(n.title);
       if (existingSlugs.has(slug)) {
-        console.log(`⏭️  Déjà couvert, skip: ${n.title}`);
+        console.log(`⏭️  Déjà couvert (slug exact), skip: ${n.title}`);
         return false;
       }
+      if (isTooSimilar(n.title)) return false;
       return true;
     });
 
