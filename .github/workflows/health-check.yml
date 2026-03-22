@@ -1,0 +1,41 @@
+name: 🏥 Health Check
+
+on:
+  schedule:
+    # Tous les jours à 8h UTC (après la génération de 7h)
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🏥 Run Health Check
+      id: check
+      run: node scripts/health-check.js
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      continue-on-error: true
+
+    - name: 🚨 Notifier en cas d'anomalie
+      if: steps.check.outcome == 'failure'
+      run: |
+        echo "::error::Health check failed — anomalie détectée sur lelabo.ai"
+        echo "HEALTH_FAILED=true" >> $GITHUB_ENV
+
+    - name: ✅ Site OK
+      if: steps.check.outcome == 'success'
+      run: echo "✅ Tous les checks sont au vert"
