@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/config";
 import "./globals.css";
 
 const GTM_ID = "GTM-PP47M2T9";
+const GA_ID = "GT-5NGRSQ3H"; // Google Tag ID (GA4 property)
 
 export const metadata: Metadata = {
   title: {
@@ -81,6 +82,18 @@ export default function RootLayout({
         {/* DNS prefetch pour les domaines externes fréquents */}
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         <link rel="dns-prefetch" href="//vercel-insights.com" />
+        {/* Google Tag (GA4 direct) */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script
+          id="ga4-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
+          }}
+        />
         {/* Google Tag Manager */}
         <Script
           id="gtm-script"
