@@ -2,8 +2,8 @@ name: 🤖 AI Content Generator
 
 on:
   schedule:
-    # Toutes les 2 heures à la minute 15
-    - cron: '15 */2 * * *'
+    # Tous les matins à 7h UTC
+    - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -11,6 +11,11 @@ on:
         required: false
         default: 'false'
         type: boolean
+      count:
+        description: 'Nombre d articles à générer (défaut: 3)'
+        required: false
+        default: '3'
+        type: string
 
 jobs:
   generate-content:
@@ -34,31 +39,28 @@ jobs:
     - name: 📦 Install dependencies
       run: npm ci
 
-    - name: 🔍 Scrape AI News & Generate Article
+    - name: 🔍 Scrape AI News & Generate Articles
       run: node scripts/ai-content-generator.js
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         FORCE_GENERATE: ${{ github.event.inputs.force || 'false' }}
-      # continue-on-error pour ne pas bloquer le workflow si l'API est down
-      continue-on-error: false
+        ARTICLES_COUNT: ${{ github.event.inputs.count || '3' }}
 
     - name: 🧪 Valider les articles générés
       run: node scripts/validate-articles.js
 
     - name: 📝 Commit and push if content generated
       run: |
-        # Auteur = compte Vercel du propriétaire (obligatoire pour le deploy auto)
         git config --local user.email "19566325+Rodduprod@users.noreply.github.com"
         git config --local user.name "Rodduprod"
-
-        # Pull les éventuels commits distants avant de pousser (évite les conflits)
         git pull --rebase origin main
 
         if [ -n "$(git status --porcelain)" ]; then
           git add .
-          git commit -m "🤖 Auto-generated AI article - $(date '+%Y-%m-%d %H:%M UTC')"
+          COUNT=$(git diff --cached --name-only | grep '\.mdx$' | wc -l | tr -d ' ')
+          git commit -m "🤖 Auto-generated $COUNT articles - $(date '+%Y-%m-%d')"
           git push
-          echo "✅ New article generated and published!"
+          echo "✅ $COUNT articles published!"
         else
-          echo "ℹ️ No new content to publish this hour"
+          echo "ℹ️ No new content to publish today"
         fi

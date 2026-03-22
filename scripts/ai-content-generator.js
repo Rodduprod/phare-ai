@@ -3,10 +3,10 @@
 /**
  * 🤖 Le Labo AI - Automated Content Generator
  * 
- * Scrapes AI news, identifies trending topics, and generates
- * articles in 3 technical levels (débutant/amateur/confirmé)
+ * Scrapes AI news from the last 24h, identifies top trending topics,
+ * and generates 3 articles (×3 levels) per run.
  * 
- * Runs every 2 hours via GitHub Actions
+ * Runs once per day at 7h UTC via GitHub Actions
  */
 
 import fs from 'fs';
@@ -20,8 +20,8 @@ const CONTENT_DIR = path.join(__dirname, '..', 'content', 'articles');
 
 // Configuration
 const CONFIG = {
-  maxArticlesPerHour: 1,
-  minTimeBetweenArticles: 2 * 60 * 60 * 1000, // 2 heures
+  articlesPerRun: parseInt(process.env.ARTICLES_COUNT || '3', 10), // 3 articles par run
+  minTimeBetweenRuns: 23 * 60 * 60 * 1000, // 23h min entre deux runs (1 run/jour)
   sources: {
     hackernews:       'https://hacker-news.firebaseio.com/v0/topstories.json',
     reddit_ml:        'https://www.reddit.com/r/MachineLearning/hot.json?limit=15',
@@ -65,7 +65,7 @@ function isAIRelated(title) {
 }
 
 /**
- * Parse un flux RSS simple (XML) — retourne array de { title, url, description }
+ * Parse un flux RSS simple (XML) — retourne array de { title, url, description, pubDate }
  */
 function parseRSS(xml) {
   const items = [];
@@ -80,7 +80,9 @@ function parseRSS(xml) {
     const desc  = (block.match(/<description[^>]*><!\[CDATA\[(.*?)\]\]><\/description>/) ||
                    block.match(/<description[^>]*>(.*?)<\/description>/) || [])[1]
                    ?.replace(/<[^>]+>/g, '').trim().slice(0, 300);
-    if (title && link) items.push({ title, url: link, description: desc || '' });
+    const pubDateRaw = (block.match(/<pubDate[^>]*>(.*?)<\/pubDate>/) || [])[1]?.trim();
+    const pubDate = pubDateRaw ? new Date(pubDateRaw) : null;
+    if (title && link) items.push({ title, url: link, description: desc || '', pubDate });
   }
   return items;
 }
@@ -181,24 +183,27 @@ function clusterTopics(stories) {
 
 /**
  * Scrape AI news from multiple sources and return clustered topics
+ * Filtre les articles des dernières 24h uniquement
  */
 async function scrapeAINews() {
-  console.log('🔍 Scraping AI news from multiple sources...');
+  console.log('🔍 Scraping AI news from the last 24h...');
   const allStories = [];
+  const CUTOFF_MS = Date.now() - 24 * 60 * 60 * 1000; // 24h ago
+  const CUTOFF_UNIX = Math.floor(CUTOFF_MS / 1000);
 
   // --- HackerNews ---
   try {
     const hnRes = await fetchWithTimeout(CONFIG.sources.hackernews);
     const ids = await hnRes.json();
     const stories = await Promise.all(
-      ids.slice(0, 20).map(id =>
+      ids.slice(0, 30).map(id =>
         fetchWithTimeout(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
           .then(r => r.json()).catch(() => null)
       )
     );
-    const hn = stories.filter(s => s?.title && isAIRelated(s.title));
+    const hn = stories.filter(s => s?.title && isAIRelated(s.title) && (s.time || 0) >= CUTOFF_UNIX);
     hn.forEach(s => allStories.push({ title: s.title, url: s.url || `https://news.ycombinator.com/item?id=${s.id}`, score: s.score || 0, source: 'HackerNews', description: '' }));
-    console.log(`  ✅ HackerNews: ${hn.length} stories IA`);
+    console.log(`  ✅ HackerNews: ${hn.length} stories IA (24h)`);
   } catch (e) { console.log(`  ⚠️ HackerNews: ${e.message}`); }
 
   // --- Reddit (ML + AI + ChatGPT) ---
@@ -207,9 +212,9 @@ async function scrapeAINews() {
       const res = await fetchWithTimeout(url);
       const json = await res.json();
       const posts = json.data?.children?.map(c => c.data) || [];
-      const ai = posts.filter(p => p.title && isAIRelated(p.title));
+      const ai = posts.filter(p => p.title && isAIRelated(p.title) && (p.created_utc || 0) >= CUTOFF_UNIX);
       ai.forEach(p => allStories.push({ title: p.title, url: p.url || `https://reddit.com${p.permalink}`, score: p.score || 0, source: key, description: p.selftext?.slice(0, 200) || '' }));
-      console.log(`  ✅ ${key}: ${ai.length} posts IA`);
+      console.log(`  ✅ ${key}: ${ai.length} posts IA (24h)`);
     } catch (e) { console.log(`  ⚠️ ${key}: ${e.message}`); }
   }
 
@@ -227,9 +232,16 @@ async function scrapeAINews() {
     try {
       const res = await fetchWithTimeout(url);
       const xml = await res.text();
-      const items = parseRSS(xml).filter(i => isAIRelated(i.title));
+      const items = parseRSS(xml).filter(i => {
+        if (!isAIRelated(i.title)) return false;
+        // Filtre 24h si pubDate disponible, sinon on garde (flux sans date)
+        if (i.pubDate && i.pubDate instanceof Date && !isNaN(i.pubDate)) {
+          return i.pubDate.getTime() >= CUTOFF_MS;
+        }
+        return true;
+      });
       items.forEach(i => allStories.push({ title: i.title, url: i.url, score: 10, source: key, description: i.description || '' }));
-      console.log(`  ✅ ${key}: ${items.length} articles IA`);
+      console.log(`  ✅ ${key}: ${items.length} articles IA (24h)`);
     } catch (e) { console.log(`  ⚠️ ${key}: ${e.message}`); }
   }
 
@@ -328,7 +340,7 @@ function shouldGenerateContent() {
   const mostRecent = new Date(Math.max(...dates.map(d => d.getTime())));
   const timeSinceLastArticle = Date.now() - mostRecent.getTime();
 
-  if (timeSinceLastArticle < CONFIG.minTimeBetweenArticles) {
+  if (timeSinceLastArticle < CONFIG.minTimeBetweenRuns) {
     console.log(`⏱️ Last article date: ${mostRecent.toISOString().slice(0,10)}. Rate limit active, skipping.`);
     return false;
   }
@@ -744,11 +756,10 @@ async function main() {
       return false;
     }
 
-    // Get AI news
+    // Get AI news (dernières 24h)
     const news = await scrapeAINews();
 
-    let topic;
-    // Parcourt les clusters jusqu'à trouver un topic non couvert (slug exact + similarité sémantique)
+    // Filtre les topics non couverts
     const candidatesFromNews = news.filter(n => {
       const slug = titleToSlug(n.title);
       if (existingSlugs.has(slug)) {
@@ -759,75 +770,95 @@ async function main() {
       return true;
     });
 
-    if (candidatesFromNews.length > 0) {
-      const best = candidatesFromNews[0];
-      const sourceNames = [...new Set(best.sources)].join(', ');
-      console.log(`📈 Topic sélectionné: "${best.title}" (${best.sources.length} source(s): ${sourceNames})`);
+    // Sélectionne N topics distincts (N = CONFIG.articlesPerRun, défaut 3)
+    const N = CONFIG.articlesPerRun;
+    const selectedTopics = [];
+    const selectedTitles = []; // pour éviter les doublons entre les N topics du même run
 
-      // Tente de récupérer un extrait du contenu source
+    for (const candidate of candidatesFromNews) {
+      if (selectedTopics.length >= N) break;
+      // Vérifier que ce topic n'est pas trop similaire à ceux déjà sélectionnés ce run
+      const alreadySelected = selectedTitles.some(t => {
+        const kA = extractKeywords(t), kB = extractKeywords(candidate.title);
+        const overlap = [...kA].filter(w => kB.has(w)).length;
+        return overlap / Math.min(kA.size, kB.size) >= 0.40;
+      });
+      if (alreadySelected) continue;
+
+      // Enrichir avec les extraits sources
       let sourceExcerpts = [];
-      for (const url of best.urls.slice(0, 3)) {
-        console.log(`  📄 Fetch contenu source: ${url}`);
+      for (const url of candidate.urls.slice(0, 2)) {
         const excerpt = await fetchArticleExcerpt(url);
         if (excerpt.length > 100) {
-          sourceExcerpts.push({ source: best.sources[best.urls.indexOf(url)] || 'Source', url, excerpt });
+          sourceExcerpts.push({ source: candidate.sources[candidate.urls.indexOf(url)] || 'Source', url, excerpt });
         }
       }
-
       const sourcesContext = sourceExcerpts.length > 0
-        ? '\n\nSources disponibles (extrait du contenu original) :\n' +
-          sourceExcerpts.map((s, i) => `[Source ${i+1} — ${s.source}] ${s.url}\n${s.excerpt.slice(0, 500)}`).join('\n\n')
+        ? '\n\nSources disponibles :\n' +
+          sourceExcerpts.map((s, i) => `[Source ${i+1} — ${s.source}] ${s.url}\n${s.excerpt.slice(0, 400)}`).join('\n\n')
         : '';
 
-      topic = {
-        title: best.title,
-        description: `Analyse et décryptage : ${best.title}`,
+      selectedTopics.push({
+        title: candidate.title,
+        description: `Analyse et décryptage : ${candidate.title}`,
         tags: ["actualité", "ia", "innovation"],
-        sources: best.sources,
+        sources: candidate.sources,
         sourcesContext,
-      };
-      console.log(`📈 Using trending topic: ${topic.title}`);
-    } else {
-      // Tous les topics trending sont déjà couverts → topic par défaut non couvert
-      let defaultTopic;
-      do {
-        defaultTopic = getDefaultAITopics();
-      } while (existingSlugs.has(titleToSlug(defaultTopic.title)));
-      topic = defaultTopic;
-      console.log(`🎯 Using default topic: ${topic.title}`);
+      });
+      selectedTitles.push(candidate.title);
+      console.log(`📈 Topic ${selectedTopics.length}/${N}: "${candidate.title}" (${candidate.sources.length} sources)`);
     }
 
-    // Générer les 3 niveaux pour ce topic
+    // Compléter avec des topics par défaut si pas assez de news
+    while (selectedTopics.length < N) {
+      let defaultTopic;
+      let attempts = 0;
+      do {
+        defaultTopic = getDefaultAITopics();
+        attempts++;
+      } while ((existingSlugs.has(titleToSlug(defaultTopic.title)) || isTooSimilar(defaultTopic.title)) && attempts < 20);
+      selectedTopics.push(defaultTopic);
+      console.log(`🎯 Topic par défaut ${selectedTopics.length}/${N}: "${defaultTopic.title}"`);
+    }
+
+    // Générer les 3 niveaux pour chaque topic sélectionné
     const levels = ['débutant', 'amateur', 'confirmé'];
-    const topicSlug = titleToSlug(topic.title);
+    let totalCreated = 0;
 
-    console.log(`📝 Generating 3 levels for topic: "${topic.title}" (slug: ${topicSlug})`);
+    for (let i = 0; i < selectedTopics.length; i++) {
+      const topic = selectedTopics[i];
+      const topicSlug = titleToSlug(topic.title);
+      console.log(`\n📝 [${i+1}/${N}] Generating 3 levels for: "${topic.title}"`);
 
-    let createdCount = 0;
-    let frenchTitle = null; // titre FR généré par Claude (partagé entre les 3 niveaux)
+      let createdCount = 0;
+      let frenchTitle = null;
 
-    for (const level of levels) {
-      try {
-        const generated = await generateArticle(topic, level);
-
-        // Le topic slug se base sur le titre français du premier niveau généré
-        if (!frenchTitle) {
-          frenchTitle = generated.title;
-          console.log(`🇫🇷 Titre FR généré: "${frenchTitle}"`);
+      for (const level of levels) {
+        try {
+          const generated = await generateArticle(topic, level);
+          if (!frenchTitle) {
+            frenchTitle = generated.title;
+            console.log(`🇫🇷 Titre FR généré: "${frenchTitle}"`);
+          }
+          const frenchSlug = titleToSlug(frenchTitle);
+          // Ajouter le slug français au set pour éviter les doublons intra-run
+          existingSlugs.add(frenchSlug);
+          const created = createMDXFile(topic, generated, level, frenchSlug);
+          if (created) createdCount++;
+          await new Promise(r => setTimeout(r, 2000));
+        } catch (err) {
+          console.error(`❌ Failed to generate ${level} version:`, err.message);
         }
-        const frenchSlug = titleToSlug(frenchTitle);
+      }
 
-        const created = createMDXFile(topic, generated, level, frenchSlug);
-        if (created) createdCount++;
-        await new Promise(r => setTimeout(r, 2000));
-      } catch (err) {
-        console.error(`❌ Failed to generate ${level} version:`, err.message);
+      if (createdCount > 0) {
+        totalCreated += createdCount;
+        console.log(`🎉 [${i+1}/${N}] Generated ${createdCount}/3 versions for: ${frenchTitle || topic.title}`);
       }
     }
 
-    if (createdCount > 0) {
-      console.log(`🎉 Generated ${createdCount}/3 versions for: ${frenchTitle || topic.title}`);
-    }
+    console.log(`\n✅ Run complet: ${totalCreated} fichiers créés (${selectedTopics.length} topics × 3 niveaux)`);
+
 
   } catch (error) {
     console.error('❌ Error generating content:', error);
