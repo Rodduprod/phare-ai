@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: siteConfig.name,
+    default: `${siteConfig.name} — Intelligence artificielle en français`,
     template: `%s — ${siteConfig.name}`,
   },
   description: siteConfig.description,
