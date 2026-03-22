@@ -684,16 +684,62 @@ async function main() {
           .filter(w => w.length > 3 && !STOPWORDS_FR.has(w))
       );
     }
+    // Groupes d'entités : baidu/ernie = même société, openai/chatgpt/gpt = même écosystème, etc.
+    // Si deux titres partagent ≥1 entité du même groupe → même sujet
+    const ENTITY_GROUPS = [
+      ['baidu','ernie'],
+      ['alibaba','qwen'],
+      ['openai','chatgpt','gpt','sora','dalle'],
+      ['anthropic','claude'],
+      ['google','deepmind','gemini','bard'],
+      ['meta','llama'],
+      ['microsoft','copilot','bing'],
+      ['deepseek'],
+      ['mistral'],
+      ['perplexity'],
+      ['grok','xai'],
+      ['midjourney'],
+    ];
+    // Map entité → id de groupe
+    const ENTITY_TO_GROUP = new Map();
+    ENTITY_GROUPS.forEach((grp, i) => grp.forEach(e => ENTITY_TO_GROUP.set(e, i)));
+
+    function extractEntityGroups(title) {
+      const words = title.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .split(/\s+/);
+      const groups = new Set();
+      for (const w of words) {
+        if (ENTITY_TO_GROUP.has(w)) groups.add(ENTITY_TO_GROUP.get(w));
+      }
+      return groups;
+    }
     function isTooSimilar(newTitle) {
       const newKw = extractKeywords(newTitle);
+      const newEnt = extractEntities(newTitle);
       if (newKw.size === 0) return false;
       for (const { title: existingTitle, ageDays } of existingArticles) {
         const threshold = thresholdForAge(ageDays);
         const existKw = extractKeywords(existingTitle);
+        const existEnt = extractEntities(existingTitle);
+
+        // 1. Similarité sémantique générale
         const overlap = [...newKw].filter(w => existKw.has(w)).length;
         const score = overlap / Math.min(newKw.size, existKw.size);
-        if (score >= threshold) {
-          console.log(`⏭️  Trop similaire à "${existingTitle}" (score: ${(score*100).toFixed(0)}%, âge: ${ageDays}j, seuil: ${(threshold*100).toFixed(0)}%), skip: ${newTitle}`);
+
+        // 2. Chevauchement de groupes d'entités (baidu+ernie = même groupe)
+        //    ≥1 groupe commun + article récent (<30j) = doublon quasi-certain
+        const existEnt = extractEntityGroups(existingTitle);
+        const newEnt   = extractEntityGroups(newTitle);
+        const sharedGroups = [...newEnt].filter(g => existEnt.has(g));
+        const entityBlock = sharedGroups.length >= 1 && ageDays < 30;
+
+        if (score >= threshold || entityBlock) {
+          const reason = entityBlock
+            ? `groupe entité commun: [${sharedGroups.map(i => ENTITY_GROUPS[i].join('/')).join(', ')}]`
+            : `score: ${(score*100).toFixed(0)}%, seuil: ${(threshold*100).toFixed(0)}%`;
+          console.log(`⏭️  Trop similaire à "${existingTitle}" (${reason}, âge: ${ageDays}j), skip: ${newTitle}`);
           return true;
         }
       }
