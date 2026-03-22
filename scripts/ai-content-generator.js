@@ -716,13 +716,13 @@ async function main() {
       return groups;
     }
     function isTooSimilar(newTitle) {
-      const newKw = extractKeywords(newTitle);
-      const newEnt = extractEntities(newTitle);
+      const newKw  = extractKeywords(newTitle);
+      const newEnt = extractEntityGroups(newTitle);
       if (newKw.size === 0) return false;
       for (const { title: existingTitle, ageDays } of existingArticles) {
         const threshold = thresholdForAge(ageDays);
-        const existKw = extractKeywords(existingTitle);
-        const existEnt = extractEntities(existingTitle);
+        const existKw  = extractKeywords(existingTitle);
+        const existEnt = extractEntityGroups(existingTitle);
 
         // 1. Similarité sémantique générale
         const overlap = [...newKw].filter(w => existKw.has(w)).length;
@@ -730,8 +730,6 @@ async function main() {
 
         // 2. Chevauchement de groupes d'entités (baidu+ernie = même groupe)
         //    ≥1 groupe commun + article récent (<30j) = doublon quasi-certain
-        const existEnt = extractEntityGroups(existingTitle);
-        const newEnt   = extractEntityGroups(newTitle);
         const sharedGroups = [...newEnt].filter(g => existEnt.has(g));
         const entityBlock = sharedGroups.length >= 1 && ageDays < 30;
 
