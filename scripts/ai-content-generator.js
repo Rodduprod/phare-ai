@@ -542,16 +542,23 @@ Règles importantes :
  * Bibliothèque de photos Unsplash par thème IA/tech
  */
 const COVER_BY_TOPIC = {
+  // IA / tech générique
   'agents':         ['1485827404703-89b55fcc595e', '1677442135703-1787eea5ce01', '1620712943543-bcc4688e7485'],
   'outils':         ['1611532736597-de2d4265fba3', '1531297484001-80022131f5a1', '1518770419-74369dd43fce'],
   'code':           ['1555066931-4365d14ad3cd', '1461749280684-dccba630e2f6', '1504639725-182f31753b68'],
-  'automatisation': ['1485827404703-89b55fcc595e', '1593642632559-0c6d3fc62b89', '1518770419-74369dd43fce'],
+  'automatisation': ['1593642632559-0c6d3fc62b89', '1518770419-74369dd43fce', '1488590528505-98d2b5aba04b'],
   'entrepreneurs':  ['1507679799987-c73779587ccf', '1454165804606-c3d57bc86b40', '1519389950473-47ba0277781c'],
   'créateurs':      ['1611162617213-7d7a39e9b1d7', '1535016120720-40c647be5912', '1558618666-fcd25c85cd64'],
   'google':         ['1573804633927-bfcbcd909acd', '1526374965328-7f61d4dc18c5', '1504868584819-f8ee2ab89e87'],
-  'robot':          ['1485827404703-89b55fcc595e', '1620712943543-bcc4688e7485', '1677442135703-1787eea5ce01'],
+  'robot':          ['1620712943543-bcc4688e7485', '1677442135703-1787eea5ce01', '1485827404703-89b55fcc595e'],
+  // Santé / médical
   'santé':          ['1559757148-5c350d0d3c56', '1530497610245-f1fe21c595b5', '1576091160550-2173dba999ef'],
-  'éducation':      ['1503676260728-1c00da094a0b', '1456513080510-7bf3a84b82f8', '1558618666-fcd25c85cd64'],
+  // Éducation / enfants / jouets — images colorées, humaines, pas "tech"
+  'éducation':      ['1503676260728-1c00da094a0b', '1456513080510-7bf3a84b82f8', '1509475826633-fed615e36b09'],
+  'jouets':         ['1558618666-fcd25c85cd64', '1503676260728-1c00da094a0b', '1509475826633-fed615e36b09'],
+  'enfants':        ['1509475826633-fed615e36b09', '1503676260728-1c00da094a0b', '1558618666-fcd25c85cd64'],
+  'jeux':           ['1509475826633-fed615e36b09', '1558618666-fcd25c85cd64', '1503676260728-1c00da094a0b'],
+  // Default — grand pool varié, jamais les mêmes
   'default':        [
     '1677442135703-1787eea5ce01', '1620712943543-bcc4688e7485',
     '1485827404703-89b55fcc595e', '1531297484001-80022131f5a1',
@@ -559,11 +566,30 @@ const COVER_BY_TOPIC = {
     '1518770419-74369dd43fce', '1504639725-182f31753b68',
     '1593642632559-0c6d3fc62b89', '1611532736597-de2d4265fba3',
     '1461749280684-dccba630e2f6', '1507679799987-c73779587ccf',
+    '1542744173-8e7e53415bb0', '1587620962725-abab7fe55159',
+    '1516321318423-f06f85e504b3', '1517430816045-df4b7de11d1d',
+    '1488590528505-98d2b5aba04b', '1518770660439-4636190af475',
   ],
 };
 
-// Suivi des images déjà utilisées dans le run courant (par topic de base)
-const _usedCoverImages = new Set();
+/**
+ * Charge les images déjà utilisées dans les articles existants
+ * → évite les doublons entre runs successifs
+ */
+function loadUsedImagesFromDisk(articlesDir) {
+  const used = new Set();
+  if (!fs.existsSync(articlesDir)) return used;
+  const files = fs.readdirSync(articlesDir).filter(f => f.endsWith('.mdx'));
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(articlesDir, file), 'utf8');
+    const match = content.match(/^image:\s*"https:\/\/images\.unsplash\.com\/photo-([^?]+)/m);
+    if (match) used.add(match[1]);
+  }
+  return used;
+}
+
+// Suivi des images utilisées : articles existants + run courant
+const _usedCoverImages = loadUsedImagesFromDisk(path.join(__dirname, '..', 'content', 'articles'));
 
 function getCoverImage(tags, slug) {
   // Slug de base = sans le suffixe --niveau (les 3 niveaux d'un même topic partagent la même image)
