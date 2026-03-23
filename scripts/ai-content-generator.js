@@ -561,12 +561,12 @@ async function generateCoverImage(title, tags, topicSlug) {
 
   // Construire un prompt optimisé pour la génération d'image
   const tagStr = tags.slice(0, 4).join(', ');
-  const imagePrompt = `Create a visually striking editorial illustration for a French tech magazine article titled "${title}". 
-Topics: ${tagStr}. 
-Style: modern, clean, colorful, professional editorial illustration. 
-NO text, NO words, NO letters in the image. 
-Aspect ratio: 16:9 landscape. 
-The image should feel warm, inviting, and accessible to a general audience — not overly technical or cold.`;
+  const imagePrompt = `A minimal, carefully composed editorial photograph for a French tech magazine article about: "${title}".
+Context: ${tagStr}.
+Style: overhead or slightly angled shot of a real-world scene with concrete objects that metaphorically represent the topic. Clean desk, natural props, soft natural lighting from the side. Shot on film, slightly desaturated warm tones. Minimalist composition — few objects, lots of negative space.
+Do NOT include: floating holograms, glowing screens, abstract data visualizations, cute robots, sci-fi elements, or anything that looks obviously AI-generated.
+NO text, NO words, NO letters, NO UI elements in the image.
+16:9 landscape format.`;
 
   try {
     console.log('  🎨 Génération image IA via Gemini...');
