@@ -17,6 +17,10 @@ import Anthropic from '@anthropic-ai/sdk';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CONTENT_DIR = path.join(__dirname, '..', 'content', 'articles');
+const IMAGES_DIR = path.join(__dirname, '..', 'public', 'images', 'generated');
+
+// Créer le dossier images générées s'il n'existe pas
+if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
 // Configuration
 const CONFIG = {
@@ -541,7 +545,104 @@ Règles importantes :
 /**
  * Bibliothèque de photos Unsplash par thème IA/tech
  */
-// ⚠️ Tous les IDs ci-dessous ont été vérifiés HTTP 200 sur images.unsplash.com
+/**
+ * 🎨 Génération d'image via Google Gemini API
+ * Génère une image éditoriale unique pour chaque topic d'article.
+ * Fallback sur le pool Unsplash si l'API est indisponible ou quota dépassé.
+ */
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
+
+async function generateCoverImage(title, tags, topicSlug) {
+  if (!GEMINI_API_KEY) {
+    console.log('  ⚠️ GEMINI_API_KEY manquante — fallback Unsplash');
+    return null;
+  }
+
+  // Construire un prompt optimisé pour la génération d'image
+  const tagStr = tags.slice(0, 4).join(', ');
+  const imagePrompt = `Create a visually striking editorial illustration for a French tech magazine article titled "${title}". 
+Topics: ${tagStr}. 
+Style: modern, clean, colorful, professional editorial illustration. 
+NO text, NO words, NO letters in the image. 
+Aspect ratio: 16:9 landscape. 
+The image should feel warm, inviting, and accessible to a general audience — not overly technical or cold.`;
+
+  try {
+    console.log('  🎨 Génération image IA via Gemini...');
+    
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: imagePrompt }] }],
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.log(`  ⚠️ Gemini API ${response.status} — fallback Unsplash`);
+      if (err.includes('quota')) console.log('  💡 Quota dépassé — réessayer plus tard');
+      return null;
+    }
+
+    const data = await response.json();
+    const candidates = data.candidates || [];
+    
+    for (const candidate of candidates) {
+      const parts = candidate.content?.parts || [];
+      for (const part of parts) {
+        if (part.inlineData) {
+          const { mimeType, data: base64Data } = part.inlineData;
+          const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+          const filename = `${topicSlug}.${ext}`;
+          const filepath = path.join(IMAGES_DIR, filename);
+          
+          // Sauvegarder l'image
+          fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+          const sizeKB = Math.round(fs.statSync(filepath).size / 1024);
+          console.log(`  ✅ Image générée : ${filename} (${sizeKB} KB)`);
+          
+          return `/images/generated/${filename}`;
+        }
+      }
+    }
+
+    console.log('  ⚠️ Pas d\'image dans la réponse Gemini — fallback Unsplash');
+    return null;
+  } catch (err) {
+    console.log(`  ⚠️ Erreur génération image: ${err.message} — fallback Unsplash`);
+    return null;
+  }
+}
+
+// Tracking des images générées dans ce run (pour ne pas régénérer pour chaque niveau)
+const _generatedImages = new Map(); // topicSlug → image path
+
+async function getOrGenerateCoverImage(title, tags, topicSlug) {
+  // Si déjà générée pour ce topic (autre niveau), réutiliser
+  if (_generatedImages.has(topicSlug)) {
+    return _generatedImages.get(topicSlug);
+  }
+
+  // Tenter la génération IA
+  const generatedPath = await generateCoverImage(title, tags, topicSlug);
+  if (generatedPath) {
+    _generatedImages.set(topicSlug, generatedPath);
+    return generatedPath;
+  }
+
+  // Fallback Unsplash
+  const unsplashUrl = getCoverImage(tags, topicSlug);
+  _generatedImages.set(topicSlug, unsplashUrl);
+  return unsplashUrl;
+}
+
+// ⚠️ Tous les IDs ci-dessous ont été vérifiés HTTP 200 sur images.unsplash.com (fallback)
 const COVER_BY_TOPIC = {
   // IA / agents / robots
   'agents':         ['1485827404703-89b55fcc595e', '1677442135703-1787eea5ce01', '1547082299-de196ea013d6'],
@@ -651,12 +752,12 @@ function titleToSlug(title) {
 /**
  * Create MDX file with proper frontmatter
  */
-function createMDXFile(topic, generated, level, topicSlug) {
+async function createMDXFile(topic, generated, level, topicSlug) {
   // `generated` = { title, description, tags, content } produit par Claude
   const date = new Date().toISOString().split('T')[0];
   const levelSlug = level === 'débutant' ? 'debutant' : level === 'confirmé' ? 'confirme' : level;
   const generatedAt = new Date().toISOString();
-  const coverImage = getCoverImage(generated.tags, topicSlug);
+  const coverImage = await getOrGenerateCoverImage(generated.title, generated.tags, topicSlug);
 
   // Échappe les guillemets dans le titre pour le YAML
   const safeTitle = generated.title.replace(/"/g, '\\"');
@@ -913,7 +1014,7 @@ async function main() {
           const frenchSlug = titleToSlug(frenchTitle);
           // Ajouter le slug français au set pour éviter les doublons intra-run
           existingSlugs.add(frenchSlug);
-          const created = createMDXFile(topic, generated, level, frenchSlug);
+          const created = await createMDXFile(topic, generated, level, frenchSlug);
           if (created) createdCount++;
           await new Promise(r => setTimeout(r, 2000));
         } catch (err) {
