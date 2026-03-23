@@ -553,20 +553,71 @@ Règles importantes :
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
 
+// Styles visuels variés — Claude en choisit un adapté au sujet
+const IMAGE_STYLES = [
+  'overhead photograph of a carefully arranged flat lay on a textured surface',
+  'close-up macro photograph with shallow depth of field, bokeh background',
+  'wide landscape scene with a single striking focal element, golden hour lighting',
+  'architectural or geometric composition with strong lines and natural light',
+  'hands-on scene showing someone interacting with physical objects, candid feel',
+  'nature-inspired metaphor — organic shapes, plants, water, light',
+  'retro-analog aesthetic — vintage objects, film grain, muted palette',
+  'abstract paper craft or origami composition, colorful shadows',
+  'cinematic still life with dramatic side lighting and deep shadows',
+  'split composition — two contrasting elements side by side',
+];
+
+/**
+ * Utilise Claude pour générer un prompt image créatif et unique
+ */
+async function generateImagePrompt(title, tags) {
+  try {
+    const styleHints = IMAGE_STYLES.map((s, i) => `${i + 1}. ${s}`).join('\n');
+    
+    const response = await anthropic.messages.create({
+      model: modelToUse,
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: `Tu es un directeur artistique pour un magazine tech français. Génère UN prompt de génération d'image (en anglais) pour cet article :
+
+Titre : "${title}"
+Tags : ${tags}
+
+RÈGLES :
+- Choisis UN style parmi ces options (ou invente un style original) :
+${styleHints}
+- Le prompt doit décrire une scène CONCRÈTE et SPÉCIFIQUE au sujet de l'article
+- Utilise des métaphores visuelles créatives liées au contenu
+- PAS de robots mignons, hologrammes, écrans flottants, circuits imprimés
+- PAS de texte/mots/lettres dans l'image
+- Format 16:9 paysage
+- Style éditorial magazine haut de gamme (Wired, Monocle, The Verge)
+- Varie les palettes de couleurs (pas toujours bleu/violet tech)
+
+Réponds UNIQUEMENT avec le prompt, rien d'autre. Pas d'introduction, pas d'explication.`
+      }],
+    });
+
+    const prompt = response.content[0].text.trim();
+    console.log(`  🎨 Prompt image : ${prompt.slice(0, 80)}...`);
+    return prompt;
+  } catch (err) {
+    console.log(`  ⚠️ Erreur génération prompt image: ${err.message}`);
+    // Fallback sur un prompt basique
+    return `A minimal editorial photograph for a magazine article about "${title}". Clean composition, natural light, concrete objects as visual metaphor. Shot on film, warm tones. NO text, NO letters. 16:9 landscape.`;
+  }
+}
+
 async function generateCoverImage(title, tags, topicSlug) {
   if (!GEMINI_API_KEY) {
     console.log('  ⚠️ GEMINI_API_KEY manquante — fallback Unsplash');
     return null;
   }
 
-  // Construire un prompt optimisé pour la génération d'image
+  // Claude génère un prompt image créatif et varié pour chaque article
   const tagStr = tags.slice(0, 4).join(', ');
-  const imagePrompt = `A minimal, carefully composed editorial photograph for a French tech magazine article about: "${title}".
-Context: ${tagStr}.
-Style: overhead or slightly angled shot of a real-world scene with concrete objects that metaphorically represent the topic. Clean desk, natural props, soft natural lighting from the side. Shot on film, slightly desaturated warm tones. Minimalist composition — few objects, lots of negative space.
-Do NOT include: floating holograms, glowing screens, abstract data visualizations, cute robots, sci-fi elements, or anything that looks obviously AI-generated.
-NO text, NO words, NO letters, NO UI elements in the image.
-16:9 landscape format.`;
+  const imagePrompt = await generateImagePrompt(title, tagStr);
 
   try {
     console.log('  🎨 Génération image IA via Gemini...');
