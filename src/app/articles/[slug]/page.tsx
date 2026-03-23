@@ -125,15 +125,13 @@ export default function ArticlePage({ params }: PageProps) {
       {/* Barre de progression */}
       <ReadingProgress color={lv.color} />
 
-      {/* Cover image — full width avec overlay */}
+      {/* Cover image — full bleed avec overlay */}
       {article.image && (
-        <div className="w-full overflow-hidden aspect-[21/7] relative mb-0">
+        <div className="w-full aspect-[21/7] relative mb-0 overflow-hidden">
           <OptimizedImage
             src={article.image}
             alt={article.title}
-            width={1400}
-            height={467}
-            className="w-full h-full object-cover"
+            fill
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/30 to-transparent" />

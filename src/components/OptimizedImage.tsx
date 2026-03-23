@@ -33,21 +33,38 @@ export function OptimizedImage({
     );
   }
 
+  // En mode fill, le wrapper doit être absolute inset-0 pour que l'image remplisse le parent
+  if (fill) {
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          priority={priority}
+          className={`transition-all duration-300 object-cover ${className} ${isLoading ? 'blur-sm' : 'blur-0'}`}
+          onLoad={() => setIsLoading(false)}
+          onError={() => setHasError(true)}
+          sizes="100vw"
+        />
+        {isLoading && (
+          <div className="absolute inset-0 bg-ink-50 animate-pulse" />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className="relative overflow-hidden">
       <Image
         src={src}
         alt={alt}
         width={width}
         height={height}
-        fill={fill}
         priority={priority}
-        className={`transition-all duration-300 ${
-          isLoading ? 'blur-sm' : 'blur-0'
-        }`}
+        className={`transition-all duration-300 w-full h-auto ${className} ${isLoading ? 'blur-sm' : 'blur-0'}`}
         onLoad={() => setIsLoading(false)}
         onError={() => setHasError(true)}
-        sizes={fill ? "100vw" : undefined}
       />
       {isLoading && (
         <div className="absolute inset-0 bg-ink-50 animate-pulse" />
