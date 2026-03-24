@@ -658,10 +658,27 @@ async function generateCoverImage(title, tags, topicSlug) {
           const filename = `${topicSlug}.${ext}`;
           const filepath = path.join(IMAGES_DIR, filename);
           
-          // Sauvegarder l'image
-          fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+          // Valider le buffer avant sauvegarde (issue #44)
+          const buffer = Buffer.from(base64Data, 'base64');
+
+          // 1. Buffer non vide
+          if (!buffer || buffer.length < 1024) {
+            console.log(`  ⚠️ Buffer image trop petit (${buffer?.length ?? 0} octets) — fallback Unsplash`);
+            return null;
+          }
+
+          // 2. Magic bytes : PNG (89 50 4E 47) ou JPEG (FF D8 FF)
+          const isPNG  = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+          const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+          if (!isPNG && !isJPEG) {
+            console.log(`  ⚠️ Format image non reconnu (magic bytes: ${buffer.slice(0,4).toString('hex')}) — fallback Unsplash`);
+            return null;
+          }
+
+          // Sauvegarder l'image validée
+          fs.writeFileSync(filepath, buffer);
           const sizeKB = Math.round(fs.statSync(filepath).size / 1024);
-          console.log(`  ✅ Image générée : ${filename} (${sizeKB} KB)`);
+          console.log(`  ✅ Image générée et validée : ${filename} (${sizeKB} KB, ${isPNG ? 'PNG' : 'JPEG'})`);
           
           return `/images/generated/${filename}`;
         }
