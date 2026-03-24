@@ -1056,21 +1056,36 @@ async function main() {
       let frenchTitle = null;
 
       for (const level of levels) {
-        try {
-          const generated = await generateArticle(topic, level);
-          if (!frenchTitle) {
-            frenchTitle = generated.title;
-            console.log(`🇫🇷 Titre FR généré: "${frenchTitle}"`);
+        // Retry automatique : max 3 tentatives avec backoff exponentiel (issue #46)
+        let generated = null;
+        let attempts = 0;
+        while (attempts < 3) {
+          try {
+            generated = await generateArticle(topic, level);
+            break; // succès → sortir du while
+          } catch (err) {
+            attempts++;
+            if (attempts < 3) {
+              const delayMs = 5000 * attempts;
+              console.warn(`  ⚠️ Tentative ${attempts}/3 échouée pour niveau ${level} — retry dans ${delayMs / 1000}s...`);
+              await new Promise(r => setTimeout(r, delayMs));
+            } else {
+              console.error(`  ❌ Niveau ${level} : échec après 3 tentatives — ${err.message}`);
+            }
           }
-          const frenchSlug = titleToSlug(frenchTitle);
-          // Ajouter le slug français au set pour éviter les doublons intra-run
-          existingSlugs.add(frenchSlug);
-          const created = await createMDXFile(topic, generated, level, frenchSlug);
-          if (created) createdCount++;
-          await new Promise(r => setTimeout(r, 2000));
-        } catch (err) {
-          console.error(`❌ Failed to generate ${level} version:`, err.message);
         }
+        if (!generated) continue; // passer au niveau suivant si tous les retries ont échoué
+
+        if (!frenchTitle) {
+          frenchTitle = generated.title;
+          console.log(`🇫🇷 Titre FR généré: "${frenchTitle}"`);
+        }
+        const frenchSlug = titleToSlug(frenchTitle);
+        // Ajouter le slug français au set pour éviter les doublons intra-run
+        existingSlugs.add(frenchSlug);
+        const created = await createMDXFile(topic, generated, level, frenchSlug);
+        if (created) createdCount++;
+        await new Promise(r => setTimeout(r, 2000));
       }
 
       if (createdCount > 0) {

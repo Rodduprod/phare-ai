@@ -40,7 +40,8 @@ export async function GET() {
     url: `${siteConfig.url}/articles/${article.slug}`,
     priority: levelPriority(article.level),
     changefreq: changefreq(article.date),
-    lastmod: formatDate(article.date),
+    // Utilise generated_at (précis, ISO) si disponible, sinon date du frontmatter
+    lastmod: article.generated_at ? new Date(article.generated_at).toISOString() : formatDate(article.date),
   }));
 
   const tagUrls = tags.map((tag) => ({

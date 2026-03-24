@@ -23,6 +23,7 @@ export function getAllArticles(): ArticleMeta[] {
         title: data.title || "Sans titre",
         description: data.description || "",
         date: data.date || new Date().toISOString(),
+        generated_at: data.generated_at || undefined,
         tags: data.tags || [],
         level: data.level || "amateur",
         topic: data.topic || undefined,  // undefined = article standalone (topic = slug)
@@ -49,6 +50,7 @@ export function getArticleBySlug(slug: string): Article | null {
     title: data.title || "Sans titre", 
     description: data.description || "",
     date: data.date || new Date().toISOString(),
+    generated_at: data.generated_at || undefined,
     tags: data.tags || [],
     level: data.level || "amateur",
     topic: data.topic || undefined,

@@ -5,6 +5,7 @@ export interface ArticleMeta {
   title: string;
   description: string;
   date: string;
+  generated_at?: string; // Date ISO précise de génération (articles auto-générés). Utilisé pour lastmod sitemap.
   tags: string[];
   level: ArticleLevel;
   topic?: string;       // Groupe thématique (ex: "chatgpt-vs-claude"). Si absent, slug = topic.
