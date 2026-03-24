@@ -1,0 +1,598 @@
+---
+title: "Pourquoi les LLMs ne savent pas dire je ne sais pas : deep dive technique"
+description: "Analyse architecturale du problème d'omniscience apparente des LLMs : mécanismes de génération, calibration de confiance et solutions techniques."
+date: "2026-03-24"
+generated_at: "2026-03-24T08:22:13.858Z"
+tags: ["llm", "calibration", "hallucination", "confiance", "architecture"]
+level: "confirmé"
+topic: "pourquoi-l-ia-ne-sait-jamais-dire-je-ne-sais-pas"
+image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+Les grands modèles de langage (LLM) partagent un défaut fondamental : ils répondent toujours, même quand ils devraient s'abstenir. Cette incapacité à exprimer l'incertitude n'est pas un bug superficiel, mais une conséquence directe de leur architecture et de leur entraînement. Pour les ingénieurs ML, comprendre ce phénomène est essentiel pour construire des systèmes fiables en production.
+
+## Fondements techniques : l'architecture de la certitude apparente
+
+### Le mécanisme de génération autoregressive
+
+Au cœur du problème se trouve le paradigme autorégressif. Comme nous l'avons exploré dans notre analyse de [la mécanique interne de la prédiction de token](/articles/comment-l-ia-apprend-a-parler-le-secret-du-mot-suivant--confirme), les LLMs génèrent du texte token par token en maximisant P(token_n | token_1, ..., token_n-1).
+
+Cette formulation probabiliste crée une contrainte structurelle : le modèle doit toujours produire une distribution de probabilité sur l'ensemble du vocabulaire. Même face à une question hors distribution, la fonction softmax finale garantit qu'un token sera sélectionné :
+
+```python
+def generate_next_token(logits, temperature=1.0):
+    # Les logits sont toujours convertis en probabilités
+    probs = softmax(logits / temperature)
+    # Un token est TOUJOURS échantillonné
+    return sample(probs)
+``````python
+def generate_next_token(logits, temperature=1.0):
+    # Les logits sont toujours convertis en probabilités
+    probs = softmax(logits / temperature)
+    # Un token est TOUJOURS échantillonné
+    return sample(probs)
+```
+
+Cette architecture ne prévoit aucun mécanisme natif pour "refuser de répondre". Le vocabulaire contient certes des tokens comme "je" "ne" "sais" "pas", mais leur sélection résulte du même processus probabiliste que n'importe quelle autre réponse.
+
+### L'entraînement par prédiction de token suivant
+
+L'objectif d'entraînement standard - la cross-entropy sur le token suivant - renforce ce comportement :
+
+``````
+
+Cette architecture ne prévoit aucun mécanisme natif pour "refuser de répondre". Le vocabulaire contient certes des tokens comme "je" "ne" "sais" "pas", mais leur sélection résulte du même processus probabiliste que n'importe quelle autre réponse.
+
+### L'entraînement par prédiction de token suivant
+
+L'objectif d'entraînement standard - la cross-entropy sur le token suivant - renforce ce comportement :
+
+```python
+loss = -log P(token_ground_truth | context)
+``````python
+loss = -log P(token_ground_truth | context)
+```
+
+Cette fonction de perte pénalise le modèle pour toute déviation de la séquence cible, sans distinction entre :
+- Une réponse correcte et confiante
+- Une réponse incertaine mais honnête
+- Une hallucination confiante
+
+Les datasets d'entraînement, composés principalement de textes achevés provenant du web, ne contiennent que rarement des expressions d'incertitude. Un article Wikipedia ne dit pas "je ne sais pas" - il présente des faits. Cette distribution biaisée des données conditionne le modèle à toujours compléter avec confiance.
+
+## Calibration et mesure de l'incertitude
+
+### Le problème de la miscalibration
+
+La calibration mesure l'alignement entre la confiance prédite et l'exactitude réelle. Pour un modèle parfaitement calibré :
+
+``````
+
+Cette fonction de perte pénalise le modèle pour toute déviation de la séquence cible, sans distinction entre :
+- Une réponse correcte et confiante
+- Une réponse incertaine mais honnête
+- Une hallucination confiante
+
+Les datasets d'entraînement, composés principalement de textes achevés provenant du web, ne contiennent que rarement des expressions d'incertitude. Un article Wikipedia ne dit pas "je ne sais pas" - il présente des faits. Cette distribution biaisée des données conditionne le modèle à toujours compléter avec confiance.
+
+## Calibration et mesure de l'incertitude
+
+### Le problème de la miscalibration
+
+La calibration mesure l'alignement entre la confiance prédite et l'exactitude réelle. Pour un modèle parfaitement calibré :
+
+```
+P(correct | confidence = c) = c
+``````
+P(correct | confidence = c) = c
+```
+
+En pratique, les LLMs modernes montrent une **miscalibration systématique**. Des études sur GPT-3 et GPT-4 révèlent un phénomène d'overconfidence : le modèle assigne des probabilités élevées (>0.9) à des réponses incorrectes dans 15-30% des cas selon les domaines.
+
+### Métriques de calibration
+
+L'Expected Calibration Error (ECE) quantifie cette miscalibration :
+
+``````
+
+En pratique, les LLMs modernes montrent une **miscalibration systématique**. Des études sur GPT-3 et GPT-4 révèlent un phénomène d'overconfidence : le modèle assigne des probabilités élevées (&gt;0.9) à des réponses incorrectes dans 15-30% des cas selon les domaines.
+
+### Métriques de calibration
+
+L'Expected Calibration Error (ECE) quantifie cette miscalibration :
+
+```python
+def compute_ece(predictions, ground_truth, n_bins=10):
+    bins = np.linspace(0, 1, n_bins + 1)
+    ece = 0
+    
+    for i in range(n_bins):
+        mask = (predictions >= bins[i]) & (predictions < bins[i+1])
+        if mask.sum() > 0:
+            bin_accuracy = ground_truth[mask].mean()
+            bin_confidence = predictions[mask].mean()
+            bin_size = mask.sum() / len(predictions)
+            ece += bin_size * abs(bin_accuracy - bin_confidence)
+    
+    return ece
+``````python
+def compute_ece(predictions, ground_truth, n_bins=10):
+    bins = np.linspace(0, 1, n_bins + 1)
+    ece = 0
+    
+    for i in range(n_bins):
+        mask = (predictions >= bins[i]) & (predictions < bins[i+1])
+        if mask.sum() > 0:
+            bin_accuracy = ground_truth[mask].mean()
+            bin_confidence = predictions[mask].mean()
+            bin_size = mask.sum() / len(predictions)
+            ece += bin_size * abs(bin_accuracy - bin_confidence)
+    
+    return ece
+```
+
+Les benchmarks montrent que l'ECE augmente significativement pour :
+- Les questions hors distribution
+- Les tâches nécessitant un raisonnement multi-étapes
+- Les domaines sous-représentés dans les données d'entraînement
+
+### Temperature scaling et post-calibration
+
+La température est un levier classique pour ajuster la confiance :
+
+``````
+
+Les benchmarks montrent que l'ECE augmente significativement pour :
+- Les questions hors distribution
+- Les tâches nécessitant un raisonnement multi-étapes
+- Les domaines sous-représentés dans les données d'entraînement
+
+### Temperature scaling et post-calibration
+
+La température est un levier classique pour ajuster la confiance :
+
+```python
+# Temperature < 1 : augmente la confiance (peaked distribution)
+# Temperature > 1 : diminue la confiance (flatter distribution)
+calibrated_probs = softmax(logits / temperature)
+``````python
+# Temperature < 1 : augmente la confiance (peaked distribution)
+# Temperature > 1 : diminue la confiance (flatter distribution)
+calibrated_probs = softmax(logits / temperature)
+```
+
+Mais cette approche a des limites : elle modifie uniformément la distribution sans capturer l'incertitude épistémique (ce que le modèle ne peut pas savoir) versus l'incertitude aléatoire (variabilité intrinsèque).
+
+## Implémentation : techniques pour extraire l'incertitude
+
+### Uncertainty estimation via sampling
+
+L'échantillonnage Monte Carlo permet d'estimer l'incertitude en générant plusieurs complétions :
+
+``````
+
+Mais cette approche a des limites : elle modifie uniformément la distribution sans capturer l'incertitude épistémique (ce que le modèle ne peut pas savoir) versus l'incertitude aléatoire (variabilité intrinsèque).
+
+## Implémentation : techniques pour extraire l'incertitude
+
+### Uncertainty estimation via sampling
+
+L'échantillonnage Monte Carlo permet d'estimer l'incertitude en générant plusieurs complétions :
+
+```python
+def estimate_uncertainty(model, prompt, n_samples=20):
+    completions = []
+    for _ in range(n_samples):
+        output = model.generate(
+            prompt, 
+            temperature=0.8,
+            do_sample=True
+        )
+        completions.append(output)
+    
+    # Diversité sémantique comme proxy d'incertitude
+    embeddings = embed_texts(completions)
+    pairwise_distances = pdist(embeddings, metric='cosine')
+    uncertainty = pairwise_distances.mean()
+    
+    return uncertainty, completions
+``````python
+def estimate_uncertainty(model, prompt, n_samples=20):
+    completions = []
+    for _ in range(n_samples):
+        output = model.generate(
+            prompt, 
+            temperature=0.8,
+            do_sample=True
+        )
+        completions.append(output)
+    
+    # Diversité sémantique comme proxy d'incertitude
+    embeddings = embed_texts(completions)
+    pairwise_distances = pdist(embeddings, metric='cosine')
+    uncertainty = pairwise_distances.mean()
+    
+    return uncertainty, completions
+```
+
+Cette méthode est coûteuse (20x les inférences) mais révèle l'incertitude du modèle à travers la variance des sorties.
+
+### Logit-based confidence
+
+L'analyse des logits avant softmax offre des signaux plus riches :
+
+``````
+
+Cette méthode est coûteuse (20x les inférences) mais révèle l'incertitude du modèle à travers la variance des sorties.
+
+### Logit-based confidence
+
+L'analyse des logits avant softmax offre des signaux plus riches :
+
+```python
+def analyze_token_confidence(logits):
+    probs = softmax(logits)
+    top_k_probs, top_k_indices = torch.topk(probs, k=5)
+    
+    metrics = {
+        'max_prob': top_k_probs[0].item(),
+        'entropy': -torch.sum(probs * torch.log(probs + 1e-10)).item(),
+        'top_5_mass': top_k_probs.sum().item(),
+        'margin': (top_k_probs[0] - top_k_probs[1]).item()
+    }
+    
+    return metrics
+``````python
+def analyze_token_confidence(logits):
+    probs = softmax(logits)
+    top_k_probs, top_k_indices = torch.topk(probs, k=5)
+    
+    metrics = {
+        'max_prob': top_k_probs[0].item(),
+        'entropy': -torch.sum(probs * torch.log(probs + 1e-10)).item(),
+        'top_5_mass': top_k_probs.sum().item(),
+        'margin': (top_k_probs[0] - top_k_probs[1]).item()
+    }
+    
+    return metrics
+```
+
+Un `margin` faible entre les deux tokens les plus probables indique une incertitude élevée. L'entropie élevée suggère que le modèle "hésite" entre plusieurs continuations.
+
+### Verbalized uncertainty avec prompting
+
+Les techniques de prompting peuvent encourager l'expression d'incertitude :
+
+``````
+
+Un `margin` faible entre les deux tokens les plus probables indique une incertitude élevée. L'entropie élevée suggère que le modèle "hésite" entre plusieurs continuations.
+
+### Verbalized uncertainty avec prompting
+
+Les techniques de prompting peuvent encourager l'expression d'incertitude :
+
+```python
+CALIBRATED_PROMPT = """Réponds à la question suivante. Si tu n'es pas certain de la réponse, 
+commence par indiquer ton niveau de confiance (faible/moyen/élevé) et explique pourquoi.
+
+Question: {question}
+
+Réponse:"""
+``````python
+CALIBRATED_PROMPT = """Réponds à la question suivante. Si tu n'es pas certain de la réponse, 
+commence par indiquer ton niveau de confiance (faible/moyen/élevé) et explique pourquoi.
+
+Question: {question}
+
+Réponse:"""
+```
+
+Cette approche transforme le problème : au lieu d'extraire l'incertitude des probabilités, on demande au modèle de la verbaliser. Mais cela dépend de la qualité du fine-tuning et du RLHF, qui peuvent avoir renforcé des réponses toujours confiantes.
+
+## Benchmarks et évaluation
+
+### TruthfulQA et hallucination mesurée
+
+Le benchmark TruthfulQA évalue spécifiquement la tendance aux hallucinations face à des questions trompeuses. Les résultats de GPT-4 montrent :
+
+- **Truthfulness** : 60% (le modèle donne la bonne réponse ou dit "je ne sais pas")
+- **Informativeness** : 85% (le modèle tente une réponse)
+- **Truthful AND Informative** : 52%
+
+Ce trade-off révèle la tension fondamentale : maximiser l'utilité (informativeness) encourage les réponses spéculatives.
+
+### SelfCheckGPT pour l'auto-évaluation
+
+SelfCheckGPT propose une méthode ingénieuse : générer plusieurs réponses et vérifier leur cohérence mutuelle :
+
+``````
+
+Cette approche transforme le problème : au lieu d'extraire l'incertitude des probabilités, on demande au modèle de la verbaliser. Mais cela dépend de la qualité du fine-tuning et du RLHF, qui peuvent avoir renforcé des réponses toujours confiantes.
+
+## Benchmarks et évaluation
+
+### TruthfulQA et hallucination mesurée
+
+Le benchmark TruthfulQA évalue spécifiquement la tendance aux hallucinations face à des questions trompeuses. Les résultats de GPT-4 montrent :
+
+- **Truthfulness** : 60% (le modèle donne la bonne réponse ou dit "je ne sais pas")
+- **Informativeness** : 85% (le modèle tente une réponse)
+- **Truthful AND Informative** : 52%
+
+Ce trade-off révèle la tension fondamentale : maximiser l'utilité (informativeness) encourage les réponses spéculatives.
+
+### SelfCheckGPT pour l'auto-évaluation
+
+SelfCheckGPT propose une méthode ingénieuse : générer plusieurs réponses et vérifier leur cohérence mutuelle :
+
+```python
+def self_check_gpt(model, question, n_samples=5):
+    responses = [model.generate(question) for _ in range(n_samples)]
+    
+    # Chaque réponse sert de "checker" pour les autres
+    consistency_scores = []
+    for i, response in enumerate(responses):
+        others = responses[:i] + responses[i+1:]
+        # Utiliser NLI ou semantic similarity
+        score = check_consistency(response, others)
+        consistency_scores.append(score)
+    
+    avg_consistency = np.mean(consistency_scores)
+    return avg_consistency < THRESHOLD  # Low consistency = likely hallucination
+``````python
+def self_check_gpt(model, question, n_samples=5):
+    responses = [model.generate(question) for _ in range(n_samples)]
+    
+    # Chaque réponse sert de "checker" pour les autres
+    consistency_scores = []
+    for i, response in enumerate(responses):
+        others = responses[:i] + responses[i+1:]
+        # Utiliser NLI ou semantic similarity
+        score = check_consistency(response, others)
+        consistency_scores.append(score)
+    
+    avg_consistency = np.mean(consistency_scores)
+    return avg_consistency < THRESHOLD  # Low consistency = likely hallucination
+```
+
+### Performances sur des benchmarks de calibration
+
+Une étude comparative sur MMLU (Massive Multitask Language Understanding) révèle :
+
+| Modèle | Accuracy | ECE | Overconfidence Rate |
+|--------|----------|-----|---------------------|
+| GPT-3.5 | 68.2% | 0.187 | 28% |
+| GPT-4 | 86.4% | 0.092 | 12% |
+| LLaMA-2-70B | 69.8% | 0.211 | 31% |
+| Claude-2 | 78.5% | 0.124 | 18% |
+
+GPT-4 montre une meilleure calibration, probablement grâce à un RLHF plus sophistiqué. Néanmoins, même ce modèle de pointe reste significativement miscalibré.
+
+## Limitations architecturales et théoriques
+
+### L'impossible ground truth de l'incertitude
+
+Un problème fondamental : durant l'entraînement, nous n'avons pas de "ground truth" pour l'incertitude. Le modèle apprend à imiter les patterns de texte, pas à évaluer sa propre connaissance.
+
+Même avec RLHF, le signal de récompense se base sur les préférences humaines, qui privilégient souvent les réponses confiantes et détaillées. Ce biais est renforcé par la conception des interfaces conversationnelles, comme exploré dans nos analyses des [agents IA](/articles/agents-ia-2026-etat-des-lieux).
+
+### Pas d'accès à la structure de connaissance
+
+Contrairement à un système symbolique avec une base de connaissances explicite, un LLM ne peut pas introspection sur "ce qu'il sait". Les connaissances sont distribuées implicitement dans des milliards de paramètres.
+
+``````
+
+### Performances sur des benchmarks de calibration
+
+Une étude comparative sur MMLU (Massive Multitask Language Understanding) révèle :
+
+| Modèle | Accuracy | ECE | Overconfidence Rate |
+|--------|----------|-----|---------------------|
+| GPT-3.5 | 68.2% | 0.187 | 28% |
+| GPT-4 | 86.4% | 0.092 | 12% |
+| LLaMA-2-70B | 69.8% | 0.211 | 31% |
+| Claude-2 | 78.5% | 0.124 | 18% |
+
+GPT-4 montre une meilleure calibration, probablement grâce à un RLHF plus sophistiqué. Néanmoins, même ce modèle de pointe reste significativement miscalibré.
+
+## Limitations architecturales et théoriques
+
+### L'impossible ground truth de l'incertitude
+
+Un problème fondamental : durant l'entraînement, nous n'avons pas de "ground truth" pour l'incertitude. Le modèle apprend à imiter les patterns de texte, pas à évaluer sa propre connaissance.
+
+Même avec RLHF, le signal de récompense se base sur les préférences humaines, qui privilégient souvent les réponses confiantes et détaillées. Ce biais est renforcé par la conception des interfaces conversationnelles, comme exploré dans nos analyses des [agents IA](/articles/agents-ia-2026-etat-des-lieux).
+
+### Pas d'accès à la structure de connaissance
+
+Contrairement à un système symbolique avec une base de connaissances explicite, un LLM ne peut pas introspection sur "ce qu'il sait". Les connaissances sont distribuées implicitement dans des milliards de paramètres.
+
+```python
+# Ce qu'on voudrait (impossible avec l'architecture actuelle)
+def ideal_answer(model, question):
+    knowledge_coverage = model.check_knowledge_about(question)
+    if knowledge_coverage < THRESHOLD:
+        return "Je ne dispose pas d'informations suffisantes"
+    else:
+        return model.generate_with_confidence(question)
+``````python
+# Ce qu'on voudrait (impossible avec l'architecture actuelle)
+def ideal_answer(model, question):
+    knowledge_coverage = model.check_knowledge_about(question)
+    if knowledge_coverage < THRESHOLD:
+        return "Je ne dispose pas d'informations suffisantes"
+    else:
+        return model.generate_with_confidence(question)
+```
+
+Cette architecture distribué offre une généralisation remarquable, mais rend l'estimation d'incertitude intrinsèquement difficile.
+
+### Le problème du long-tail
+
+Les LLMs performent bien sur les distributions communes (ce qui est fréquent dans les données d'entraînement) mais dégradent sur le long-tail. L'incertitude devrait augmenter pour ces cas rares, mais le modèle n'a pas de mécanisme pour détecter qu'une requête est "hors distribution".
+
+## Recherche et évolutions futures
+
+### Constitutional AI et safety training
+
+Anthropic développe des approches de "Constitutional AI" où le modèle apprend explicitement des principes incluant l'honnêteté sur ses limites :
+
+``````
+
+Cette architecture distribué offre une généralisation remarquable, mais rend l'estimation d'incertitude intrinsèquement difficile.
+
+### Le problème du long-tail
+
+Les LLMs performent bien sur les distributions communes (ce qui est fréquent dans les données d'entraînement) mais dégradent sur le long-tail. L'incertitude devrait augmenter pour ces cas rares, mais le modèle n'a pas de mécanisme pour détecter qu'une requête est "hors distribution".
+
+## Recherche et évolutions futures
+
+### Constitutional AI et safety training
+
+Anthropic développe des approches de "Constitutional AI" où le modèle apprend explicitement des principes incluant l'honnêteté sur ses limites :
+
+```yaml
+Constitutional Principles:
+  - "If uncertain, express uncertainty rather than speculate"
+  - "Distinguish between facts known with high confidence and probable inferences"
+  - "Acknowledge the limits of your training data"
+``````yaml
+Constitutional Principles:
+  - "If uncertain, express uncertainty rather than speculate"
+  - "Distinguish between facts known with high confidence and probable inferences"
+  - "Acknowledge the limits of your training data"
+```
+
+Ces principes sont intégrés via du RLHF itératif, où le modèle apprend à auto-critiquer ses réponses.
+
+### Architectures hybrides neurosymboliques
+
+Une piste prometteuse : combiner LLMs avec des bases de connaissances structurées :
+
+``````
+
+Ces principes sont intégrés via du RLHF itératif, où le modèle apprend à auto-critiquer ses réponses.
+
+### Architectures hybrides neurosymboliques
+
+Une piste prometteuse : combiner LLMs avec des bases de connaissances structurées :
+
+```python
+class HybridQASystem:
+    def __init__(self, llm, knowledge_graph):
+        self.llm = llm
+        self.kg = knowledge_graph
+    
+    def answer(self, question):
+        # Vérifier d'abord si la réponse est dans le KG
+        kg_result = self.kg.query(question)
+        
+        if kg_result.confidence > THRESHOLD:
+            return kg_result.answer
+        elif kg_result.confidence > LOW_THRESHOLD:
+            # Utiliser le LLM pour enrichir la réponse partielle
+            return self.llm.generate_with_context(question, kg_result)
+        else:
+            return "Information insuffisante dans ma base de connaissances"
+``````python
+class HybridQASystem:
+    def __init__(self, llm, knowledge_graph):
+        self.llm = llm
+        self.kg = knowledge_graph
+    
+    def answer(self, question):
+        # Vérifier d'abord si la réponse est dans le KG
+        kg_result = self.kg.query(question)
+        
+        if kg_result.confidence > THRESHOLD:
+            return kg_result.answer
+        elif kg_result.confidence > LOW_THRESHOLD:
+            # Utiliser le LLM pour enrichir la réponse partielle
+            return self.llm.generate_with_context(question, kg_result)
+        else:
+            return "Information insuffisante dans ma base de connaissances"
+```
+
+### Uncertainty-aware training objectives
+
+Des travaux récents explorent des fonctions de perte qui pénalisent explicitement la fausse confiance :
+
+``````
+
+### Uncertainty-aware training objectives
+
+Des travaux récents explorent des fonctions de perte qui pénalisent explicitement la fausse confiance :
+
+```python
+def calibrated_loss(logits, targets, confidence_targets):
+    # Loss standard
+    ce_loss = cross_entropy(logits, targets)
+    
+    # Pénalité pour miscalibration
+    predicted_confidence = softmax(logits).max(dim=-1)
+    calibration_loss = mse(predicted_confidence, confidence_targets)
+    
+    return ce_loss + lambda_cal * calibration_loss
+``````python
+def calibrated_loss(logits, targets, confidence_targets):
+    # Loss standard
+    ce_loss = cross_entropy(logits, targets)
+    
+    # Pénalité pour miscalibration
+    predicted_confidence = softmax(logits).max(dim=-1)
+    calibration_loss = mse(predicted_confidence, confidence_targets)
+    
+    return ce_loss + lambda_cal * calibration_loss
+```
+
+Le défi : construire des datasets avec des annotations fiables de "confidence_targets".
+
+### Retrieval-Augmented Generation (RAG) comme solution partielle
+
+Le RAG offre une approche pragmatique : au lieu d'espérer que le modèle "sache qu'il ne sait pas", on le connecte à une source de vérité externe :
+
+``````
+
+Le défi : construire des datasets avec des annotations fiables de "confidence_targets".
+
+### Retrieval-Augmented Generation (RAG) comme solution partielle
+
+Le RAG offre une approche pragmatique : au lieu d'espérer que le modèle "sache qu'il ne sait pas", on le connecte à une source de vérité externe :
+
+```python
+def rag_answer(question, retriever, llm):
+    # Récupérer des documents pertinents
+    docs = retriever.search(question, top_k=5)
+    
+    if len(docs) == 0 or docs[0].score < THRESHOLD:
+        return "Je n'ai pas trouvé d'information pertinente dans ma base de documents"
+    
+    # Générer avec le contexte
+    context = "\n".join([doc.text for doc in docs])
+    prompt = f"Contexte:\n{context}\n\nQuestion: {question}\n\nRéponse basée uniquement sur le contexte:"
+    
+    return llm.generate(prompt)
+``````python
+def rag_answer(question, retriever, llm):
+    # Récupérer des documents pertinents
+    docs = retriever.search(question, top_k=5)
+    
+    if len(docs) == 0 or docs[0].score < THRESHOLD:
+        return "Je n'ai pas trouvé d'information pertinente dans ma base de documents"
+    
+    # Générer avec le contexte
+    context = "\n".join([doc.text for doc in docs])
+    prompt = f"Contexte:\n{context}\n\nQuestion: {question}\n\nRéponse basée uniquement sur le contexte:"
+    
+    return llm.generate(prompt)
+```
+
+Cette architecture déporte la responsabilité de l'incertitude : le retriever échoue de manière explicite si aucun document n'est trouvé, forçant une réponse honnête.
+
+## Recommandations pour la production
+
+Pour les ingénieurs déployant des LLMs en production :
+
+1. **Mesurez systématiquement la calibration** sur vos cas d'usage spécifiques avec ECE et Brier score
+2. **Implémentez des seuils de confiance** basés sur l'entrop
