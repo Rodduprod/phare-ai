@@ -456,15 +456,20 @@ Règles importantes :
 
   // Découverte dynamique du modèle via l'API
   let modelId = null;
+
+  // Sélection du modèle : on préfère les modèles versionnés (avec date ex: -20250929)
+  // Les alias courts (claude-sonnet-4-6) peuvent apparaître dans models.list() mais échouent en appel direct
   try {
     const modelsPage = await anthropic.models.list({ limit: 20 });
     const models = modelsPage.data ?? [];
     console.log(`   📋 Modèles disponibles: ${models.map(m => m.id).join(', ')}`);
 
-    // Préférence : sonnet > haiku > opus (ratio qualité/coût)
-    const preferred = models.find(m => m.id.toLowerCase().includes('sonnet'))
-      ?? models.find(m => m.id.toLowerCase().includes('haiku'))
-      ?? models.find(m => m.id.toLowerCase().includes('claude'));
+    // Préférer les modèles avec un identifiant versionné (contenant une date YYYYMMDD)
+    // pour éviter les alias qui peuvent ne pas fonctionner avec les appels directs
+    const versionedSonnet = models.find(m => /sonnet.*\d{8}/i.test(m.id) || /\d{8}.*sonnet/i.test(m.id));
+    const anySonnet = models.find(m => m.id.toLowerCase().includes('sonnet') && /\d{6,}/.test(m.id));
+    const versioned = models.find(m => /\d{8}/.test(m.id)); // n'importe quel modèle versionné
+    const preferred = versionedSonnet ?? anySonnet ?? versioned;
 
     if (preferred) {
       modelId = preferred.id;
@@ -474,11 +479,11 @@ Règles importantes :
     console.log(`   ⚠️ models.list() indisponible: ${err.message}`);
   }
 
-  // Fallback si la liste ne fonctionne pas — Sonnet en priorité
+  // Fallback hardcodé si la liste ne fonctionne pas ou ne retourne que des alias
   if (!modelId) {
     const FALLBACKS = [
-      'claude-sonnet-4-5',
-      'claude-sonnet-4-6',
+      'claude-sonnet-4-5-20250929',
+      'claude-sonnet-4-20250514',
       'claude-3-7-sonnet-20250219',
       'claude-3-5-sonnet-20241022',
       'claude-3-5-haiku-20241022',
