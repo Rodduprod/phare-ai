@@ -391,6 +391,16 @@ function getExistingArticlesContext() {
 }
 
 /**
+ * Sanitize MDX content to prevent JSX parse errors.
+ * MDX treats <X as JSX tags — any `<` followed by a digit or special char crashes the build.
+ */
+function sanitizeMdxContent(content) {
+  // Échappe les `<` qui ne sont pas des balises HTML/JSX valides :
+  // cas typiques : <2%, <10px, <1ms, <0.5, etc.
+  return content.replace(/<(?=\d)/g, '&lt;');
+}
+
+/**
  * Generate article content using Claude
  */
 async function generateArticle(topic, level) {
@@ -848,7 +858,7 @@ image: "${coverImage}"
 published: true
 ---
 
-${generated.content}`;
+${sanitizeMdxContent(generated.content)}`;
 
   const filename = `${topicSlug}--${levelSlug}.mdx`;
   const filepath = path.join(CONTENT_DIR, filename);
