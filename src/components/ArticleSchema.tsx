@@ -18,6 +18,12 @@ const EDUCATIONAL_USE: Record<string, string> = {
   confirmé: 'Technical Training',
 };
 
+const LEVEL_SECTION: Record<string, string> = {
+  débutant: 'IA pour débutants',
+  amateur:  'IA pour amateurs',
+  confirmé: 'IA avancée',
+};
+
 export function ArticleSchema({ article, breadcrumbs }: ArticleSchemaProps) {
   const canonicalUrl = `${siteConfig.url}/articles/${article.slug}`;
   const ogImage = article.image
@@ -35,7 +41,8 @@ export function ArticleSchema({ article, breadcrumbs }: ArticleSchemaProps) {
     url: canonicalUrl,
     inLanguage: "fr-FR",
     keywords: article.tags.join(", "),
-    articleSection: "Intelligence Artificielle",
+    wordCount: article.content.split(/\s+/).filter(Boolean).length,
+    articleSection: LEVEL_SECTION[article.level] ?? "Intelligence Artificielle",
     educationalLevel: EDUCATIONAL_LEVEL[article.level] ?? "Intermediate",
     educationalUse: EDUCATIONAL_USE[article.level] ?? "Reading",
     teaches: article.tags.map((tag) => ({
