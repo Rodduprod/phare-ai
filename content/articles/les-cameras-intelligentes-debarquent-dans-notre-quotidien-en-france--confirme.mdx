@@ -1,0 +1,416 @@
+---
+title: "Architecture de la videosurveillance algorithmique : deep dive technique"
+description: "Détection d'anomalies, action recognition, tracking multi-objets : dissection complète des architectures de VSA pour ingénieurs ML."
+date: "2026-03-25"
+generated_at: "2026-03-25T07:57:40.949Z"
+tags: ["videosurveillance algorithmique", "computer vision", "detection anomalies", "action recognition", "tracking"]
+level: "confirmé"
+topic: "les-cameras-intelligentes-debarquent-dans-notre-quotidien-en-france"
+image: "https://images.unsplash.com/photo-1540479859555-17af45c78602?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Architecture de la videosurveillance algorithmique : deep dive technique
+
+La vidéosurveillance algorithmique (VSA) s'apprête à sortir du cadre expérimental des grands événements pour intégrer la sécurité quotidienne en France, selon France Info. Au-delà des débats éthiques, cette extension pose des défis techniques majeurs : passage à l'échelle, latence temps-réel, robustesse aux conditions réelles. Plongée dans les architectures qui alimentent ces systèmes.
+
+## Fondements techniques : trois piliers computationnels
+
+La VSA repose sur trois tâches de computer vision interconnectées, chacune avec ses contraintes spécifiques.
+
+### Detection et tracking multi-objets (MOT)
+
+Le tracking multi-objets constitue la brique de base. Les architectures modernes utilisent des approches "tracking-by-detection" où un détecteur d'objets (typiquement YOLO v8/v9, ou RT-DETR pour les déploiements edge) génère des bounding boxes à chaque frame.
+
+L'association temporelle s'appuie sur des algorithmes comme **DeepSORT** ou **ByteTrack**. DeepSORT combine :
+- Un filtre de Kalman pour la prédiction de mouvement
+- Une distance de réidentification basée sur un embedding CNN (typiquement ResNet-50 ou MobileNetV3)
+- La distance de Mahalanobis entre positions prédites et détections
+
+```python
+# Exemple simplifié d'update DeepSORT
+def update(self, detections, frame):
+    # Prédiction Kalman
+    for track in self.tracks:
+        track.predict()
+    
+    # Matrice de coût combinant IoU et embedding distance
+    cost_matrix = np.zeros((len(self.tracks), len(detections)))
+    for i, track in enumerate(self.tracks):
+        for j, det in enumerate(detections):
+            iou_cost = 1 - iou(track.bbox, det.bbox)
+            emb_cost = cosine_distance(track.embedding, det.embedding)
+            cost_matrix[i,j] = 0.7 * iou_cost + 0.3 * emb_cost
+    
+    # Association hongroise
+    matches, unmatched_tracks, unmatched_dets = linear_assignment(cost_matrix)
+``````python
+# Exemple simplifié d'update DeepSORT
+def update(self, detections, frame):
+    # Prédiction Kalman
+    for track in self.tracks:
+        track.predict()
+    
+    # Matrice de coût combinant IoU et embedding distance
+    cost_matrix = np.zeros((len(self.tracks), len(detections)))
+    for i, track in enumerate(self.tracks):
+        for j, det in enumerate(detections):
+            iou_cost = 1 - iou(track.bbox, det.bbox)
+            emb_cost = cosine_distance(track.embedding, det.embedding)
+            cost_matrix[i,j] = 0.7 * iou_cost + 0.3 * emb_cost
+    
+    # Association hongroise
+    matches, unmatched_tracks, unmatched_dets = linear_assignment(cost_matrix)
+```
+
+ByteTrack améliore la robustesse en traitant séparément les détections haute et basse confiance, réduisant les pertes d'identité de ~15% sur MOT17.
+
+### Action recognition temporel
+
+La détection d'actions (bagarre, chute, intrusion) nécessite une modélisation temporelle. Trois architectures dominent :
+
+**1. Two-Stream Networks** : Traitent séparément l'apparence (RGB) et le mouvement (optical flow). Le I3D (Inflated 3D ConvNet) étend les convolutions 2D au domaine temporel avec des noyaux 3D. Performance : ~80% top-1 sur Kinetics-400, mais coût computationnel élevé (108 GFLOPs pour 64 frames).
+
+**2. SlowFast Networks** : Architecture duale avec un pathway "Slow" (basse fréquence, haute résolution spatiale) et un pathway "Fast" (haute fréquence, basse résolution). Les connexions latérales fusionnent les features. Réduction de 50% du compute vs I3D à précision équivalente.
+
+**3. Vision Transformers temporels** : TimeSformer et VideoSwin appliquent l'attention spatio-temporelle. TimeSformer factorise l'attention en "divided space-time attention" (attention spatiale puis temporelle séparées), passant à l'échelle à O(T·H·W) au lieu de O((T·H·W)²).
+
+``````
+
+ByteTrack améliore la robustesse en traitant séparément les détections haute et basse confiance, réduisant les pertes d'identité de ~15% sur MOT17.
+
+### Action recognition temporel
+
+La détection d'actions (bagarre, chute, intrusion) nécessite une modélisation temporelle. Trois architectures dominent :
+
+**1. Two-Stream Networks** : Traitent séparément l'apparence (RGB) et le mouvement (optical flow). Le I3D (Inflated 3D ConvNet) étend les convolutions 2D au domaine temporel avec des noyaux 3D. Performance : ~80% top-1 sur Kinetics-400, mais coût computationnel élevé (108 GFLOPs pour 64 frames).
+
+**2. SlowFast Networks** : Architecture duale avec un pathway "Slow" (basse fréquence, haute résolution spatiale) et un pathway "Fast" (haute fréquence, basse résolution). Les connexions latérales fusionnent les features. Réduction de 50% du compute vs I3D à précision équivalente.
+
+**3. Vision Transformers temporels** : TimeSformer et VideoSwin appliquent l'attention spatio-temporelle. TimeSformer factorise l'attention en "divided space-time attention" (attention spatiale puis temporelle séparées), passant à l'échelle à O(T·H·W) au lieu de O((T·H·W)²).
+
+```python
+# Attention spatio-temporelle divisée (TimeSformer)
+class DividedSpaceTimeAttention(nn.Module):
+    def forward(self, x):
+        # x: [B, T, H*W, C]
+        B, T, N, C = x.shape
+        
+        # Attention temporelle (sur T)
+        x_t = rearrange(x, 'b t n c -> (b n) t c')
+        x_t = self.temporal_attn(x_t)
+        x_t = rearrange(x_t, '(b n) t c -> b t n c', b=B)
+        
+        # Attention spatiale (sur H*W)
+        x_s = rearrange(x_t, 'b t n c -> (b t) n c')
+        x_s = self.spatial_attn(x_s)
+        x_s = rearrange(x_s, '(b t) n c -> b t n c', b=B)
+        
+        return x_s
+``````python
+# Attention spatio-temporelle divisée (TimeSformer)
+class DividedSpaceTimeAttention(nn.Module):
+    def forward(self, x):
+        # x: [B, T, H*W, C]
+        B, T, N, C = x.shape
+        
+        # Attention temporelle (sur T)
+        x_t = rearrange(x, 'b t n c -> (b n) t c')
+        x_t = self.temporal_attn(x_t)
+        x_t = rearrange(x_t, '(b n) t c -> b t n c', b=B)
+        
+        # Attention spatiale (sur H*W)
+        x_s = rearrange(x_t, 'b t n c -> (b t) n c')
+        x_s = self.spatial_attn(x_s)
+        x_s = rearrange(x_s, '(b t) n c -> b t n c', b=B)
+        
+        return x_s
+```
+
+### Détection d'anomalies : apprentissage de la normalité
+
+Contrairement aux tâches supervisées, la détection d'anomalies apprend ce qui est "normal" pour identifier les déviations. Deux familles :
+
+**Approches reconstructives** : Des autoencoders (AE) ou variational AE apprennent à reconstruire des séquences normales. Une erreur de reconstruction élevée signale une anomalie. Les architectures LSTM-AE ou ConvLSTM-AE capturent les dépendances temporelles.
+
+**Approches prédictives** : Modèles génératifs (GAN, diffusion) prédisant la frame suivante. Future Frame Prediction avec U-Net temporels ou MemAE (Memory-Augmented Autoencoder) qui stocke des prototypes de patterns normaux dans une mémoire adressable.
+
+Le challenge : définir un seuil d'anomalie robuste sans exploser les faux positifs. Des techniques comme Deep SVDD (Support Vector Data Description) apprennent une hypersphere minimale contenant les données normales dans l'espace latent.
+
+## Implémentation : du prototype au déploiement edge
+
+### Pipeline d'inférence temps-réel
+
+Un système VSA typique traite 10-50 flux vidéo simultanés à 25-30 FPS. L'architecture logicielle suit un pattern producer-consumer :
+
+``````
+
+### Détection d'anomalies : apprentissage de la normalité
+
+Contrairement aux tâches supervisées, la détection d'anomalies apprend ce qui est "normal" pour identifier les déviations. Deux familles :
+
+**Approches reconstructives** : Des autoencoders (AE) ou variational AE apprennent à reconstruire des séquences normales. Une erreur de reconstruction élevée signale une anomalie. Les architectures LSTM-AE ou ConvLSTM-AE capturent les dépendances temporelles.
+
+**Approches prédictives** : Modèles génératifs (GAN, diffusion) prédisant la frame suivante. Future Frame Prediction avec U-Net temporels ou MemAE (Memory-Augmented Autoencoder) qui stocke des prototypes de patterns normaux dans une mémoire adressable.
+
+Le challenge : définir un seuil d'anomalie robuste sans exploser les faux positifs. Des techniques comme Deep SVDD (Support Vector Data Description) apprennent une hypersphere minimale contenant les données normales dans l'espace latent.
+
+## Implémentation : du prototype au déploiement edge
+
+### Pipeline d'inférence temps-réel
+
+Un système VSA typique traite 10-50 flux vidéo simultanés à 25-30 FPS. L'architecture logicielle suit un pattern producer-consumer :
+
+```python
+# Architecture simplifiée multi-streams
+class VSAEngine:
+    def __init__(self, num_streams=10):
+        self.detector = YOLOv8(model='yolov8x.pt')
+        self.tracker = ByteTrack()
+        self.action_recognizer = SlowFast(checkpoint='slowfast_r50.pth')
+        self.anomaly_detector = MemAE(checkpoint='memae.pth')
+        
+        # Buffer circulaire pour contexte temporel
+        self.frame_buffers = [deque(maxlen=64) for _ in range(num_streams)]
+        
+    def process_stream(self, stream_id, frame):
+        # Détection + Tracking (toutes les frames)
+        detections = self.detector(frame)
+        tracks = self.tracker.update(detections, frame)
+        
+        # Extraction de crops pour action recognition
+        crops = [extract_crop(frame, track.bbox) for track in tracks]
+        
+        # Action recognition (toutes les 8 frames)
+        self.frame_buffers[stream_id].append(crops)
+        if len(self.frame_buffers[stream_id]) == 64 and stream_id % 8 == 0:
+            actions = self.action_recognizer(
+                torch.stack(list(self.frame_buffers[stream_id]))
+            )
+            
+        # Détection d'anomalies (niveau scene)
+        anomaly_score = self.anomaly_detector(frame)
+        
+        return tracks, actions, anomaly_score
+``````python
+# Architecture simplifiée multi-streams
+class VSAEngine:
+    def __init__(self, num_streams=10):
+        self.detector = YOLOv8(model='yolov8x.pt')
+        self.tracker = ByteTrack()
+        self.action_recognizer = SlowFast(checkpoint='slowfast_r50.pth')
+        self.anomaly_detector = MemAE(checkpoint='memae.pth')
+        
+        # Buffer circulaire pour contexte temporel
+        self.frame_buffers = [deque(maxlen=64) for _ in range(num_streams)]
+        
+    def process_stream(self, stream_id, frame):
+        # Détection + Tracking (toutes les frames)
+        detections = self.detector(frame)
+        tracks = self.tracker.update(detections, frame)
+        
+        # Extraction de crops pour action recognition
+        crops = [extract_crop(frame, track.bbox) for track in tracks]
+        
+        # Action recognition (toutes les 8 frames)
+        self.frame_buffers[stream_id].append(crops)
+        if len(self.frame_buffers[stream_id]) == 64 and stream_id % 8 == 0:
+            actions = self.action_recognizer(
+                torch.stack(list(self.frame_buffers[stream_id]))
+            )
+            
+        # Détection d'anomalies (niveau scene)
+        anomaly_score = self.anomaly_detector(frame)
+        
+        return tracks, actions, anomaly_score
+```
+
+### Optimisations pour le déploiement
+
+**Quantization** : INT8 quantization via TensorRT ou OpenVINO réduit la latence de 2-4x. Pour YOLOv8, quantization-aware training (QAT) maintient >95% de la mAP d'origine.
+
+**Pruning structuré** : Suppression de channels entiers (pas de poids individuels) pour accélération réelle sur GPU. Des techniques comme "Network Slimming" avec pénalisation L1 sur les batch norm scales identifient les channels à élaguer. Réduction typique : 40-50% des FLOPs avec <2% de perte de précision.
+
+**Temporal sampling adaptatif** : Au lieu de traiter toutes les frames à 30 FPS, un modèle léger (MobileNet) évalue la "saillance" de chaque frame. L'action recognition lourd ne s'exécute que sur les frames informatives. Économie compute : 60-70%.
+
+**Multi-stream batching** : Grouper les frames de multiples caméras dans un batch unique maximise l'utilisation GPU. Avec TensorRT, un batch de 16 frames (de caméras différentes) peut avoir une latence similaire à 4 frames traitées séquentiellement.
+
+## Benchmarks : performance dans des conditions réelles
+
+### Datasets et métriques
+
+Les benchmarks académiques (UCF-Crime, ShanghaiTech pour anomalies ; AVA, Kinetics pour actions) ne reflètent pas toujours les conditions réelles de VSA. Défis spécifiques :
+
+- **Occlusions sévères** : MOT20 dataset (scènes très encombrées) montre une chute de 20-30% du MOTA (Multiple Object Tracking Accuracy) vs MOT17
+- **Conditions d'éclairage variables** : Les modèles entraînés sur des datasets diurnes dégradent de 15-25% en nocturne sans augmentation spécifique
+- **Viewpoints non-canoniques** : Les datasets action sont souvent filmés avec des angles "propres". Des vues plongées/contre-plongées extrêmes réduisent la précision de 10-15%
+
+### Résultats représentatifs (hardware NVIDIA A4000)
+
+**Detection/Tracking** :
+- YOLOv8x : 52 FPS @ 640x640, mAP 53.9 sur COCO
+- YOLOv8x-INT8 : 118 FPS, mAP 53.1 (-1.5%)
+- ByteTrack sur MOT17 : MOTA 80.3%, IDF1 77.3%
+
+**Action Recognition** :
+- SlowFast R50 : 28.5 FPS (batch=1, 64 frames), top-1 79.8% sur Kinetics-400
+- VideoSwin-B : 18.2 FPS, top-1 82.7%
+- X3D-M (efficience) : 95 FPS, top-1 76.0%
+
+**Anomaly Detection** :
+- MemAE sur ShanghaiTech : AUC 94.1%, mais 15.3 FPS (goulet computationnel)
+- Future Frame GAN : AUC 91.8%, 42 FPS après optimisation TensorRT
+
+### Coût réel d'un déploiement
+
+Pour surveiller 20 caméras 24/7 :
+- Serveur edge : 1x A4000 (16 GB) ou 2x T4 : 5000-8000€
+- Bande passante : ~40 Mbps pour 20 streams 1080p H.264
+- Stockage : 10-50 TB selon rétention (images d'anomalies uniquement)
+- Consommation : ~500W pour le compute
+
+Soit un TCO annuel de ~15-20k€ (hardware, électricité, maintenance), avant coûts de développement/intégration.
+
+## Limitations techniques et biais
+
+### Faux positifs et corner cases
+
+Les systèmes actuels excellent sur des actions stéréotypées mais échouent sur :
+
+**Variabilité intra-classe** : Une "bagarre" peut ressembler à une accolade énergique. Les modèles manquent de contexte sémantique de haut niveau. Les architectures comme [les LLMs multi-modaux évoqués dans d'autres contextes](/articles/comment-l-ia-apprend-a-parler-le-secret-du-mot-suivant--confirme) pourraient intégrer du raisonnement contextuel, mais restent trop lents pour du temps-réel.
+
+**Occlusions et ambiguïtés** : Un sac abandonné derrière un pilier peut être invisible pendant des secondes critiques. Les approches multi-vues (fusion de plusieurs caméras) aident mais complexifient l'infrastructure.
+
+**Adversarial attacks physiques** : Des patches adversariaux sur des vêtements peuvent tromper les détecteurs. La défense (adversarial training) augmente significativement le coût d'entraînement.
+
+### Biais algorithmiques documentés
+
+Des études montrent des disparités de performance :
+- **Biais démographiques** : Recognition accuracy varie selon l'âge, le genre, l'ethnicité (jusqu'à 10-15% d'écart sur certaines actions)
+- **Biais de dataset** : Sur-représentation de certains contextes (aéroports, rues urbaines occidentales) vs sous-représentation d'autres
+- **Biais de labellisation** : Subjectivité humaine dans l'annotation d'"anomalies" ou d'actions ambiguës
+
+La mitigation passe par des datasets balancés, de l'augmentation ciblée, et des audits réguliers avec des métriques désagrégées par sous-groupes.
+
+## Recherche et évolutions futures
+
+### Vision-Language Models pour la VSA
+
+L'intégration de VLM (comme CLIP, Flamingo) permet des requêtes en langage naturel : "détecte les personnes portant un sac rouge près de la sortie". Des architectures comme **RegionCLIP** apprennent des embeddings région-texte alignés.
+
+``````
+
+### Optimisations pour le déploiement
+
+**Quantization** : INT8 quantization via TensorRT ou OpenVINO réduit la latence de 2-4x. Pour YOLOv8, quantization-aware training (QAT) maintient &gt;95% de la mAP d'origine.
+
+**Pruning structuré** : Suppression de channels entiers (pas de poids individuels) pour accélération réelle sur GPU. Des techniques comme "Network Slimming" avec pénalisation L1 sur les batch norm scales identifient les channels à élaguer. Réduction typique : 40-50% des FLOPs avec &lt;2% de perte de précision.
+
+**Temporal sampling adaptatif** : Au lieu de traiter toutes les frames à 30 FPS, un modèle léger (MobileNet) évalue la "saillance" de chaque frame. L'action recognition lourd ne s'exécute que sur les frames informatives. Économie compute : 60-70%.
+
+**Multi-stream batching** : Grouper les frames de multiples caméras dans un batch unique maximise l'utilisation GPU. Avec TensorRT, un batch de 16 frames (de caméras différentes) peut avoir une latence similaire à 4 frames traitées séquentiellement.
+
+## Benchmarks : performance dans des conditions réelles
+
+### Datasets et métriques
+
+Les benchmarks académiques (UCF-Crime, ShanghaiTech pour anomalies ; AVA, Kinetics pour actions) ne reflètent pas toujours les conditions réelles de VSA. Défis spécifiques :
+
+- **Occlusions sévères** : MOT20 dataset (scènes très encombrées) montre une chute de 20-30% du MOTA (Multiple Object Tracking Accuracy) vs MOT17
+- **Conditions d'éclairage variables** : Les modèles entraînés sur des datasets diurnes dégradent de 15-25% en nocturne sans augmentation spécifique
+- **Viewpoints non-canoniques** : Les datasets action sont souvent filmés avec des angles "propres". Des vues plongées/contre-plongées extrêmes réduisent la précision de 10-15%
+
+### Résultats représentatifs (hardware NVIDIA A4000)
+
+**Detection/Tracking** :
+- YOLOv8x : 52 FPS @ 640x640, mAP 53.9 sur COCO
+- YOLOv8x-INT8 : 118 FPS, mAP 53.1 (-1.5%)
+- ByteTrack sur MOT17 : MOTA 80.3%, IDF1 77.3%
+
+**Action Recognition** :
+- SlowFast R50 : 28.5 FPS (batch=1, 64 frames), top-1 79.8% sur Kinetics-400
+- VideoSwin-B : 18.2 FPS, top-1 82.7%
+- X3D-M (efficience) : 95 FPS, top-1 76.0%
+
+**Anomaly Detection** :
+- MemAE sur ShanghaiTech : AUC 94.1%, mais 15.3 FPS (goulet computationnel)
+- Future Frame GAN : AUC 91.8%, 42 FPS après optimisation TensorRT
+
+### Coût réel d'un déploiement
+
+Pour surveiller 20 caméras 24/7 :
+- Serveur edge : 1x A4000 (16 GB) ou 2x T4 : 5000-8000€
+- Bande passante : ~40 Mbps pour 20 streams 1080p H.264
+- Stockage : 10-50 TB selon rétention (images d'anomalies uniquement)
+- Consommation : ~500W pour le compute
+
+Soit un TCO annuel de ~15-20k€ (hardware, électricité, maintenance), avant coûts de développement/intégration.
+
+## Limitations techniques et biais
+
+### Faux positifs et corner cases
+
+Les systèmes actuels excellent sur des actions stéréotypées mais échouent sur :
+
+**Variabilité intra-classe** : Une "bagarre" peut ressembler à une accolade énergique. Les modèles manquent de contexte sémantique de haut niveau. Les architectures comme [les LLMs multi-modaux évoqués dans d'autres contextes](/articles/comment-l-ia-apprend-a-parler-le-secret-du-mot-suivant--confirme) pourraient intégrer du raisonnement contextuel, mais restent trop lents pour du temps-réel.
+
+**Occlusions et ambiguïtés** : Un sac abandonné derrière un pilier peut être invisible pendant des secondes critiques. Les approches multi-vues (fusion de plusieurs caméras) aident mais complexifient l'infrastructure.
+
+**Adversarial attacks physiques** : Des patches adversariaux sur des vêtements peuvent tromper les détecteurs. La défense (adversarial training) augmente significativement le coût d'entraînement.
+
+### Biais algorithmiques documentés
+
+Des études montrent des disparités de performance :
+- **Biais démographiques** : Recognition accuracy varie selon l'âge, le genre, l'ethnicité (jusqu'à 10-15% d'écart sur certaines actions)
+- **Biais de dataset** : Sur-représentation de certains contextes (aéroports, rues urbaines occidentales) vs sous-représentation d'autres
+- **Biais de labellisation** : Subjectivité humaine dans l'annotation d'"anomalies" ou d'actions ambiguës
+
+La mitigation passe par des datasets balancés, de l'augmentation ciblée, et des audits réguliers avec des métriques désagrégées par sous-groupes.
+
+## Recherche et évolutions futures
+
+### Vision-Language Models pour la VSA
+
+L'intégration de VLM (comme CLIP, Flamingo) permet des requêtes en langage naturel : "détecte les personnes portant un sac rouge près de la sortie". Des architectures comme **RegionCLIP** apprennent des embeddings région-texte alignés.
+
+```python
+# Pseudo-code requête VLM sur détections
+detections = detector(frame)  # Bounding boxes
+region_features = roi_align(frame, detections)  # [N, 2048]
+
+query = "person carrying a weapon"
+query_embedding = clip_text_encoder(query)  # [512]
+
+# Similarité cosine
+scores = F.cosine_similarity(
+    region_features @ clip_vision_projection,  # [N, 512]
+    query_embedding.unsqueeze(0)  # [1, 512]
+)
+alerts = detections[scores > threshold]
+``````python
+# Pseudo-code requête VLM sur détections
+detections = detector(frame)  # Bounding boxes
+region_features = roi_align(frame, detections)  # [N, 2048]
+
+query = "person carrying a weapon"
+query_embedding = clip_text_encoder(query)  # [512]
+
+# Similarité cosine
+scores = F.cosine_similarity(
+    region_features @ clip_vision_projection,  # [N, 512]
+    query_embedding.unsqueeze(0)  # [1, 512]
+)
+alerts = detections[scores > threshold]
+```
+
+Cette approche pourrait révolutionner la flexibilité des systèmes, permettant des configurations "low-code" pour des scénarios ad-hoc.
+
+### Architectures éco-énergétiques
+
+Avec des milliers de caméras envisagées, l'efficacité énergétique devient critique. Des recherches explorent :
+
+**Event-based cameras** : Capteurs DVS (Dynamic Vision Sensor) qui transmettent uniquement les changements de pixels, réduisant drastiquement la bande passante et le compute (90%+ d'économie dans des scènes statiques).
+
+**Neural Architecture Search (NAS) pour edge** : Comme EfficientDet ou Once-for-All Networks, des architectures auto-générées optimisent le trade-off précision/latence pour du hardware spécifique (Jetson Orin, Hailo-8).
+
+**Spiking
