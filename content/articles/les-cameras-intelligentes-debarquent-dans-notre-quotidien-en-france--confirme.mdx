@@ -229,7 +229,7 @@ class VSAEngine:
 
 **Quantization** : INT8 quantization via TensorRT ou OpenVINO réduit la latence de 2-4x. Pour YOLOv8, quantization-aware training (QAT) maintient >95% de la mAP d'origine.
 
-**Pruning structuré** : Suppression de channels entiers (pas de poids individuels) pour accélération réelle sur GPU. Des techniques comme "Network Slimming" avec pénalisation L1 sur les batch norm scales identifient les channels à élaguer. Réduction typique : 40-50% des FLOPs avec <2% de perte de précision.
+**Pruning structuré** : Suppression de channels entiers (pas de poids individuels) pour accélération réelle sur GPU. Des techniques comme "Network Slimming" avec pénalisation L1 sur les batch norm scales identifient les channels à élaguer. Réduction typique : 40-50% des FLOPs avec &lt;2% de perte de précision.
 
 **Temporal sampling adaptatif** : Au lieu de traiter toutes les frames à 30 FPS, un modèle léger (MobileNet) évalue la "saillance" de chaque frame. L'action recognition lourd ne s'exécute que sur les frames informatives. Économie compute : 60-70%.
 
