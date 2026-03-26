@@ -2,8 +2,8 @@ name: 🤖 AI Content Generator
 
 on:
   schedule:
-    # Tous les matins à 7h UTC
-    - cron: '0 7 * * *'
+    # Tous les matins à 9h UTC (> 23h après le run précédent ~08h30)
+    - cron: '0 9 * * *'
   workflow_dispatch:
     inputs:
       force:
