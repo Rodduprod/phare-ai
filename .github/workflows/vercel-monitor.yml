@@ -1,0 +1,45 @@
+name: 🚨 Vercel Build Monitor
+
+on:
+  schedule:
+    # Toutes les 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔍 Vérifier le dernier deploy Vercel
+        id: vercel_check
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          RESPONSE=$(curl -s "https://api.vercel.com/v6/deployments?limit=1&projectId=phare-ai" \
+            -H "Authorization: Bearer $VERCEL_TOKEN")
+
+          STATE=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d['state'])")
+          COMMIT=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('meta',{}).get('githubCommitMessage','?')[:80])")
+          URL=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('url',''))")
+          ERR=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('errorMessage',''))")
+
+          echo "state=$STATE" >> $GITHUB_OUTPUT
+          echo "commit=$COMMIT" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "error=$ERR" >> $GITHUB_OUTPUT
+
+          echo "Deploy state: $STATE"
+          echo "Commit: $COMMIT"
+
+      - name: 🚨 Échouer si build en erreur (déclenche une notification GitHub)
+        if: steps.vercel_check.outputs.state == 'ERROR'
+        run: |
+          echo "::error::🚨 Build Vercel EN ERREUR"
+          echo "::error::Commit : ${{ steps.vercel_check.outputs.commit }}"
+          echo "::error::Erreur : ${{ steps.vercel_check.outputs.error }}"
+          echo "::error::URL : https://${{ steps.vercel_check.outputs.url }}"
+          exit 1
+
+      - name: ✅ Build OK
+        if: steps.vercel_check.outputs.state != 'ERROR'
+        run: echo "Build Vercel OK — state=${{ steps.vercel_check.outputs.state }}"
