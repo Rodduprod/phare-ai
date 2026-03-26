@@ -124,7 +124,9 @@ def quantize_weight_aware(W, bits=4, group_size=128):
 
 **Pruning structuré** : La suppression de têtes d'attention ou de couches entières peut réduire la latence de 20-40% avec une dégradation de perplexité &lt;5%. Le pruning basé sur Taylor expansion identifie les composants à faible contribution :
 
-$$\Delta \mathcal{L} \approx \sum_i \frac{\partial \mathcal{L}}{\partial w_i} w_i + \frac{1}{2} \sum_i \frac{\partial^2 \mathcal{L}}{\partial w_i^2} w_i^2$$
+```math
+\Delta \mathcal{L} \approx \sum_i \frac{\partial \mathcal{L}}{\partial w_i} w_i + \frac{1}{2} \sum_i \frac{\partial^2 \mathcal{L}}{\partial w_i^2} w_i^2
+```
 
 ### KV Cache et optimisations mémoire
 
@@ -191,8 +193,8 @@ TCO = (Infrastructure + Personnel) / Tokens générés
 ```
 
 Pour un service à 1B tokens/jour :
-- Infrastructure : 20 x H100 @ $3/h = $1440/j
-- Ingénierie : 5 ingénieurs ML @ $200k/an = $2740/j
+- Infrastructure : 20 x H100 @ `3/h =`1440/j
+- Ingénierie : 5 ingénieurs ML @ `200k/an =`2740/j
 - **TCO = $4.18 / 1M tokens**
 
 Comparer à GPT-4 Turbo API ($10/1M tokens) montre le seuil de rentabilité autour de 2-3B tokens/mois.

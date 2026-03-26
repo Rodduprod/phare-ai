@@ -181,6 +181,8 @@ function validateArticle(filename) {
       { re: /> \d/,       label: '> espace+chiffre (ex: > 90%) — utiliser &gt;' },
       { re: />\d/,        label: '>digit (ex: >90%) — utiliser &gt;' },
       { re: /<[A-Z][a-zA-Z0-9]*[\s/>]/, label: '<UppercaseTag (composant JSX halluciné)' },
+      { re: /\{[^}]*\}/,  label: 'accolades {expr} (expression JSX) — utiliser &#123; &#125;' },
+      { re: /\$\$/,       label: 'LaTeX $$ (math block non supporté, utiliser bloc code)' },
     ];
     const found = dangerousPatterns.filter(p => p.re.test(bodyNoCode));
     assert(found.length === 0, `Patterns MDX dangereux détectés:\n       ${found.map(p => p.label).join('\n       ')}`);

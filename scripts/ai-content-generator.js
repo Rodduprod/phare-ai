@@ -395,12 +395,13 @@ function getExistingArticlesContext() {
  * MDX treats <X as JSX tags — any `<` followed by a digit or special char crashes the build.
  */
 function sanitizeMdxContent(content) {
-  // Sépare les blocs de code (inline et fenced) du texte normal
-  // Les blocs code sont préservés tels quels, seul le texte est sanitisé
-  const parts = content.split(/(```[\s\S]*?```|`[^`\n]+`)/g);
+  // Sépare les blocs de code (inline et fenced) du texte normal.
+  // Les blocs code sont préservés tels quels, seul le texte est sanitisé.
+  // Split pattern inclut aussi les blocs math $$ et $ pour les isoler.
+  const parts = content.split(/(```[\s\S]*?```|`[^`\n]+`|\$\$[\s\S]*?\$\$|\$[^\n$]+\$)/g);
 
   const sanitizeText = (text) => text
-    // <digit : <2%, <10px, <1ms  (déjà couvert, conservé)
+    // <digit : <2%, <10px, <1ms
     .replace(/<(?=\d)/g, '&lt;')
     // < espace+chiffre : < 500ms, < 1,2%, < 10B
     .replace(/< (?=[\d])/g, '&lt; ')
@@ -408,11 +409,26 @@ function sanitizeMdxContent(content) {
     .replace(/> (?=[\d])/g, '&gt; ')
     // >digit : >90%, >10x
     .replace(/>(?=\d)/g, '&gt;')
-    // <UppercaseLetter : composants JSX hallucinés ex: <MyComponent>, <Table>, <CodeBlock>
-    // On exclut les vrais composants MDX qu'on utilise intentionnellement (aucun pour l'instant)
-    .replace(/<([A-Z][a-zA-Z0-9]*)([\s/>])/g, '&lt;$1$2');
+    // <UppercaseLetter : composants JSX hallucinés ex: <MyComponent>, <Table>
+    .replace(/<([A-Z][a-zA-Z0-9]*)([\s/>])/g, '&lt;$1$2')
+    // Accolades non échappées : MDX les interprète comme des expressions JSX
+    // (LaTeX, templates, etc. générés par hallucination)
+    .replace(/\{/g, '&#123;')
+    .replace(/\}/g, '&#125;');
 
-  return parts.map((part, i) => (i % 2 === 0 ? sanitizeText(part) : part)).join('');
+  // Les blocs math ($$...$$) sont réécrits en blocs code pour éviter le crash MDX
+  // (pas de plugin remark-math configuré sur ce site)
+  const rewriteMathBlock = (part) => {
+    if (part.startsWith('$$')) return '```math\n' + part.slice(2, -2).trim() + '\n```';
+    if (part.startsWith('$'))  return '`' + part.slice(1, -1).trim() + '`';
+    return part; // blocs code classiques : inchangés
+  };
+
+  return parts.map((part, i) => {
+    if (i % 2 === 0) return sanitizeText(part);  // texte normal
+    if (part.startsWith('`')) return part;        // code block : inchangé
+    return rewriteMathBlock(part);               // $$ ou $ math → code
+  }).join('');
 }
 
 /**
