@@ -491,7 +491,14 @@ Règles importantes :
 - Contenu 100% original, inspiré des sources mais jamais copié
 - **Maillage interne obligatoire** : minimum 2 liens internes dans le corps du texte (voir liste ci-dessous)
 - **Synthèse multi-sources** : cite les sources naturellement dans le texte ("selon TechCrunch", "d'après Google News"...)
-- Titre accrocheur, clair, informatif — pas un titre de communiqué de presse${topic.sourcesContext || ''}${internalLinksContext}`;
+- Titre accrocheur, clair, informatif — pas un titre de communiqué de presse
+
+RÈGLES DE FORMATAGE OBLIGATOIRES (violations = build cassé) :
+- INTERDIT : LaTeX ou formules mathématiques (\`$$...$$\`, \`$...$\`, \\frac, \\sum, \\mathcal, etc.) — utiliser du texte clair à la place
+- INTERDIT : accolades { } hors des blocs de code — elles cassent le rendu MDX
+- INTERDIT : balises HTML commençant par une majuscule (<Table>, <Component>, etc.)
+- Les blocs de code doivent TOUJOURS spécifier le langage (\`\`\`python, \`\`\`json, \`\`\`bash...)
+- Exprimer les formules en texte clair : "la perte diminue de X%" plutôt que "L = ∑..."${topic.sourcesContext || ''}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 
