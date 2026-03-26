@@ -200,13 +200,13 @@ class LipSyncDetector:
         return sync_score
 ```
 
-Cette méthode détecte 83% des deepfakes avec désync > 100ms, mais échoue sur les systèmes modernes comme Wav2Lip qui génèrent une synchronisation parfaite.
+Cette méthode détecte 83% des deepfakes avec désync &gt; 100ms, mais échoue sur les systèmes modernes comme Wav2Lip qui génèrent une synchronisation parfaite.
 
 ### Optimisation pour l'inférence temps réel
 
-Les plateformes de modération nécessitent une latence < 500ms par vidéo. Stratégies d'optimisation :
+Les plateformes de modération nécessitent une latence &lt; 500ms par vidéo. Stratégies d'optimisation :
 
-**Quantization INT8** : Réduction de 4× de la taille du modèle avec perte de précision < 1,2%.
+**Quantization INT8** : Réduction de 4× de la taille du modèle avec perte de précision &lt; 1,2%.
 
 **Distillation** : Un modèle étudiant (EfficientNet-B2) atteint 93,1% de précision vs 96,7% pour le modèle professeur (EfficientNet-B7), avec une inférence 6× plus rapide.
 
@@ -257,13 +257,13 @@ Les deepfakes peuvent intégrer des perturbations adversariales imperceptibles q
 
 ``````
 
-Cette méthode détecte 83% des deepfakes avec désync > 100ms, mais échoue sur les systèmes modernes comme Wav2Lip qui génèrent une synchronisation parfaite.
+Cette méthode détecte 83% des deepfakes avec désync &gt; 100ms, mais échoue sur les systèmes modernes comme Wav2Lip qui génèrent une synchronisation parfaite.
 
 ### Optimisation pour l'inférence temps réel
 
-Les plateformes de modération nécessitent une latence < 500ms par vidéo. Stratégies d'optimisation :
+Les plateformes de modération nécessitent une latence &lt; 500ms par vidéo. Stratégies d'optimisation :
 
-**Quantization INT8** : Réduction de 4× de la taille du modèle avec perte de précision < 1,2%.
+**Quantization INT8** : Réduction de 4× de la taille du modèle avec perte de précision &lt; 1,2%.
 
 **Distillation** : Un modèle étudiant (EfficientNet-B2) atteint 93,1% de précision vs 96,7% pour le modèle professeur (EfficientNet-B7), avec une inférence 6× plus rapide.
 
@@ -338,7 +338,7 @@ def generate_adversarial(model, video, epsilon=0.03):
 
 ### Compression et dégradation
 
-La compression JPEG avec QF < 60 détruit 73% des artefacts détectables dans le domaine fréquentiel. Les vidéos Twitter subissent une compression si agressive que même les incohérences géométriques majeures deviennent indiscernables.
+La compression JPEG avec QF &lt; 60 détruit 73% des artefacts détectables dans le domaine fréquentiel. Les vidéos Twitter subissent une compression si agressive que même les incohérences géométriques majeures deviennent indiscernables.
 
 ### Évolution des générateurs
 
@@ -350,7 +350,7 @@ Comme évoqué dans notre [analyse des modèles qui hallucinent](/articles/pourq
 
 ### Détection par empreinte digitale
 
-Approche proactive : incorporer des **watermarks invisibles** dans les vidéos authentiques via réseaux de steganographie. L'architecture HiDDeN (Hiding Data with Deep Networks) encode 48 bits dans une frame avec imperceptibilité visuelle (PSNR > 40 dB) et robustesse à la compression.
+Approche proactive : incorporer des **watermarks invisibles** dans les vidéos authentiques via réseaux de steganographie. L'architecture HiDDeN (Hiding Data with Deep Networks) encode 48 bits dans une frame avec imperceptibilité visuelle (PSNR &gt; 40 dB) et robustesse à la compression.
 
 ``````
 
@@ -358,7 +358,7 @@ Approche proactive : incorporer des **watermarks invisibles** dans les vidéos a
 
 ### Compression et dégradation
 
-La compression JPEG avec QF < 60 détruit 73% des artefacts détectables dans le domaine fréquentiel. Les vidéos Twitter subissent une compression si agressive que même les incohérences géométriques majeures deviennent indiscernables.
+La compression JPEG avec QF &lt; 60 détruit 73% des artefacts détectables dans le domaine fréquentiel. Les vidéos Twitter subissent une compression si agressive que même les incohérences géométriques majeures deviennent indiscernables.
 
 ### Évolution des générateurs
 
@@ -370,7 +370,7 @@ Comme évoqué dans notre [analyse des modèles qui hallucinent](/articles/pourq
 
 ### Détection par empreinte digitale
 
-Approche proactive : incorporer des **watermarks invisibles** dans les vidéos authentiques via réseaux de steganographie. L'architecture HiDDeN (Hiding Data with Deep Networks) encode 48 bits dans une frame avec imperceptibilité visuelle (PSNR > 40 dB) et robustesse à la compression.
+Approche proactive : incorporer des **watermarks invisibles** dans les vidéos authentiques via réseaux de steganographie. L'architecture HiDDeN (Hiding Data with Deep Networks) encode 48 bits dans une frame avec imperceptibilité visuelle (PSNR &gt; 40 dB) et robustesse à la compression.
 
 ```python
 class InvisibleWatermark:

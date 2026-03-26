@@ -395,9 +395,24 @@ function getExistingArticlesContext() {
  * MDX treats <X as JSX tags — any `<` followed by a digit or special char crashes the build.
  */
 function sanitizeMdxContent(content) {
-  // Échappe les `<` qui ne sont pas des balises HTML/JSX valides :
-  // cas typiques : <2%, <10px, <1ms, <0.5, etc.
-  return content.replace(/<(?=\d)/g, '&lt;');
+  // Sépare les blocs de code (inline et fenced) du texte normal
+  // Les blocs code sont préservés tels quels, seul le texte est sanitisé
+  const parts = content.split(/(```[\s\S]*?```|`[^`\n]+`)/g);
+
+  const sanitizeText = (text) => text
+    // <digit : <2%, <10px, <1ms  (déjà couvert, conservé)
+    .replace(/<(?=\d)/g, '&lt;')
+    // < espace+chiffre : < 500ms, < 1,2%, < 10B
+    .replace(/< (?=[\d])/g, '&lt; ')
+    // > espace+chiffre : > 90%, > 10x
+    .replace(/> (?=[\d])/g, '&gt; ')
+    // >digit : >90%, >10x
+    .replace(/>(?=\d)/g, '&gt;')
+    // <UppercaseLetter : composants JSX hallucinés ex: <MyComponent>, <Table>, <CodeBlock>
+    // On exclut les vrais composants MDX qu'on utilise intentionnellement (aucun pour l'instant)
+    .replace(/<([A-Z][a-zA-Z0-9]*)([\s/>])/g, '&lt;$1$2');
+
+  return parts.map((part, i) => (i % 2 === 0 ? sanitizeText(part) : part)).join('');
 }
 
 /**
@@ -546,13 +561,8 @@ Règles importantes :
   const generatedTags        = tagsMatch?.[1]?.split(',').map(t => t.trim()).filter(Boolean) || topic.tags;
   const generatedContent     = contentMatch?.[1]?.trim() || raw;
 
-  // Sanity: remplace les <N et >N hors blocs code (ex: <7B, <100ms) — invalide en MDX car interprété comme JSX
-  const sanitizedContent = generatedContent
-    .split(/(?=(```[\s\S]*?```))/)  // sépare les blocs code
-    .map((chunk, i) => i % 2 === 0  // les chunks pairs sont hors code
-      ? chunk.replace(/<(\d)/g, '&lt;$1').replace(/>(\d)/g, '&gt;$1')
-      : chunk
-    ).join('');
+  // Délègue à sanitizeMdxContent (patterns étendus : <N, < N, >N, > N, <UppercaseTag)
+  const sanitizedContent = sanitizeMdxContent(generatedContent);
 
   return { title: generatedTitle, description: generatedDescription, tags: generatedTags, content: sanitizedContent };
 }

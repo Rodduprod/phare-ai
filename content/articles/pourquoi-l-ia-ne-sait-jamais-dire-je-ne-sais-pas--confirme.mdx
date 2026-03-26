@@ -88,7 +88,7 @@ P(correct | confidence = c) = c
 P(correct | confidence = c) = c
 ```
 
-En pratique, les LLMs modernes montrent une **miscalibration systématique**. Des études sur GPT-3 et GPT-4 révèlent un phénomène d'overconfidence : le modèle assigne des probabilités élevées (>0.9) à des réponses incorrectes dans 15-30% des cas selon les domaines.
+En pratique, les LLMs modernes montrent une **miscalibration systématique**. Des études sur GPT-3 et GPT-4 révèlent un phénomène d'overconfidence : le modèle assigne des probabilités élevées (&gt;0.9) à des réponses incorrectes dans 15-30% des cas selon les domaines.
 
 ### Métriques de calibration
 
@@ -109,7 +109,7 @@ def compute_ece(predictions, ground_truth, n_bins=10):
     
     for i in range(n_bins):
         mask = (predictions >= bins[i]) & (predictions < bins[i+1])
-        if mask.sum() > 0:
+        if mask.sum() &gt; 0:
             bin_accuracy = ground_truth[mask].mean()
             bin_confidence = predictions[mask].mean()
             bin_size = mask.sum() / len(predictions)
@@ -123,7 +123,7 @@ def compute_ece(predictions, ground_truth, n_bins=10):
     
     for i in range(n_bins):
         mask = (predictions >= bins[i]) & (predictions < bins[i+1])
-        if mask.sum() > 0:
+        if mask.sum() &gt; 0:
             bin_accuracy = ground_truth[mask].mean()
             bin_confidence = predictions[mask].mean()
             bin_size = mask.sum() / len(predictions)
@@ -153,12 +153,12 @@ Les benchmarks montrent que l'ECE augmente significativement pour :
 La température est un levier classique pour ajuster la confiance :
 
 ```python
-# Temperature < 1 : augmente la confiance (peaked distribution)
-# Temperature > 1 : diminue la confiance (flatter distribution)
+# Temperature &lt; 1 : augmente la confiance (peaked distribution)
+# Temperature &gt; 1 : diminue la confiance (flatter distribution)
 calibrated_probs = softmax(logits / temperature)
 ``````python
-# Temperature < 1 : augmente la confiance (peaked distribution)
-# Temperature > 1 : diminue la confiance (flatter distribution)
+# Temperature &lt; 1 : augmente la confiance (peaked distribution)
+# Temperature &gt; 1 : diminue la confiance (flatter distribution)
 calibrated_probs = softmax(logits / temperature)
 ```
 

@@ -121,7 +121,7 @@ Le marché de la détection de deepfakes s'est structuré autour de plusieurs ac
 **1. Microsoft Video Authenticator**
 - Analyse frame-by-frame avec confidence score
 - Intégration Azure Content Safety
-- Pricing : 0,02€ par vidéo (< 5min)
+- Pricing : 0,02€ par vidéo (&lt; 5min)
 - Latence : ~60 secondes
 
 **2. Amazon Rekognition Face Liveness**
@@ -141,7 +141,7 @@ Le marché de la détection de deepfakes s'est structuré autour de plusieurs ac
 - Précision annoncée : 94% sur vidéos HD
 - Support multi-modal (audio + vidéo)
 - Pricing sur devis (min 10k€/mois)
-- SLA avec garantie de latence < 30s
+- SLA avec garantie de latence &lt; 30s
 
 **Sentinel** (Intel)
 - Hardware-accelerated detection
@@ -176,7 +176,7 @@ Le marché de la détection de deepfakes s'est structuré autour de plusieurs ac
 **1. Microsoft Video Authenticator**
 - Analyse frame-by-frame avec confidence score
 - Intégration Azure Content Safety
-- Pricing : 0,02€ par vidéo (< 5min)
+- Pricing : 0,02€ par vidéo (&lt; 5min)
 - Latence : ~60 secondes
 
 **2. Amazon Rekognition Face Liveness**
@@ -196,7 +196,7 @@ Le marché de la détection de deepfakes s'est structuré autour de plusieurs ac
 - Précision annoncée : 94% sur vidéos HD
 - Support multi-modal (audio + vidéo)
 - Pricing sur devis (min 10k€/mois)
-- SLA avec garantie de latence < 30s
+- SLA avec garantie de latence &lt; 30s
 
 **Sentinel** (Intel)
 - Hardware-accelerated detection
@@ -230,7 +230,7 @@ def analyze_video(video_url, confidence_threshold=0.85):
     return {
         'is_authentic': avg_score > confidence_threshold,
         'confidence': avg_score,
-        'requires_human_review': 0.7 < avg_score < 0.9
+        'requires_human_review': 0.7 < avg_score &lt; 0.9
     }
 ``````python
 # Exemple simplifié de pipeline de détection
@@ -256,7 +256,7 @@ def analyze_video(video_url, confidence_threshold=0.85):
     return {
         'is_authentic': avg_score > confidence_threshold,
         'confidence': avg_score,
-        'requires_human_review': 0.7 < avg_score < 0.9
+        'requires_human_review': 0.7 < avg_score &lt; 0.9
     }
 ```
 

@@ -135,7 +135,7 @@ tuner.tune(auto_scheduler.TuningOptions(num_measure_trials=2000))
 Les architectures **MobileNetV3**, **EfficientNet-Lite** et surtout les variantes **NAS-optimisées** (MNASNet, FBNet) dominent pour la vision. Mais l'industrie manufacturière a des spécificités :
 
 - **Détection d'anomalies** : PatchCore, EfficientAD, et les approches flow-based (FastFlow) offrent d'excellents compromis accuracy/FLOPS avec zéro exemple d'anomalie en entraînement
-- **Segmentation temps réel** : BiSeNetV2 et DDRNet sont préférables à SegFormer pour des latences < 5 ms
+- **Segmentation temps réel** : BiSeNetV2 et DDRNet sont préférables à SegFormer pour des latences &lt; 5 ms
 - **Time series industrielles** : TSMixer et PatchTST sur données vibratoires, avec des fenêtres contextuelles courtes (512 points @ 10 kHz)
 
 ---
@@ -162,7 +162,7 @@ EfficientAD-S représente le meilleur compromis pour un déploiement Jetson : mo
 Les architectures **MobileNetV3**, **EfficientNet-Lite** et surtout les variantes **NAS-optimisées** (MNASNet, FBNet) dominent pour la vision. Mais l'industrie manufacturière a des spécificités :
 
 - **Détection d'anomalies** : PatchCore, EfficientAD, et les approches flow-based (FastFlow) offrent d'excellents compromis accuracy/FLOPS avec zéro exemple d'anomalie en entraînement
-- **Segmentation temps réel** : BiSeNetV2 et DDRNet sont préférables à SegFormer pour des latences < 5 ms
+- **Segmentation temps réel** : BiSeNetV2 et DDRNet sont préférables à SegFormer pour des latences &lt; 5 ms
 - **Time series industrielles** : TSMixer et PatchTST sur données vibratoires, avec des fenêtres contextuelles courtes (512 points @ 10 kHz)
 
 ---
@@ -232,7 +232,7 @@ Les **modèles binaires** (1-bit, BitNet b1.58) restent une piste de recherche a
 
 ### 5.3 Physical AI : vers des boucles perception-action unifiées
 
-La convergence entre vision industrielle et robotique vers des architectures **end-to-end differentiable** (type RT-2, OpenVLA) représente le front de recherche le plus avancé. Ces modèles vision-langage-action (VLA) nécessitent aujourd'hui des compute budgets encore incompatibles avec l'edge strict, mais la compression de ces architectures via distillation (OpenVLA-OFT réduit de 7B à moins d'1B avec dégradation < 5% sur manipulation tasks) ouvre des perspectives concrètes à horizon 2026-2027.
+La convergence entre vision industrielle et robotique vers des architectures **end-to-end differentiable** (type RT-2, OpenVLA) représente le front de recherche le plus avancé. Ces modèles vision-langage-action (VLA) nécessitent aujourd'hui des compute budgets encore incompatibles avec l'edge strict, mais la compression de ces architectures via distillation (OpenVLA-OFT réduit de 7B à moins d'1B avec dégradation &lt; 5% sur manipulation tasks) ouvre des perspectives concrètes à horizon 2026-2027.
 
 Les **state space models** (Mamba, S4) montrent également des promesses pour les séries temporelles industrielles longues, avec une complexité linéaire en séquence vs quadratique pour les transformers — un avantage décisif quand on traite 100 kHz de données capteur en continu.
 

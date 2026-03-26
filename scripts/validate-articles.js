@@ -171,6 +171,20 @@ function validateArticle(filename) {
   test('contenu markdown non vide (> 100 caractères)', () => {
     assert(content.trim().length > 100, `Contenu trop court (${content.trim().length} chars)`);
   });
+
+  test('pas de patterns MDX dangereux (crash build)', () => {
+    // Retire les blocs code avant analyse
+    const bodyNoCode = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]+`/g, '');
+    const dangerousPatterns = [
+      { re: /<\d/,        label: '<digit (ex: <2%) — utiliser &lt;' },
+      { re: /< \d/,       label: '< espace+chiffre (ex: < 500ms) — utiliser &lt;' },
+      { re: /> \d/,       label: '> espace+chiffre (ex: > 90%) — utiliser &gt;' },
+      { re: />\d/,        label: '>digit (ex: >90%) — utiliser &gt;' },
+      { re: /<[A-Z][a-zA-Z0-9]*[\s/>]/, label: '<UppercaseTag (composant JSX halluciné)' },
+    ];
+    const found = dangerousPatterns.filter(p => p.re.test(bodyNoCode));
+    assert(found.length === 0, `Patterns MDX dangereux détectés:\n       ${found.map(p => p.label).join('\n       ')}`);
+  });
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
