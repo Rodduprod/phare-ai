@@ -16,16 +16,15 @@ export function LessonCompleteButton({ moduleSlug, lessonSlug, next, moduleHref,
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null | undefined>(undefined); // undefined = pas encore chargé
   const [completed, setCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const lessonPath = `${moduleSlug}/${lessonSlug}`;
 
-  // Charger l'état de complétion uniquement (non bloquant)
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+      if (!user) { setUserId(null); return; }
       setUserId(user.id);
       supabase
         .from("user_progress")
@@ -37,7 +36,37 @@ export function LessonCompleteButton({ moduleSlug, lessonSlug, next, moduleHref,
     });
   }, [lessonPath]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function navigate() {
+  async function handleClick() {
+    // Pas connecté → login
+    if (userId === null) {
+      router.push(`/compte/connexion?redirect=/formation/${moduleSlug}/${lessonSlug}`);
+      return;
+    }
+    // Auth pas encore chargée → attendre
+    if (userId === undefined) return;
+
+    setLoading(true);
+
+    // Sauvegarder progression en base
+    if (!completed) {
+      await Promise.allSettled([
+        supabase.from("user_progress").upsert({
+          user_id: userId,
+          lesson_path: lessonPath,
+          completed_at: new Date().toISOString(),
+        }),
+        supabase.from("user_enrollments").upsert({
+          user_id: userId,
+          module_slug: moduleSlug,
+          enrolled_at: new Date().toISOString(),
+        }),
+      ]);
+      setCompleted(true);
+    }
+
+    setLoading(false);
+
+    // Navigation vers la leçon suivante (ou retour au module si dernière leçon)
     if (next) {
       router.push(`/formation/${moduleSlug}/${next.slug}`);
     } else {
@@ -45,31 +74,8 @@ export function LessonCompleteButton({ moduleSlug, lessonSlug, next, moduleHref,
     }
   }
 
-  async function handleClick() {
-    setLoading(true);
-
-    // Sauvegarder la progression si connecté (fire & forget — ne bloque pas la navigation)
-    if (userId && !completed) {
-      supabase.from("user_progress").upsert({
-        user_id: userId,
-        lesson_path: lessonPath,
-        completed_at: new Date().toISOString(),
-      }).then(() => {
-        supabase.from("user_enrollments").upsert({
-          user_id: userId,
-          module_slug: moduleSlug,
-          enrolled_at: new Date().toISOString(),
-        });
-      });
-      setCompleted(true);
-    }
-
-    // Navigation toujours immédiate, que l'utilisateur soit connecté ou non
-    navigate();
-  }
-
   const label = loading
-    ? "…"
+    ? "Enregistrement…"
     : isLast
       ? completed ? "✓ Module terminé — retour au catalogue" : "Terminer le module 🎉"
       : completed
@@ -79,8 +85,8 @@ export function LessonCompleteButton({ moduleSlug, lessonSlug, next, moduleHref,
   return (
     <button
       onClick={handleClick}
-      disabled={loading}
-      className={`w-full py-3 px-6 rounded-xl font-semibold text-base transition-all disabled:opacity-60 ${
+      disabled={loading || userId === undefined}
+      className={`w-full py-3 px-6 rounded-xl font-semibold text-base transition-all disabled:opacity-50 ${
         completed
           ? "bg-green-100 text-green-800 border-2 border-green-200"
           : "bg-primary hover:bg-primary-hover text-white"

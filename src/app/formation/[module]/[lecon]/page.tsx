@@ -9,6 +9,7 @@ import {
 } from "@/lib/formation";
 import { siteConfig } from "@/lib/config";
 import { LessonCompleteButton } from "@/components/formation/LessonCompleteButton";
+import { LessonSidebar } from "@/components/formation/LessonSidebar";
 
 interface Props { params: { module: string; lecon: string } }
 
@@ -50,51 +51,16 @@ export default function LeconPage({ params }: Props) {
 
       <div className="max-w-7xl mx-auto px-4 py-8 flex gap-8">
 
-        {/* Sidebar — liste des leçons */}
-        <aside className="hidden lg:flex flex-col w-64 flex-shrink-0">
-          <div className="sticky top-24">
-            {/* Retour au module */}
-            <Link
-              href={`/formation/${params.module}`}
-              className="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors mb-6"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              {module.title}
-            </Link>
-
-            {/* Leçons */}
-            <nav className="space-y-1">
-              {lessons.map((l, i) => {
-                const isCurrent = l.slug === params.lecon;
-                return (
-                  <Link
-                    key={l.slug}
-                    href={`/formation/${params.module}/${l.slug}`}
-                    className={`flex items-start gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                      isCurrent
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-text-muted hover:text-text hover:bg-bg-alt"
-                    }`}
-                  >
-                    <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mt-0.5 ${
-                      isCurrent ? "bg-primary text-white" : "bg-border text-text-muted"
-                    }`}>
-                      {i + 1}
-                    </span>
-                    <span className="leading-snug">{l.title}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Durée totale */}
-            <div className="mt-6 px-3 text-xs text-text-muted">
-              {nav.current}/{nav.total} leçons · {formatDuration(module.duration)} au total
-            </div>
-          </div>
-        </aside>
+        {/* Sidebar — liste des leçons avec état de complétion (client) */}
+        <LessonSidebar
+          moduleSlug={params.module}
+          moduleTitle={module.title}
+          lessons={lessons}
+          currentSlug={params.lecon}
+          totalDuration={formatDuration(module.duration)}
+          current={nav.current}
+          total={nav.total}
+        />
 
         {/* Contenu principal */}
         <main className="flex-1 min-w-0 max-w-2xl">
