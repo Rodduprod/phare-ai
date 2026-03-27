@@ -51,6 +51,7 @@ jobs:
       run: node scripts/validate-articles.js
 
     - name: 📝 Commit and push if content generated
+      id: commit_push
       run: |
         git config --local user.email "19566325+Rodduprod@users.noreply.github.com"
         git config --local user.name "Rodduprod"
@@ -61,7 +62,17 @@ jobs:
           COUNT=$(git diff --cached --name-only | grep '\.mdx$' | wc -l | tr -d ' ')
           git commit -m "🤖 Auto-generated $COUNT articles - $(date '+%Y-%m-%d')"
           git push
+          echo "articles_count=$COUNT" >> $GITHUB_OUTPUT
           echo "✅ $COUNT articles published!"
         else
+          echo "articles_count=0" >> $GITHUB_OUTPUT
           echo "ℹ️ No new content to publish today"
         fi
+
+    - name: 🚨 Échouer si 0 articles générés (alerte GitHub)
+      if: steps.commit_push.outputs.articles_count == '0'
+      run: |
+        echo "::error::🚨 ALERTE : 0 article généré aujourd'hui !"
+        echo "::error::Causes possibles : rate limit non écoulé, clé API invalide, 0 actu IA détectée."
+        echo "::error::Vérifier les logs de l'étape 'Scrape AI News & Generate Articles' ci-dessus."
+        exit 1

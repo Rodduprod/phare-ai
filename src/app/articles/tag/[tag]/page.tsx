@@ -22,8 +22,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const articles = getArticlesByTag(tag);
   if (articles.length === 0) return {};
 
-  const title = `Articles sur "${tag}" — Le Labo AI`;
-  const description = `${articles.length} article${articles.length > 1 ? 's' : ''} sur le thème "${tag}" — vulgarisation IA en français, tous niveaux.`;
+  // Niveaux disponibles pour ce tag
+  const levels = Array.from(new Set(articles.map((a) => a.level)));
+  const levelsLabel = levels
+    .map((l) => l === 'débutant' ? 'débutant' : l === 'amateur' ? 'intermédiaire' : 'expert')
+    .join(', ');
+
+  // Tag capitalisé pour les titres
+  const tagCapitalized = tag.charAt(0).toUpperCase() + tag.slice(1);
+
+  const title = `${tagCapitalized} | Le Labo AI — ${articles.length} article${articles.length > 1 ? 's' : ''}`;
+  const description = `${articles.length} article${articles.length > 1 ? 's' : ''} sur "${tag}" en français — niveaux ${levelsLabel}. Comprendre l'IA facilement, quel que soit votre profil.`;
   const canonicalUrl = `${siteConfig.url}/articles/tag/${tag}`;
 
   return {
@@ -45,6 +54,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: siteConfig.name,
       locale: 'fr_FR',
     },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
     robots: { index: true, follow: true },
   };
 }
@@ -63,12 +77,19 @@ export default function TagPage({ params }: PageProps) {
 
   const canonicalUrl = `${siteConfig.url}/articles/tag/${tag}`;
 
+  // Niveaux disponibles (pour affichage + schema)
+  const levels = Array.from(new Set(articlesForTag.map((a) => a.level)));
+  const levelsLabel = levels
+    .map((l) => l === 'débutant' ? 'débutant' : l === 'amateur' ? 'intermédiaire' : 'expert')
+    .join(', ');
+  const tagCapitalized = tag.charAt(0).toUpperCase() + tag.slice(1);
+
   // Schema CollectionPage pour ce tag
   const collectionSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `Articles sur "${tag}" — Le Labo AI`,
-    description: `Tous les articles sur le thème "${tag}"`,
+    name: `${tagCapitalized} — ${articlesForTag.length} articles | Le Labo AI`,
+    description: `${articlesForTag.length} articles sur "${tag}" en français — niveaux ${levelsLabel}.`,
     url: canonicalUrl,
     isPartOf: { '@type': 'WebSite', name: siteConfig.name, url: siteConfig.url },
     hasPart: articlesForTag.map((a) => ({
@@ -102,10 +123,10 @@ export default function TagPage({ params }: PageProps) {
             🏷️ {tag}
           </div>
           <h1 className="font-display text-display-lg text-text mb-3">
-            Articles sur &ldquo;{tag}&rdquo;
+            {tagCapitalized}
           </h1>
           <p className="text-text-muted text-lg">
-            {groups.length} sujet{groups.length > 1 ? 's' : ''} · {articlesForTag.length} article{articlesForTag.length > 1 ? 's' : ''}
+            {groups.length} sujet{groups.length > 1 ? 's' : ''} · {articlesForTag.length} article{articlesForTag.length > 1 ? 's' : ''} · niveaux {levelsLabel}
           </p>
         </header>
 
