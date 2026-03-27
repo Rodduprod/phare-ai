@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 
-export default function ConnexionPage() {
+// Composant interne qui utilise useSearchParams (doit être dans Suspense)
+function ConnexionForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/compte/profil";
@@ -97,5 +98,14 @@ export default function ConnexionPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+// Wrapper avec Suspense obligatoire pour useSearchParams() en Next.js 14
+export default function ConnexionPage() {
+  return (
+    <Suspense>
+      <ConnexionForm />
+    </Suspense>
   );
 }
