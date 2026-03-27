@@ -1,27 +1,28 @@
 'use client';
 
+import Link from "next/link";
+import Image from "next/image";
 import { ArticleLevel, ArticleGroup, levelConfig } from "@/lib/articles-types";
+import { Module, formatDuration, LEVEL_COLORS } from "@/lib/formation";
 import { ArticleGroupCard } from "@/components/ArticleGroupCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LevelFilter } from "@/components/LevelFilter";
-import { siteConfig } from "@/lib/config";
 import { useState, useMemo } from "react";
 
 interface ClientHomePageProps {
   groups: ArticleGroup[];
+  modules: Module[];
 }
 
-export function ClientHomePage({ groups }: ClientHomePageProps) {
+export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
   const [selectedLevel, setSelectedLevel] = useState<ArticleLevel | 'all'>('all');
 
-  // Comptage par niveau (toutes versions confondues)
   const articleCounts = useMemo(() => {
     const counts = { débutant: 0, amateur: 0, confirmé: 0 } as Record<ArticleLevel, number>;
     groups.forEach(g => g.versions.forEach(v => { counts[v.level]++; }));
     return counts;
   }, [groups]);
 
-  // Filtrage : groupes ayant au moins une version du niveau sélectionné
   const filteredGroups = useMemo(() => {
     if (selectedLevel === 'all') return groups;
     return groups.filter(g => g.versions.some(v => v.level === selectedLevel)).map(group => {
@@ -41,22 +42,109 @@ export function ClientHomePage({ groups }: ClientHomePageProps) {
 
   return (
     <div className="max-w-content mx-auto px-4unit">
-      {/* Hero */}
-      <section className="py-8unit border-b border-border">
-        <p className="text-primary font-medium text-meta tracking-wide uppercase mb-5">
-          Veille & décryptages
-        </p>
-        <h1 className="text-display-xl text-text max-w-3xl mb-6">
-          {siteConfig.tagline}
+
+      {/* ── Hero ──────────────────────────────────────────── */}
+      <section className="py-12 border-b border-border">
+        {/* H1 SEO — discret mais indexable */}
+        <h1 className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
+          Formation IA et actualités — comprenez l&apos;intelligence artificielle
         </h1>
-        <p className="text-intro text-text-body max-w-xl">
-          {siteConfig.description}
+
+        {/* Slogan principal */}
+        <p className="font-display text-4xl sm:text-5xl font-bold text-text leading-tight max-w-2xl mb-6">
+          L&apos;IA évolue tous les jours.<br />
+          <span className="text-primary">Restez à la page.</span>
         </p>
+
+        <p className="text-lg text-text-muted max-w-xl mb-8 leading-relaxed">
+          Actualités, décryptages et formations pour comprendre l&apos;IA — sans jargon, en français.
+        </p>
+
+        {/* Double CTA */}
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/formation"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-colors"
+          >
+            🎓 Se former gratuitement
+          </Link>
+          <Link
+            href="/articles"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-bg-alt hover:bg-border text-text font-semibold rounded-xl transition-colors"
+          >
+            Lire les articles →
+          </Link>
+        </div>
       </section>
 
-      {/* Articles */}
-      <section className="py-8unit">
-        <h2 className="text-display-lg text-text mb-8">Découvrir par niveau</h2>
+      {/* ── Formation mise en avant ───────────────────────── */}
+      {modules.length > 0 && (
+        <section className="py-10 border-b border-border">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-display text-2xl font-bold text-text">Commencer à se former</h2>
+            <Link href="/formation" className="text-sm text-primary hover:underline">
+              Voir tous les modules →
+            </Link>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {modules.slice(0, 3).map((module) => (
+              <Link
+                key={module.slug}
+                href={`/formation/${module.slug}`}
+                className="group bg-white rounded-2xl border border-border hover:border-primary/40 hover:shadow-md transition-all overflow-hidden"
+              >
+                {module.image && (
+                  <div className="relative h-36 bg-bg-alt overflow-hidden">
+                    <Image
+                      src={module.image}
+                      alt={module.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                    />
+                  </div>
+                )}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${LEVEL_COLORS[module.level]}`}>
+                      {module.level}
+                    </span>
+                    <span className="text-xs text-text-muted">
+                      {module.lessonCount} leçons · {formatDuration(module.duration)}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-text group-hover:text-primary transition-colors leading-snug">
+                    {module.title}
+                  </h3>
+                  <p className="text-xs text-text-muted mt-1.5 line-clamp-2">{module.description}</p>
+                </div>
+              </Link>
+            ))}
+
+            {/* Card "bientôt" si peu de modules */}
+            {modules.length < 3 && (
+              <div className="rounded-2xl border border-dashed border-border bg-bg-alt p-5 flex flex-col items-center justify-center text-center gap-2">
+                <span className="text-2xl">🚀</span>
+                <p className="text-sm font-medium text-text">Nouveaux modules en préparation</p>
+                <p className="text-xs text-text-muted">Inscrivez-vous pour être notifié</p>
+                <Link href="#newsletter" className="text-xs text-primary hover:underline mt-1">
+                  S&apos;inscrire →
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── Derniers articles ─────────────────────────────── */}
+      <section className="py-10">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display text-2xl font-bold text-text">Derniers articles</h2>
+          <Link href="/articles" className="text-sm text-primary hover:underline">
+            Tous les articles →
+          </Link>
+        </div>
 
         <LevelFilter
           selectedLevel={selectedLevel}
@@ -84,6 +172,7 @@ export function ClientHomePage({ groups }: ClientHomePageProps) {
         )}
       </section>
 
+      {/* ── Newsletter ────────────────────────────────────── */}
       <NewsletterSignup />
     </div>
   );
