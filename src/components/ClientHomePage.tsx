@@ -3,15 +3,26 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArticleLevel, ArticleGroup, levelConfig } from "@/lib/articles-types";
-import { Module, formatDuration, LEVEL_COLORS } from "@/lib/formation";
+import { formatDuration, LEVEL_COLORS } from "@/lib/formation-utils";
 import { ArticleGroupCard } from "@/components/ArticleGroupCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LevelFilter } from "@/components/LevelFilter";
 import { useState, useMemo } from "react";
 
+// Type local — évite d'importer formation.ts (uses fs) dans un Client Component
+interface ModuleMeta {
+  slug: string;
+  title: string;
+  description: string;
+  level: string;
+  duration: number;
+  image: string;
+  lessonCount: number;
+}
+
 interface ClientHomePageProps {
   groups: ArticleGroup[];
-  modules: Module[];
+  modules: ModuleMeta[];
 }
 
 export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
@@ -45,12 +56,10 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
 
       {/* ── Hero ──────────────────────────────────────────── */}
       <section className="py-12 border-b border-border">
-        {/* H1 SEO — discret mais indexable */}
         <h1 className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
           Formation IA et actualités — comprenez l&apos;intelligence artificielle
         </h1>
 
-        {/* Slogan principal */}
         <p className="font-display text-4xl sm:text-5xl font-bold text-text leading-tight max-w-2xl mb-6">
           L&apos;IA évolue tous les jours.<br />
           <span className="text-primary">Restez à la page.</span>
@@ -60,7 +69,6 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
           Actualités, décryptages et formations pour comprendre l&apos;IA — sans jargon, en français.
         </p>
 
-        {/* Double CTA */}
         <div className="flex flex-wrap gap-3">
           <Link
             href="/formation"
@@ -111,7 +119,7 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
                       {module.level}
                     </span>
                     <span className="text-xs text-text-muted">
-                      {module.lessonCount} leçons · {formatDuration(module.duration)}
+                      {module.lessonCount} leçon{module.lessonCount > 1 ? "s" : ""} · {formatDuration(module.duration)}
                     </span>
                   </div>
                   <h3 className="font-semibold text-text group-hover:text-primary transition-colors leading-snug">
@@ -122,7 +130,6 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
               </Link>
             ))}
 
-            {/* Card "bientôt" si peu de modules */}
             {modules.length < 3 && (
               <div className="rounded-2xl border border-dashed border-border bg-bg-alt p-5 flex flex-col items-center justify-center text-center gap-2">
                 <span className="text-2xl">🚀</span>

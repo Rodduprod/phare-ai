@@ -139,6 +139,8 @@ export function getLessonNavigation(moduleSlug: string, lessonSlug: string) {
 }
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
+// Note : ces fonctions sont dupliquées dans formation-utils.ts (client-safe)
+// Ne pas importer formation.ts depuis des Client Components (uses fs)
 
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
