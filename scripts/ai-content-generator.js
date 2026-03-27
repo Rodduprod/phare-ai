@@ -441,11 +441,22 @@ async function generateArticle(topic, level) {
     confirmé: `pour des architectes et ingénieurs ML. Deep dive technique, architectures, benchmarks, code, optimisations. 1200-1500 mots. Structure : fondements techniques → implémentation → benchmarks → limitations → recherche & évolutions futures.`,
   };
 
+  const styleGuide = `
+TON ET STYLE (non négociable) :
+- Ton sarcastique et décalé bienvenu — on peut se permettre une vanne sur les annonces marketing, les promesses d'entreprises IA, les buzzwords
+- Phrases courtes et longues alternées — jamais 5 phrases de longueur identique d'affilée. Varier le rythme : phrase courte. Très courte. Puis une longue qui développe une idée avec nuance et contexte. Ça crée du mouvement.
+- INTERDIT : style "IA générique". Pas de "Il est important de noter que", "En conclusion, nous pouvons voir que", "Dans un monde de plus en plus connecté", "cette avancée majeure", "révolution sans précédent", "changer la donne", "à la pointe de l'innovation"
+- INTERDIT : listes à puces systématiques — les utiliser avec parcimonie, seulement quand elles apportent vraiment de la clarté
+- Des opinions assumées : "c'est discutable", "on ne va pas se mentir", "franchement", "bonne chance avec ça"
+- Des analogies concrètes et inattendues — comparer à des situations du quotidien, pas à d'autres technos
+- L'article doit sonner comme un journaliste tech français qui a un peu d'humour, pas comme un rapport d'entreprise`;
+
   const levelPrompts = {
-    débutant: `Tu es rédacteur expert pour Le Labo AI, un média français d'IA pour le grand public.
+    débutant: `Tu es rédacteur pour Le Labo AI, média français d'IA pour le grand public. Tu as du caractère.
 
 Sujet source (actu internationale) : "${topic.title}"
 Niveau cible : ${levelDescriptions['débutant']}
+${styleGuide}
 
 Réponds UNIQUEMENT avec ce format exact (respecte les séparateurs) :
 
@@ -455,10 +466,11 @@ TAGS: [3-5 mots-clés en minuscules sans accents, séparés par des virgules]
 ---
 [contenu complet de l'article en markdown]`,
 
-    amateur: `Tu es rédacteur expert pour Le Labo AI, un média français d'IA pour les professionnels.
+    amateur: `Tu es rédacteur pour Le Labo AI, média français d'IA pour les professionnels tech. Tu as du caractère.
 
 Sujet source (actu internationale) : "${topic.title}"
 Niveau cible : ${levelDescriptions['amateur']}
+${styleGuide}
 
 Réponds UNIQUEMENT avec ce format exact (respecte les séparateurs) :
 
@@ -468,10 +480,11 @@ TAGS: [3-5 mots-clés en minuscules sans accents, séparés par des virgules]
 ---
 [contenu complet de l'article en markdown]`,
 
-    confirmé: `Tu es rédacteur expert pour Le Labo AI, un média français d'IA pour les ingénieurs ML.
+    confirmé: `Tu es rédacteur pour Le Labo AI, média français d'IA pour les ingénieurs ML. Tu as du caractère.
 
 Sujet source (actu internationale) : "${topic.title}"
 Niveau cible : ${levelDescriptions['confirmé']}
+${styleGuide}
 
 Réponds UNIQUEMENT avec ce format exact (respecte les séparateurs) :
 
