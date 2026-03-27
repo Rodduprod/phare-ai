@@ -18,15 +18,17 @@ jobs:
           RESPONSE=$(curl -s "https://api.vercel.com/v6/deployments?limit=1&projectId=phare-ai" \
             -H "Authorization: Bearer $VERCEL_TOKEN")
 
+          # Extraire les champs — première ligne du commit uniquement (évite multiline dans GITHUB_OUTPUT)
           STATE=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d['state'])")
-          COMMIT=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('meta',{}).get('githubCommitMessage','?')[:80])")
+          COMMIT=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('meta',{}).get('githubCommitMessage','?').splitlines()[0][:80])")
           URL=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('url',''))")
-          ERR=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('errorMessage',''))")
+          ERR=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('errorMessage','OK'))")
 
-          echo "state=$STATE" >> $GITHUB_OUTPUT
-          echo "commit=$COMMIT" >> $GITHUB_OUTPUT
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "error=$ERR" >> $GITHUB_OUTPUT
+          # Écriture sûre dans GITHUB_OUTPUT (pas de newlines)
+          printf 'state=%s\n' "$STATE"   >> $GITHUB_OUTPUT
+          printf 'commit=%s\n' "$COMMIT" >> $GITHUB_OUTPUT
+          printf 'url=%s\n' "$URL"       >> $GITHUB_OUTPUT
+          printf 'error=%s\n' "$ERR"     >> $GITHUB_OUTPUT
 
           echo "Deploy state: $STATE"
           echo "Commit: $COMMIT"
