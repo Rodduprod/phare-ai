@@ -492,6 +492,7 @@ Règles importantes :
 - **Maillage interne obligatoire** : minimum 2 liens internes dans le corps du texte (voir liste ci-dessous)
 - **Synthèse multi-sources** : cite les sources naturellement dans le texte ("selon TechCrunch", "d'après Google News"...)
 - Titre accrocheur, clair, informatif — pas un titre de communiqué de presse
+- **Accents obligatoires** : utiliser TOUJOURS les accents français (é, è, ê, à, â, ù, û, ô, î, ï, ç) — ne JAMAIS les omettre dans le titre, la description ou le contenu
 
 RÈGLES DE FORMATAGE OBLIGATOIRES (violations = build cassé) :
 - INTERDIT : LaTeX ou formules mathématiques (\`$$...$$\`, \`$...$\`, \\frac, \\sum, \\mathcal, etc.) — utiliser du texte clair à la place
@@ -583,6 +584,15 @@ RÈGLES DE FORMATAGE OBLIGATOIRES (violations = build cassé) :
   const generatedDescription = descMatch?.[1]?.trim() || topic.description;
   const generatedTags        = tagsMatch?.[1]?.split(',').map(t => t.trim()).filter(Boolean) || topic.tags;
   const generatedContent     = contentMatch?.[1]?.trim() || raw;
+
+  // Alerte si le titre ou la description manquent d'accents (signe que Claude a ignoré les règles)
+  const frAccents = /[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/;
+  const titleHasAccentOrNoAccentNeeded = frAccents.test(generatedTitle) || !/[aeiouy]/i.test(generatedTitle);
+  if (!frAccents.test(generatedTitle) || !frAccents.test(generatedDescription)) {
+    console.warn(`⚠️  ATTENTION : titre ou description sans accents — vérifier manuellement :`);
+    console.warn(`   Titre : ${generatedTitle}`);
+    console.warn(`   Desc  : ${generatedDescription}`);
+  }
 
   // Délègue à sanitizeMdxContent (patterns étendus : <N, < N, >N, > N, <UppercaseTag)
   const sanitizedContent = sanitizeMdxContent(generatedContent);
