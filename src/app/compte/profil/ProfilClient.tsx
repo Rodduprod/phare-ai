@@ -9,6 +9,8 @@ interface Props {
   user: { email: string; id: string };
   profile: { level: string; created_at: string };
   savedArticles: { article_slug: string; saved_at: string }[];
+  enrollments: { module_slug: string; enrolled_at: string }[];
+  progressCount: number;
 }
 
 const LEVELS = [
@@ -17,7 +19,7 @@ const LEVELS = [
   { value: "confirmé",  label: "Expert",        icon: "🔬" },
 ] as const;
 
-export function ProfilClient({ user, profile, savedArticles }: Props) {
+export function ProfilClient({ user, profile, savedArticles, enrollments, progressCount }: Props) {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
@@ -138,6 +140,44 @@ export function ProfilClient({ user, profile, savedArticles }: Props) {
           </ul>
         )}
       </div>
+
+      {/* Formation */}
+      {enrollments.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+            Ma formation ({progressCount} leçon{progressCount > 1 ? "s" : ""} complétée{progressCount > 1 ? "s" : ""})
+          </h2>
+          <ul className="space-y-2">
+            {enrollments.map(({ module_slug, enrolled_at }) => (
+              <li key={module_slug}>
+                <Link
+                  href={`/formation/${module_slug}`}
+                  className="flex items-center justify-between bg-bg-alt rounded-lg px-4 py-3 hover:bg-primary/5 transition-colors"
+                >
+                  <span className="text-sm text-text hover:text-primary transition-colors">
+                    {module_slug.replace(/-/g, ' ')}
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {new Date(enrolled_at).toLocaleDateString("fr-FR")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link href="/formation" className="text-xs text-primary hover:underline mt-2 inline-block">
+            Voir tous les modules →
+          </Link>
+        </div>
+      )}
+
+      {enrollments.length === 0 && (
+        <div className="bg-bg-alt rounded-xl p-5 text-center">
+          <p className="text-text-muted text-sm mb-3">Vous n&apos;avez pas encore commencé de formation.</p>
+          <Link href="/formation" className="text-primary text-sm font-medium hover:underline">
+            Découvrir les modules →
+          </Link>
+        </div>
+      )}
 
       {/* Déconnexion */}
       <div className="pt-4 border-t border-border">

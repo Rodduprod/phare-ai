@@ -18,6 +18,7 @@ import { ReadingProgress } from "@/components/ReadingProgress";
 import { TableOfContents } from "@/components/TableOfContents";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SaveArticleButton } from "@/components/SaveArticleButton";
+import { FormationCTA } from "@/components/formation/FormationCTA";
 import { extractHeadings } from "@/lib/toc";
 import type { ArticleVersion } from "@/lib/articles-types";
 
@@ -249,6 +250,7 @@ export default function ArticlePage({ params }: PageProps) {
             </footer>
 
             {/* Articles liés */}
+            <FormationCTA level={article.level} />
             <RelatedArticles articles={related} />
           </div>
 

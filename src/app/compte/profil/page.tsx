@@ -27,11 +27,24 @@ export default async function ProfilPage() {
     .eq("user_id", user.id)
     .order("saved_at", { ascending: false });
 
+  // Charger la progression formation
+  const { data: enrollments } = await supabase
+    .from("user_enrollments")
+    .select("module_slug, enrolled_at")
+    .eq("user_id", user.id);
+
+  const { data: progress } = await supabase
+    .from("user_progress")
+    .select("lesson_path")
+    .eq("user_id", user.id);
+
   return (
     <ProfilClient
       user={{ email: user.email!, id: user.id }}
       profile={profile ?? { level: "débutant", created_at: user.created_at }}
       savedArticles={savedArticles ?? []}
+      enrollments={enrollments ?? []}
+      progressCount={progress?.length ?? 0}
     />
   );
 }
