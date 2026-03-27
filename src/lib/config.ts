@@ -11,8 +11,6 @@ export const siteConfig = {
   },
   nav: [
     { label: "Articles", href: "/articles" },
-    { label: "Formation", href: "/formation" },
     { label: "À propos", href: "/a-propos" },
-    { label: "Newsletter", href: "#newsletter" },
   ],
 } as const;

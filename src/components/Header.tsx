@@ -47,6 +47,19 @@ export function Header() {
               {item.label}
             </Link>
           ))}
+
+          {/* Formation — CTA mis en avant */}
+          <Link
+            href="/formation"
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+              pathname?.startsWith('/formation')
+                ? 'bg-primary text-white'
+                : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+            }`}
+          >
+            🎓 Se former
+          </Link>
+
           <AuthButton />
         </nav>
 
@@ -75,6 +88,13 @@ export function Header() {
       {menuOpen && (
         <nav className="sm:hidden border-t border-border bg-white/95 backdrop-blur-[12px]">
           <div className="max-w-content mx-auto px-4unit py-4 flex flex-col gap-1">
+            {/* Formation en tête du menu mobile */}
+            <Link
+              href="/formation"
+              className="px-3 py-3 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors duration-150 text-base font-semibold flex items-center gap-2"
+            >
+              🎓 Se former
+            </Link>
             {siteConfig.nav.map((item) => (
               <Link
                 key={item.href}
