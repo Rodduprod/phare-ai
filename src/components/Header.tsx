@@ -38,6 +38,18 @@ export function Header() {
 
         {/* Navigation desktop */}
         <nav className="hidden sm:flex items-center gap-6">
+          {/* Formation — CTA en premier, bien visible */}
+          <Link
+            href="/formation"
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+              pathname?.startsWith('/formation')
+                ? 'bg-primary text-white'
+                : 'bg-primary text-white hover:bg-primary-hover'
+            }`}
+          >
+            🎓 Se former
+          </Link>
+
           {siteConfig.nav.map((item) => (
             <Link
               key={item.href}
@@ -47,18 +59,6 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-
-          {/* Formation — CTA mis en avant */}
-          <Link
-            href="/formation"
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-              pathname?.startsWith('/formation')
-                ? 'bg-primary text-white'
-                : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
-            }`}
-          >
-            🎓 Se former
-          </Link>
 
           <AuthButton />
         </nav>
