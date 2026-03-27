@@ -34,21 +34,25 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
     return counts;
   }, [groups]);
 
+  const ARTICLES_LIMIT = 6;
+
   const filteredGroups = useMemo(() => {
-    if (selectedLevel === 'all') return groups;
-    return groups.filter(g => g.versions.some(v => v.level === selectedLevel)).map(group => {
-      const matchingVersion = group.versions.find(v => v.level === selectedLevel);
-      if (!matchingVersion) return group;
-      return {
-        ...group,
-        canonical: {
-          ...group.canonical,
-          level: selectedLevel,
-          slug: matchingVersion.slug,
-          readingTime: matchingVersion.readingTime,
-        },
-      };
-    });
+    const filtered = selectedLevel === 'all'
+      ? groups
+      : groups.filter(g => g.versions.some(v => v.level === selectedLevel)).map(group => {
+          const matchingVersion = group.versions.find(v => v.level === selectedLevel);
+          if (!matchingVersion) return group;
+          return {
+            ...group,
+            canonical: {
+              ...group.canonical,
+              level: selectedLevel,
+              slug: matchingVersion.slug,
+              readingTime: matchingVersion.readingTime,
+            },
+          };
+        });
+    return filtered.slice(0, ARTICLES_LIMIT);
   }, [groups, selectedLevel]);
 
   return (
