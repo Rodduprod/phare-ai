@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { siteConfig } from "@/lib/config";
 import Image from "next/image";
+import { AuthButton } from "@/components/AuthButton";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,7 +37,7 @@ export function Header() {
         </Link>
 
         {/* Navigation desktop */}
-        <nav className="hidden sm:flex items-center gap-8">
+        <nav className="hidden sm:flex items-center gap-6">
           {siteConfig.nav.map((item) => (
             <Link
               key={item.href}
@@ -46,6 +47,7 @@ export function Header() {
               {item.label}
             </Link>
           ))}
+          <AuthButton />
         </nav>
 
         {/* Bouton burger mobile */}

@@ -17,6 +17,7 @@ import { RelatedArticles } from "@/components/RelatedArticles";
 import { ReadingProgress } from "@/components/ReadingProgress";
 import { TableOfContents } from "@/components/TableOfContents";
 import { ShareButtons } from "@/components/ShareButtons";
+import { SaveArticleButton } from "@/components/SaveArticleButton";
 import { extractHeadings } from "@/lib/toc";
 import type { ArticleVersion } from "@/lib/articles-types";
 
@@ -235,12 +236,15 @@ export default function ArticlePage({ params }: PageProps) {
                   Tous les articles
                 </Link>
 
-                {/* Partage */}
-                <ShareButtons
-                  title={article.title}
-                  url={`${siteConfig.url}/articles/${article.slug}?utm_source=share&utm_medium=social&utm_campaign=article`}
-                  rawUrl={`${siteConfig.url}/articles/${article.slug}`}
-                />
+                {/* Partage + Sauvegarde */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <SaveArticleButton slug={article.slug} />
+                  <ShareButtons
+                    title={article.title}
+                    url={`${siteConfig.url}/articles/${article.slug}?utm_source=share&utm_medium=social&utm_campaign=article`}
+                    rawUrl={`${siteConfig.url}/articles/${article.slug}`}
+                  />
+                </div>
               </div>
             </footer>
 
