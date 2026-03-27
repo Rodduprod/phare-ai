@@ -35,79 +35,137 @@ export default function LeconPage({ params }: Props) {
   const module = getModule(params.module);
   if (!module) notFound();
 
+  const lessons = getModuleLessons(params.module);
   const nav = getLessonNavigation(params.module, params.lecon);
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12">
-      {/* Breadcrumb */}
-      <nav className="text-sm text-text-muted mb-8 flex items-center gap-2 flex-wrap">
-        <Link href="/formation" className="hover:text-primary transition-colors">Formation</Link>
-        <span>/</span>
-        <Link href={`/formation/${params.module}`} className="hover:text-primary transition-colors">{module.title}</Link>
-        <span>/</span>
-        <span className="text-text">{lesson.title}</span>
-      </nav>
-
-      {/* Header leçon */}
-      <header className="mb-10">
-        <div className="text-xs text-text-muted mb-3">
-          Leçon {nav.current}/{nav.total} · {formatDuration(lesson.duration)}
-        </div>
-        <h1 className="font-display text-3xl font-bold text-text mb-3">{lesson.title}</h1>
-        <p className="text-text-muted text-lg">{lesson.description}</p>
-      </header>
-
-      {/* Contenu MDX */}
-      <article className="prose prose-slate max-w-none
-        prose-headings:font-display prose-headings:text-text
-        prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-        prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-        prose-p:text-text-muted prose-p:leading-relaxed
-        prose-strong:text-text prose-strong:font-semibold
-        prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1
-        prose-ul:text-text-muted prose-ol:text-text-muted
-        prose-code:bg-bg-alt prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-        prose-table:text-sm prose-th:bg-bg-alt prose-th:text-text prose-td:text-text-muted
-        prose-hr:border-border">
-        <MDXRemote source={lesson.content} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
-      </article>
-
-      {/* Bouton marquer comme lu + navigation */}
-      <div className="mt-12 pt-8 border-t border-border">
-        <LessonCompleteButton
-          moduleSlug={params.module}
-          lessonSlug={params.lecon}
-          next={nav.next ? { slug: nav.next.slug, title: nav.next.title } : null}
-          moduleHref={`/formation/${params.module}`}
-          isLast={nav.next === null}
+    <div className="min-h-screen bg-white">
+      {/* Barre de progression en haut */}
+      <div className="h-1 bg-border">
+        <div
+          className="h-full bg-primary transition-all duration-500"
+          style={{ width: `${(nav.current / nav.total) * 100}%` }}
         />
+      </div>
 
-        {/* Navigation prev/next */}
-        <div className="flex justify-between mt-6 text-sm">
-          {nav.prev ? (
+      <div className="max-w-7xl mx-auto px-4 py-8 flex gap-8">
+
+        {/* Sidebar — liste des leçons */}
+        <aside className="hidden lg:flex flex-col w-64 flex-shrink-0">
+          <div className="sticky top-24">
+            {/* Retour au module */}
             <Link
-              href={`/formation/${params.module}/${nav.prev.slug}`}
-              className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+              href={`/formation/${params.module}`}
+              className="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors mb-6"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              {nav.prev.title}
+              {module.title}
             </Link>
-          ) : <div />}
 
-          {nav.next && (
-            <Link
-              href={`/formation/${params.module}/${nav.next.slug}`}
-              className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-            >
-              {nav.next.title}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </Link>
-          )}
-        </div>
+            {/* Leçons */}
+            <nav className="space-y-1">
+              {lessons.map((l, i) => {
+                const isCurrent = l.slug === params.lecon;
+                return (
+                  <Link
+                    key={l.slug}
+                    href={`/formation/${params.module}/${l.slug}`}
+                    className={`flex items-start gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                      isCurrent
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-text-muted hover:text-text hover:bg-bg-alt"
+                    }`}
+                  >
+                    <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mt-0.5 ${
+                      isCurrent ? "bg-primary text-white" : "bg-border text-text-muted"
+                    }`}>
+                      {i + 1}
+                    </span>
+                    <span className="leading-snug">{l.title}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Durée totale */}
+            <div className="mt-6 px-3 text-xs text-text-muted">
+              {nav.current}/{nav.total} leçons · {formatDuration(module.duration)} au total
+            </div>
+          </div>
+        </aside>
+
+        {/* Contenu principal */}
+        <main className="flex-1 min-w-0 max-w-2xl">
+          {/* Breadcrumb mobile */}
+          <nav className="lg:hidden text-sm text-text-muted mb-6 flex items-center gap-2 flex-wrap">
+            <Link href="/formation" className="hover:text-primary transition-colors">Formation</Link>
+            <span>/</span>
+            <Link href={`/formation/${params.module}`} className="hover:text-primary transition-colors truncate max-w-32">{module.title}</Link>
+            <span>/</span>
+            <span className="text-text">Leçon {nav.current}</span>
+          </nav>
+
+          {/* Header leçon */}
+          <header className="mb-10 pb-8 border-b border-border">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
+              Leçon {nav.current} sur {nav.total} · {lesson.duration} min
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-text mb-4 leading-tight">
+              {lesson.title}
+            </h1>
+            <p className="text-text-muted text-lg leading-relaxed">
+              {lesson.description}
+            </p>
+          </header>
+
+          {/* Contenu MDX — utilise la classe du site */}
+          <div className="prose-article">
+            <MDXRemote
+              source={lesson.content}
+              options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+            />
+          </div>
+
+          {/* Bouton compléter + navigation */}
+          <div className="mt-16 pt-8 border-t border-border space-y-4">
+            <LessonCompleteButton
+              moduleSlug={params.module}
+              lessonSlug={params.lecon}
+              next={nav.next ? { slug: nav.next.slug, title: nav.next.title } : null}
+              moduleHref={`/formation/${params.module}`}
+              isLast={nav.next === null}
+            />
+
+            {/* Navigation prev / next */}
+            <div className="flex justify-between text-sm pt-2">
+              {nav.prev ? (
+                <Link
+                  href={`/formation/${params.module}/${nav.prev.slug}`}
+                  className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                  </svg>
+                  <span className="truncate max-w-48">{nav.prev.title}</span>
+                </Link>
+              ) : <div />}
+
+              {nav.next && (
+                <Link
+                  href={`/formation/${params.module}/${nav.next.slug}`}
+                  className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                >
+                  <span className="truncate max-w-48">{nav.next.title}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </Link>
+              )}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
