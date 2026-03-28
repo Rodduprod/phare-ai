@@ -4,6 +4,35 @@ description: "Comment faire travailler plusieurs agents IA spécialisés ensembl
 order: 4
 duration: 12
 published: true
+qcm:
+  - question: "Dans le pattern Supervisor/Worker, quel est le rôle de l'orchestrateur ?"
+    options:
+      - "Exécuter directement toutes les tâches"
+      - "Analyser la tâche, décider quels agents appeler et agréger les résultats"
+      - "Surveiller les coûts API"
+      - "Générer le code des agents workers"
+    answer: 1
+  - question: "Pourquoi utilise-t-on plusieurs agents spécialisés plutôt qu'un seul agent généraliste ?"
+    options:
+      - "Pour réduire les coûts"
+      - "Pour que chaque agent soit expert dans son domaine, rendant le système plus fiable et maintenable"
+      - "Parce que les LLMs ne supportent qu'un seul outil à la fois"
+      - "Pour contourner les limites de rate des APIs"
+    answer: 1
+  - question: "Que fait un 'Critic Agent' dans une architecture multi-agents ?"
+    options:
+      - "Il gère la facturation de l'API"
+      - "Il évalue et améliore le travail des autres agents"
+      - "Il surveille les performances du serveur"
+      - "Il traduit les réponses en plusieurs langues"
+    answer: 1
+  - question: "À quoi sert LangSmith dans un système d'agents en production ?"
+    options:
+      - "À héberger les agents sur le cloud"
+      - "À observer, tracer et déboguer les exécutions des agents"
+      - "À réduire les coûts des appels LLM"
+      - "À générer automatiquement du code d'agent"
+    answer: 1
 ---
 
 ## Pourquoi plusieurs agents ?

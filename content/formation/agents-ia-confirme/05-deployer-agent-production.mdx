@@ -4,6 +4,35 @@ description: "Du prototype au déploiement : infrastructure, sécurité, coûts,
 order: 5
 duration: 12
 published: true
+qcm:
+  - question: "Quel framework Python est recommandé pour exposer un agent IA via une API REST ?"
+    options:
+      - "Django"
+      - "Flask"
+      - "FastAPI"
+      - "Express.js"
+    answer: 2
+  - question: "Quelle technique permet de réduire significativement les coûts LLM pour les requêtes fréquentes ?"
+    options:
+      - "Utiliser toujours le modèle le moins cher"
+      - "Implémenter un cache qui retourne les réponses déjà calculées pour les mêmes questions"
+      - "Réduire la taille des prompts de 50%"
+      - "Utiliser des modèles open source uniquement"
+    answer: 1
+  - question: "Qu'est-ce que la 'prompt injection' ?"
+    options:
+      - "Une technique pour améliorer la qualité des prompts"
+      - "Une attaque où un utilisateur insère des instructions pour modifier le comportement de l'agent"
+      - "Un outil d'automatisation des prompts"
+      - "Une méthode de compression des prompts longs"
+    answer: 1
+  - question: "Quelle métrique est essentielle à monitorer pour détecter une dérive de coûts en production ?"
+    options:
+      - "Le nombre de lignes de code déployées"
+      - "Le coût par requête (tokens consommés × prix)"
+      - "La satisfaction des utilisateurs uniquement"
+      - "Le nombre de serveurs actifs"
+    answer: 1
 ---
 
 ## La différence entre un prototype et de la production

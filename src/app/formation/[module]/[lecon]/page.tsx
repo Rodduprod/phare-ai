@@ -9,6 +9,7 @@ import {
 } from "@/lib/formation";
 import { siteConfig } from "@/lib/config";
 import { LessonCompleteButton } from "@/components/formation/LessonCompleteButton";
+import { LessonQuiz } from "@/components/formation/LessonQuiz";
 import { LessonSidebar } from "@/components/formation/LessonSidebar";
 import { LessonMobileNav } from "@/components/formation/LessonMobileNav";
 
@@ -96,43 +97,52 @@ export default function LeconPage({ params }: Props) {
             />
           </div>
 
-          {/* Bouton compléter + navigation */}
-          <div className="mt-16 pt-8 border-t border-border space-y-4">
-            <LessonCompleteButton
+          {/* QCM ou bouton simple selon si la leçon a des questions */}
+          {lesson.qcm && lesson.qcm.length === 4 ? (
+            <LessonQuiz
               moduleSlug={params.module}
               lessonSlug={params.lecon}
+              questions={lesson.qcm}
               next={nav.next ? { slug: nav.next.slug, title: nav.next.title } : null}
               moduleHref={`/formation/${params.module}`}
               isLast={nav.next === null}
             />
-
-            {/* Navigation prev / next */}
-            <div className="flex justify-between text-sm pt-2">
-              {nav.prev ? (
-                <Link
-                  href={`/formation/${params.module}/${nav.prev.slug}`}
-                  className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                  </svg>
-                  <span className="truncate max-w-48">{nav.prev.title}</span>
-                </Link>
-              ) : <div />}
-
-              {nav.next && (
-                <Link
-                  href={`/formation/${params.module}/${nav.next.slug}`}
-                  className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-                >
-                  <span className="truncate max-w-48">{nav.next.title}</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </Link>
-              )}
+          ) : (
+            <div className="mt-16 pt-8 border-t border-border space-y-4">
+              <LessonCompleteButton
+                moduleSlug={params.module}
+                lessonSlug={params.lecon}
+                next={nav.next ? { slug: nav.next.slug, title: nav.next.title } : null}
+                moduleHref={`/formation/${params.module}`}
+                isLast={nav.next === null}
+              />
+              {/* Navigation prev / next */}
+              <div className="flex justify-between text-sm pt-2">
+                {nav.prev ? (
+                  <Link
+                    href={`/formation/${params.module}/${nav.prev.slug}`}
+                    className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    <span className="truncate max-w-48">{nav.prev?.title}</span>
+                  </Link>
+                ) : <div />}
+                {nav.next && (
+                  <Link
+                    href={`/formation/${params.module}/${nav.next.slug}`}
+                    className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                  >
+                    <span className="truncate max-w-48">{nav.next.title}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
     </div>

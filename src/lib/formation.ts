@@ -20,6 +20,12 @@ export interface Module {
   lessonCount: number;
 }
 
+export interface QcmQuestion {
+  question: string;
+  options: [string, string, string, string]; // toujours 4 options
+  answer: 0 | 1 | 2 | 3;                    // index de la bonne réponse
+}
+
 export interface Lesson {
   slug: string;        // ex: "01-quest-ce-que-l-ia"
   moduleSlug: string;  // ex: "comprendre-ia-debutant"
@@ -29,6 +35,7 @@ export interface Lesson {
   duration: number;
   published: boolean;
   content: string;     // MDX raw content
+  qcm: QcmQuestion[];  // 4 questions de validation
 }
 
 export interface LessonMeta {
@@ -124,6 +131,7 @@ export function getLesson(moduleSlug: string, lessonSlug: string): Lesson | null
     duration: data.duration ?? 5,
     published: data.published ?? false,
     content,
+    qcm: Array.isArray(data.qcm) ? data.qcm : [],
   };
 }
 

@@ -4,6 +4,35 @@ description: "Le RAG permet à un LLM de répondre à partir de vos propres docu
 order: 3
 duration: 12
 published: true
+qcm:
+  - question: "Quel problème fondamental le RAG résout-il ?"
+    options:
+      - "La lenteur des LLMs"
+      - "Le coût élevé des appels API"
+      - "L'impossibilité pour un LLM de répondre à partir de données spécifiques non vues à l'entraînement"
+      - "L'absence de multimodalité dans les LLMs"
+    answer: 2
+  - question: "Qu'est-ce qu'un 'embedding' dans le contexte du RAG ?"
+    options:
+      - "Un fichier audio compressé"
+      - "Une représentation vectorielle (numérique) d'un texte permettant de mesurer la similarité sémantique"
+      - "Un modèle de langage miniaturisé"
+      - "Un type de base de données relationnelle"
+    answer: 1
+  - question: "Quel paramètre de chunking est recommandé comme point de départ ?"
+    options:
+      - "Chunks de 50 tokens sans overlap"
+      - "Chunks de 512-1024 tokens avec 10-20% d'overlap"
+      - "Documents entiers sans découpage"
+      - "Chunks d'exactement 1 phrase"
+    answer: 1
+  - question: "Quelle extension PostgreSQL permet le stockage vectoriel sans infrastructure supplémentaire ?"
+    options:
+      - "pg_trgm"
+      - "PostGIS"
+      - "pgvector"
+      - "pg_partman"
+    answer: 2
 ---
 
 ## Le problème que le RAG résout
