@@ -41,6 +41,36 @@ const MODULE_CONFIGS: Record<string, ModuleConfig> = {
     pattern: "dots",
     accent: "#ffffff",
   },
+  "prompt-engineering-amateur": {
+    gradient: "from-blue-400 via-blue-600 to-indigo-700",
+    icon: "✍️",
+    pattern: "lines",
+    accent: "#ffffff",
+  },
+  "ia-et-societe-debutant": {
+    gradient: "from-sky-500 via-blue-500 to-blue-700",
+    icon: "🌍",
+    pattern: "circles",
+    accent: "#ffffff",
+  },
+  "coder-avec-ia-confirme": {
+    gradient: "from-slate-700 via-blue-800 to-indigo-900",
+    icon: "💻",
+    pattern: "grid",
+    accent: "#ffffff",
+  },
+  "ia-pour-entrepreneurs-amateur": {
+    gradient: "from-blue-500 via-cyan-600 to-blue-700",
+    icon: "🚀",
+    pattern: "dots",
+    accent: "#ffffff",
+  },
+  "no-code-ia-debutant": {
+    gradient: "from-cyan-400 via-blue-500 to-sky-700",
+    icon: "⚡",
+    pattern: "lines",
+    accent: "#ffffff",
+  },
 };
 
 const DEFAULT_CONFIG: ModuleConfig = {

@@ -1,0 +1,86 @@
+---
+title: "Prompt chaining — Découper pour mieux régner"
+description: "Les tâches complexes ne tiennent pas dans un seul prompt. Le chaînage transforme un problème difficile en une série d'étapes gérables."
+order: 4
+duration: 9
+published: true
+qcm:
+  - question: "Qu'est-ce que le 'prompt chaining' ?"
+    options:
+      - "Enchaîner plusieurs outils IA différents"
+      - "Décomposer une tâche complexe en une série de prompts séquentiels dont chaque sortie alimente le suivant"
+      - "Copier-coller plusieurs prompts dans le même message"
+      - "Utiliser des variables dans les prompts"
+    answer: 1
+  - question: "Quel est l'avantage principal du prompt chaining sur un prompt unique très long ?"
+    options:
+      - "C'est moins cher en tokens"
+      - "Chaque étape peut être validée et corrigée avant de passer à la suivante"
+      - "L'IA comprend mieux les messages courts"
+      - "On peut utiliser plusieurs modèles en parallèle"
+    answer: 1
+  - question: "Dans quel cas le prompt chaining est-il particulièrement utile ?"
+    options:
+      - "Pour envoyer des emails simples"
+      - "Quand la tâche finale dépend d'une analyse ou d'un résumé intermédiaire"
+      - "Uniquement pour la génération de code"
+      - "Pour les traductions de textes courts"
+    answer: 1
+  - question: "Qu'est-ce qu'un 'prompt système' (system prompt) ?"
+    options:
+      - "Un prompt qui s'exécute automatiquement à chaque démarrage"
+      - "Une instruction persistante qui définit le comportement de l'IA pour toute la session"
+      - "Un prompt réservé aux administrateurs"
+      - "Le premier message envoyé dans une conversation"
+    answer: 1
+---
+
+## Pourquoi un seul prompt ne suffit pas toujours
+
+Imaginons : vous voulez analyser 10 retours clients, extraire les thèmes principaux, identifier les problèmes critiques, puis rédiger une synthèse pour votre équipe produit.
+
+Tout mettre dans un seul prompt ? Possible. Mais vous perdez le contrôle à chaque étape. Si l'analyse des thèmes est mauvaise, la synthèse finale l'est aussi — sans savoir où ça a dérapé.
+
+Le prompt chaining découpe le problème en étapes vérifiables.
+
+## Exemple : de la recherche à l'article
+
+**Étape 1 — Extraction**
+> "Voici 5 articles sur le sujet X. Extrais les 10 points clés les plus importants. Format : liste numérotée."
+
+*Vous vérifiez que les 10 points sont bons.*
+
+**Étape 2 — Structure**
+> "Voici 10 points clés sur X. Crée un plan d'article en 4 parties qui les organise logiquement."
+
+*Vous validez le plan.*
+
+**Étape 3 — Rédaction**
+> "Voici le plan. Rédige la partie 1 en 400 mots, ton direct, exemples concrets."
+
+Chaque étape est contrôlable. Si l'étape 2 est mauvaise, vous ne perdez pas l'étape 3.
+
+## Le prompt système — persistant dans la session
+
+Avec l'API (ou dans les instructions personnalisées de ChatGPT), le prompt système définit le comportement de l'IA pour toute la session :
+
+```
+Tu es un assistant éditorial pour un média tech francophone.
+Ton : direct, un peu sceptique, exemples concrets.
+Tu n'utilises jamais : "il est important de noter", "n'hésitez pas à", "dans un monde en constante évolution".
+Tu réponds en français.
+```
+
+Vous n'avez plus à répéter ces instructions à chaque prompt.
+
+## Automatiser le chaining
+
+Avec des outils comme Make ou Zapier, vous pouvez enchaîner automatiquement des prompts :
+- Nouveau email → extraire le type de demande → classifier → générer une ébauche de réponse
+- Nouvel article RSS → résumer → traduire → poster sur Slack
+
+Le chaining n'est pas réservé aux sessions de chat. C'est la base de l'automatisation IA sérieuse.
+
+## Ce qu'il faut retenir
+
+Tâche complexe = plusieurs prompts séquentiels. Valider chaque étape avant de passer à la suivante. Le prompt système évite les répétitions dans une session longue. Le chaining automatisé, c'est le début de l'automatisation IA réelle.

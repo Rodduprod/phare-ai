@@ -1,0 +1,78 @@
+---
+title: "GitHub Copilot — Au-delà de l'autocomplétion"
+description: "Copilot fait bien plus que compléter du code. Les fonctionnalités avancées que la plupart des devs ignorent."
+order: 1
+duration: 10
+published: true
+qcm:
+  - question: "Quelle est la technique la plus efficace pour guider GitHub Copilot ?"
+    options:
+      - "Désactiver Copilot et coder manuellement pour lui montrer le style"
+      - "Écrire des commentaires détaillés qui décrivent ce que le code doit faire avant de le coder"
+      - "Utiliser uniquement des noms de variables très courts"
+      - "Toujours accepter la première suggestion sans la relire"
+    answer: 1
+  - question: "Qu'est-ce que Copilot Chat permet que l'autocomplétion classique ne permet pas ?"
+    options:
+      - "Générer des images à partir du code"
+      - "Avoir une conversation pour expliquer du code, déboguer ou refactorer en langage naturel"
+      - "Exécuter le code directement dans l'éditeur"
+      - "Partager son code avec d'autres développeurs"
+    answer: 1
+  - question: "Pourquoi ne faut-il pas accepter aveuglément les suggestions de Copilot ?"
+    options:
+      - "Parce que Copilot est souvent lent"
+      - "Parce que Copilot peut générer du code fonctionnel mais incorrect, non sécurisé ou basé sur des APIs inexistantes"
+      - "Parce que Copilot ne supporte pas le français"
+      - "Parce que les suggestions sont toujours en anglais"
+    answer: 1
+  - question: "Comment Copilot utilise-t-il le contexte de votre projet ?"
+    options:
+      - "Il n'a accès qu'au fichier actuellement ouvert"
+      - "Il analyse les fichiers ouverts dans l'éditeur pour adapter ses suggestions au style et aux patterns du projet"
+      - "Il télécharge automatiquement tous vos fichiers sur les serveurs GitHub"
+      - "Il analyse uniquement les commentaires de code"
+    answer: 1
+---
+
+## Copilot n'est pas juste de l'autocomplétion
+
+La plupart des développeurs qui "utilisent Copilot" utilisent 20% de ce qu'il peut faire. Ils acceptent ou rejettent des suggestions. C'est un début — c'est loin d'être suffisant.
+
+## Guider Copilot avec des commentaires
+
+La technique la plus sous-utilisée : écrire un commentaire qui décrit ce que vous allez coder, puis laisser Copilot générer.
+
+```python
+# Fonction qui parse un fichier CSV de transactions bancaires,
+# nettoie les montants (supprimer €, convertir virgule en point),
+# et retourne une liste de dicts avec date, montant, description.
+# Gérer les lignes vides et les encodages mal formés.
+def parse_transactions(filepath: str) -> list[dict]:
+```
+
+Ce niveau de détail dans le commentaire produit un code infiniment meilleur que de laisser Copilot deviner depuis un nom de fonction.
+
+## Copilot Chat — la vraie puissance
+
+Dans VS Code ou JetBrains, Copilot Chat permet :
+
+**Expliquer du code** — Sélectionnez n'importe quel bloc → `/explain` → explication ligne par ligne. Utile pour du code legacy que personne ne comprend plus.
+
+**Déboguer** — Copiez votre erreur → `/fix` → Copilot propose un diagnostic et une correction.
+
+**Générer des tests** — Sélectionnez une fonction → `/tests` → génère les cas de test unitaires. Bon point de départ.
+
+**Refactorer** — `/refactor` avec des instructions spécifiques : "Utilise le pattern Strategy", "Réduis la complexité cyclomatique", etc.
+
+## Ce que Copilot ne voit pas
+
+Copilot analyse les fichiers ouverts dans votre éditeur. Il ne connaît pas votre architecture globale, vos contraintes métier non documentées. Plus vous lui donnez de contexte (fichiers ouverts, commentaires), meilleures sont les suggestions.
+
+## La règle d'or : toujours relire
+
+Copilot génère du code plausible, pas du code correct. Il hallucine des méthodes d'API, génère des logiques subtillement incorrectes, peut introduire des vulnérabilités non évidentes. Tout ce qui sort doit être lu et compris avant d'être commité.
+
+## Ce qu'il faut retenir
+
+Les commentaires détaillés guident mieux Copilot que les noms de fonctions seuls. Copilot Chat va bien au-delà de l'autocomplétion. Relisez toujours — la vitesse ne vaut pas une faille non relue.

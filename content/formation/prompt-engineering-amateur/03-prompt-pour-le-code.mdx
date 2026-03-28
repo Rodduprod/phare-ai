@@ -1,0 +1,76 @@
+---
+title: "Prompts pour le code — Ce qui change"
+description: "Générer du code avec un LLM ne fonctionne pas comme la rédaction. Les règles sont différentes. Voici ce qui compte vraiment."
+order: 3
+duration: 8
+published: true
+qcm:
+  - question: "Quelle information est la plus importante à donner dans un prompt de génération de code ?"
+    options:
+      - "Le langage de programmation et le contexte précis de ce que le code doit faire"
+      - "Le niveau d'expérience du développeur"
+      - "La couleur de l'interface à développer"
+      - "Le nombre de lignes de code souhaité"
+    answer: 0
+  - question: "Que faut-il toujours faire avec du code généré par une IA ?"
+    options:
+      - "Le publier immédiatement car les IA ne font pas d'erreurs de code"
+      - "Le tester et le relire — les IA hallucinent aussi sur le code"
+      - "Le modifier entièrement avant d'utiliser quoi que ce soit"
+      - "Le faire valider par un autre LLM"
+    answer: 1
+  - question: "Quel type de prompt donne les meilleurs résultats pour la génération de code ?"
+    options:
+      - "Demander directement le code sans contexte"
+      - "Fournir le contexte (stack, version, contraintes) + un exemple d'entrée/sortie attendu"
+      - "Décrire l'interface graphique uniquement"
+      - "Demander d'abord une explication, puis le code séparément"
+    answer: 1
+  - question: "Comment bien utiliser l'IA pour déboguer du code ?"
+    options:
+      - "Décrire le problème sans partager le code"
+      - "Coller le code + le message d'erreur exact + ce que vous attendiez comme comportement"
+      - "Demander à l'IA de deviner le bug sans contexte"
+      - "Partager uniquement les 5 premières lignes du fichier"
+    answer: 1
+---
+
+## Le code, c'est différent
+
+Quand vous demandez une rédaction, une réponse approximativement bonne reste utilisable. Le code, lui, soit tourne, soit ne tourne pas. Une erreur de syntaxe, une fonction inexistante, une logique incorrecte — et c'est cassé.
+
+Les LLMs génèrent du code très bien. Ils se trompent aussi. Régulièrement. La différence entre quelqu'un qui avance vite et quelqu'un qui s'arrache les cheveux, c'est souvent la qualité du prompt — et la capacité à vérifier ce qui sort.
+
+## Ce que vous devez toujours préciser
+
+**Le langage et la version**
+`Python 3.11 / TypeScript 5 / Node.js 20` — pas juste "Python". Les APIs changent entre versions.
+
+**Le contexte d'exécution**
+`Ce code tourne dans un Lambda AWS avec 512Mo de RAM et un timeout de 30s.`
+Ou : `Next.js 14 App Router, composant serveur`.
+
+**Les entrées et sorties attendues**
+`Entrée : liste de strings. Sortie : objet { valid: string[], invalid: string[] }`
+
+**Les contraintes**
+`Pas de dépendance externe. Pas de récursivité. Gérer les cas null.`
+
+## Template de prompt code
+
+```
+Contexte : [framework/langage/version]
+Tâche : [ce que le code doit faire exactement]
+Entrée : [exemple d'entrée]
+Sortie attendue : [exemple de sortie]
+Contraintes : [limites, ce qu'on ne veut pas]
+Gestion des erreurs : [que doit-il se passer si ça échoue ?]
+```
+
+## Pour le débogage
+
+Collez tout : le code qui pose problème, le message d'erreur exact (copier-coller, pas paraphrase), ce que vous attendiez, ce que vous obtenez. Sans le message d'erreur exact, l'IA va deviner — et elle se trompe souvent.
+
+## Ce qu'il faut retenir
+
+Contexte précis > prompt court pour le code. Toujours tester ce qui sort. Le débogage fonctionne très bien si vous donnez le message d'erreur exact. L'IA est excellente pour la review et le refactoring.

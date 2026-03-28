@@ -1,0 +1,84 @@
+---
+title: "Pourquoi le prompt change tout"
+description: "La même question posée différemment donne des résultats radicalement différents. Comprendre pourquoi, c'est déjà gagner la moitié de la bataille."
+order: 1
+duration: 8
+published: true
+qcm:
+  - question: "Qu'est-ce qu'un prompt, techniquement ?"
+    options:
+      - "Un abonnement premium à ChatGPT"
+      - "L'entrée textuelle que vous envoyez au modèle — tout ce que l'IA voit avant de répondre"
+      - "Un plugin qui améliore les réponses"
+      - "Une commande système interne au modèle"
+    answer: 1
+  - question: "Pourquoi deux personnes obtiennent-elles des résultats si différents avec le même outil IA ?"
+    options:
+      - "Parce que l'IA favorise certains utilisateurs"
+      - "Parce que la qualité du prompt détermine directement la qualité de la réponse"
+      - "Parce que les abonnements payants donnent de meilleures réponses"
+      - "Parce que l'IA apprend de chaque utilisateur individuellement"
+    answer: 1
+  - question: "Quel élément est le plus important dans un prompt efficace ?"
+    options:
+      - "La longueur — plus c'est long, mieux c'est"
+      - "Le contexte et la précision de ce qu'on attend comme résultat"
+      - "L'utilisation de mots-clés techniques"
+      - "Commencer par 'Tu es un expert en...'"
+    answer: 1
+  - question: "Qu'est-ce que le 'prompt engineering' ?"
+    options:
+      - "La programmation des modèles IA"
+      - "L'art de formuler des instructions claires pour obtenir des sorties précises et utiles"
+      - "Un métier réservé aux ingénieurs en informatique"
+      - "L'optimisation des serveurs qui hébergent les LLMs"
+    answer: 1
+---
+
+## Le problème avec "comment utiliser ChatGPT"
+
+Cherchez "comment utiliser ChatGPT" sur YouTube. Vous trouverez des centaines de vidéos qui vous montrent comment ouvrir le site, taper une question, et lire la réponse. Révélateur.
+
+Ce que ces vidéos ne montrent pas : pourquoi la même question, formulée différemment, donne un résultat dix fois meilleur. C'est ça, le vrai sujet.
+
+## Ce que l'IA "voit" quand vous écrivez
+
+Un LLM reçoit votre texte comme une séquence de tokens. Il n'a pas d'intention cachée, pas d'intuition, pas de bon sens implicite. Il génère ce qui est statistiquement probable après votre entrée.
+
+Conséquence directe : **si votre entrée est vague, la sortie sera générique**. Le modèle remplit les trous avec ce qui est le plus courant — pas avec ce que vous vouliez vraiment.
+
+Exemple :
+
+- ❌ `Aide-moi à rédiger un email`
+- ✅ `Rédige un email professionnel à un client qui attend une livraison depuis 10 jours. Ton : empathique mais rassurant. Max 150 mots. Pas de formule de politesse excessive.`
+
+Les deux demandes sont valides. Les résultats sont incomparables.
+
+## Les 5 éléments d'un prompt qui fonctionne
+
+**1. Le rôle** — Qui est l'IA dans cette interaction ?
+> "Tu es un rédacteur web spécialisé en contenu tech pour les non-techniciens."
+
+**2. Le contexte** — Quelle est la situation ?
+> "Je dois écrire un article sur les LLMs pour des lecteurs sans connaissance préalable."
+
+**3. La tâche** — Qu'est-ce qu'on demande exactement ?
+> "Rédige une introduction de 200 mots qui explique ce qu'est un LLM sans jargon."
+
+**4. Le format** — Comment doit se présenter le résultat ?
+> "Format : texte continu, pas de liste, ton conversationnel."
+
+**5. Les contraintes** — Ce qu'il faut éviter.
+> "Évite les métaphores sur le cerveau humain — elles sont réductrices."
+
+Vous n'avez pas besoin des 5 à chaque fois. Mais plus votre tâche est complexe, plus vous en aurez besoin.
+
+## Le paradoxe du prompt court
+
+Beaucoup de gens pensent qu'un bon prompt est court. C'est vrai pour les requêtes simples. Pour tout ce qui demande un travail de qualité, c'est l'inverse.
+
+Un prompt de 50 mots bien construit battra presque toujours une phrase de 10 mots floue. Le temps investi à formuler votre prompt, vous le récupérez en n'ayant pas à relancer la conversation 5 fois.
+
+## Ce qu'il faut retenir
+
+Le prompt est l'interface entre votre intention et la réponse de l'IA. Plus cette interface est précise, moins vous laissez de place à l'approximation. Les prochaines leçons détaillent les structures qui marchent selon le type de tâche.

@@ -1,0 +1,73 @@
+---
+title: "Cursor — L'éditeur pensé pour l'IA"
+description: "Cursor n'est pas VS Code avec un plugin. C'est un IDE repensé autour de l'IA. Ce qui le différencie vraiment — et quand ça vaut le passage."
+order: 2
+duration: 10
+published: true
+qcm:
+  - question: "Quelle est la différence principale entre Cursor et GitHub Copilot ?"
+    options:
+      - "Cursor est gratuit, Copilot est payant"
+      - "Cursor est un IDE entier repensé autour de l'IA avec accès à toute la codebase, Copilot est un plugin d'autocomplétion"
+      - "Cursor supporte plus de langages de programmation"
+      - "Cursor ne fonctionne que sur Mac"
+    answer: 1
+  - question: "Qu'est-ce que la fonctionnalité 'Composer' dans Cursor ?"
+    options:
+      - "Un outil pour créer des diagrammes d'architecture"
+      - "Une interface pour écrire des commentaires de code"
+      - "Un mode qui permet de décrire une fonctionnalité entière et de voir les modifications s'appliquer sur plusieurs fichiers"
+      - "Un gestionnaire de packages intégré"
+    answer: 2
+  - question: "Quel est l'avantage d'utiliser @codebase dans Cursor ?"
+    options:
+      - "Ça accélère la compilation du code"
+      - "Ça permet à l'IA d'analyser et de répondre en tenant compte de l'ensemble du projet"
+      - "Ça synchronise automatiquement avec GitHub"
+      - "Ça active le mode debug avancé"
+    answer: 1
+  - question: "Pour quel type de développeur Cursor apporte-t-il le plus de valeur ?"
+    options:
+      - "Les développeurs débutants qui ne savent pas coder"
+      - "Les développeurs expérimentés sur des projets de taille moyenne qui veulent accélérer leur productivité"
+      - "Uniquement les développeurs front-end"
+      - "Les développeurs qui travaillent exclusivement en Python"
+    answer: 1
+---
+
+## Pourquoi Cursor n'est pas juste un plugin
+
+GitHub Copilot est un plugin greffé sur VS Code. Cursor est un fork de VS Code repensé depuis le début autour de l'IA. La différence n'est pas cosmétique — c'est architectural.
+
+La principale implication : Cursor peut analyser **toute votre codebase** en contexte, pas seulement le fichier ouvert.
+
+## Les fonctionnalités qui font la différence
+
+**@codebase — le contexte global**
+> "@codebase Où est gérée l'authentification dans ce projet ? Liste tous les fichiers concernés."
+
+Cursor indexe votre code et répond avec une vraie compréhension de l'architecture.
+
+**Composer — édition multi-fichiers**
+Vous décrivez une fonctionnalité entière :
+> "Ajoute un système de cache Redis pour les requêtes utilisateur. Modifie les fichiers nécessaires."
+
+Cursor propose les modifications sur plusieurs fichiers simultanément. Vous reviewez un diff complet avant d'accepter.
+
+## Les limites à connaître
+
+**Le contexte a une limite** — même avec @codebase, les très gros projets dépassent la fenêtre de contexte.
+
+**Le Composer fait des erreurs** — comme tout LLM, il peut générer des modifications qui cassent d'autres parties. Revue attentive des diffs obligatoire.
+
+**Prix** — Cursor Pro à 20$/mois. À peser contre le gain de productivité réel.
+
+## Copilot ou Cursor ?
+
+- Vous restez sur VS Code / JetBrains et voulez une amélioration progressive → **Copilot**
+- Vous voulez un workflow IA-first sur un nouveau projet → **Cursor**
+- Vous faites beaucoup de génération de fonctionnalités entières → **Cursor Composer**
+
+## Ce qu'il faut retenir
+
+Cursor n'est pas un plugin, c'est un IDE. @codebase donne le contexte global, Composer édite plusieurs fichiers à la fois. Les diffs Composer doivent être relus attentivement.

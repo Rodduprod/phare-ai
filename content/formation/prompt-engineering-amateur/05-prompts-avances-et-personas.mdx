@@ -1,0 +1,82 @@
+---
+title: "Techniques avancées — Personas, méta-prompts et contraintes"
+description: "Les techniques qui font la différence entre un utilisateur lambda et quelqu'un qui tire vraiment parti des LLMs. Personas, auto-évaluation, prompts récursifs."
+order: 5
+duration: 8
+published: true
+qcm:
+  - question: "À quoi sert un 'persona' détaillé dans un prompt ?"
+    options:
+      - "À personnaliser l'interface graphique de ChatGPT"
+      - "À définir un rôle et un style précis pour l'IA, orientant son registre et son niveau d'expertise"
+      - "À identifier l'utilisateur auprès du modèle"
+      - "À créer un compte utilisateur dédié"
+    answer: 1
+  - question: "Qu'est-ce qu'un méta-prompt ?"
+    options:
+      - "Un prompt en plusieurs langues"
+      - "Un prompt qui demande à l'IA de générer ou d'améliorer un autre prompt"
+      - "Un prompt très long de plus de 1000 mots"
+      - "Un prompt qui utilise des variables dynamiques"
+    answer: 1
+  - question: "Comment faire évaluer sa propre réponse à une IA ?"
+    options:
+      - "C'est impossible — l'IA ne peut pas s'auto-évaluer"
+      - "En lui demandant explicitement d'analyser sa réponse selon des critères définis"
+      - "En envoyant la réponse à un autre modèle uniquement"
+      - "En activant le mode 'critique' dans les paramètres"
+    answer: 1
+  - question: "Quel est l'avantage de forcer l'IA à planifier avant d'exécuter une tâche complexe ?"
+    options:
+      - "Ça réduit le nombre de tokens utilisés"
+      - "La réponse est plus courte"
+      - "L'IA structure mieux son raisonnement et produit des réponses plus cohérentes sur les tâches longues"
+      - "Ça accélère le temps de réponse"
+    answer: 2
+---
+
+## Le persona — bien plus qu'un jeu de rôle
+
+"Tu es un expert en..." — vous l'avez probablement déjà utilisé. La plupart des gens s'arrêtent là. Le vrai persona va plus loin :
+
+```
+Tu es Marie, directrice marketing senior avec 15 ans d'expérience en B2B SaaS.
+Tu es directe, tu n'aimes pas les réponses génériques.
+Quand une idée te semble creuse, tu le dis.
+Tu penses en termes de pipeline et de rétention, pas juste d'awareness.
+```
+
+Ce niveau de détail change radicalement la qualité des réponses sur des sujets marketing. L'IA adopte un filtre de jugement qui élague les banalités.
+
+## Le méta-prompt — faire générer le prompt par l'IA
+
+Vous avez une tâche complexe mais vous ne savez pas comment la formuler ?
+
+> "Je dois analyser les retours clients d'un SaaS pour identifier les 3 principales frustrations. Génère le meilleur prompt possible pour cette tâche."
+
+Ensuite vous utilisez ce prompt généré. Ça fonctionne étonnamment bien — et ça vous apprend à mieux prompter.
+
+## L'auto-évaluation — faire critiquer sa propre réponse
+
+Après avoir obtenu une réponse, relancez :
+
+> "Maintenant joue le rôle d'un critique sévère. Quelles sont les faiblesses de cette réponse ? Qu'est-ce qui manque ?"
+
+Ou plus ciblé :
+
+> "Évalue cette réponse sur 3 critères : précision factuelle (1-10), clarté (1-10), utilité pratique (1-10). Justifie chaque note."
+
+L'IA trouve des failles qu'elle ne mentionnerait pas spontanément. Utile pour les livrables importants.
+
+## Les contraintes de format — sous-estimées
+
+- `Réponds en JSON avec les clés "problem", "solution", "next_steps"`
+- `Format : tableau markdown avec 3 colonnes`
+- `Maximum 3 phrases par point`
+- `Commence directement par la réponse, sans introduction`
+
+Ces contraintes évitent les réponses bavardes et les reformatages manuels chronophages.
+
+## Ce qu'il faut retenir
+
+Les personas détaillés > les rôles génériques. Le méta-prompt pour débloquer les tâches complexes. L'auto-évaluation pour les livrables importants. Les contraintes de format pour gagner du temps. Combinez tout ça — c'est là que la différence devient visible.

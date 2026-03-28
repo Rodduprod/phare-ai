@@ -1,0 +1,76 @@
+---
+title: "Votre premier workflow complet — De A à Z"
+description: "On assemble tout : déclencheur, IA, actions, notification. Un workflow réel que vous pouvez implémenter aujourd'hui."
+order: 5
+duration: 7
+published: true
+qcm:
+  - question: "Quelle est la bonne approche pour construire un workflow automatisé complexe ?"
+    options:
+      - "Tout construire d'un coup et tester à la fin"
+      - "Construire étape par étape, tester chaque bloc avant d'ajouter le suivant"
+      - "Copier un template existant sans le personnaliser"
+      - "Déléguer entièrement à un développeur"
+    answer: 1
+  - question: "Quel est le principal avantage d'un workflow IA par rapport à une simple automatisation ?"
+    options:
+      - "Il est plus rapide"
+      - "Il peut prendre des décisions basées sur le contenu, pas seulement sur des règles fixes"
+      - "Il coûte moins cher"
+      - "Il ne nécessite aucune maintenance"
+    answer: 1
+  - question: "Que faut-il documenter quand on crée un workflow automatisé ?"
+    options:
+      - "Uniquement le coût de l'abonnement"
+      - "Le déclencheur, chaque étape, les données transmises, et les cas d'erreur connus"
+      - "Seulement le résultat final attendu"
+      - "La documentation n'est pas nécessaire pour les workflows simples"
+    answer: 1
+  - question: "Quelle est la règle d'or pour les workflows qui traitent des données importantes ?"
+    options:
+      - "Les automatiser entièrement sans validation humaine pour gagner du temps"
+      - "Toujours garder une étape de validation humaine pour les décisions à fort impact"
+      - "Utiliser uniquement des outils payants"
+      - "Tester uniquement en production"
+    answer: 1
+---
+
+## Le workflow qu'on va construire
+
+**Objectif** : Chaque nouveau formulaire de contact sur votre site est automatiquement analysé par l'IA, classifié par type et urgence, et envoyé dans le bon canal selon sa priorité.
+
+**Outils** : Typeform (ou Google Forms) + Make + ChatGPT + Slack/Email
+
+## Les étapes
+
+**Déclencheur** : Nouveau formulaire soumis sur Typeform
+→ Make reçoit les données (nom, email, message)
+
+**Étape IA** : Make envoie le message à l'API ChatGPT avec ce prompt :
+```
+Analyse ce message de contact.
+Retourne un JSON avec :
+- type: "commercial" | "support" | "partenariat" | "autre"
+- urgence: "haute" | "normale" | "basse"
+- résumé: [2 phrases max]
+```
+
+**Routage** :
+- Si urgence = haute → Notification Slack immédiate dans `#urgent`
+- Si type = commercial → Email à l'équipe commerciale
+- Si type = support → Créer un ticket dans votre outil support
+- Autres → Ajouter dans Notion pour traitement quotidien
+
+**Confirmation** : Email automatique au contact : "Nous avons bien reçu votre message et reviendrons vers vous sous 24h."
+
+## Construire étape par étape
+
+Ne construisez pas tout d'un coup. Commencez par : déclencheur → étape IA → log dans Sheets. Vérifiez que l'IA classe correctement. Puis ajoutez le routage. Puis les notifications. Chaque bloc doit fonctionner avant d'ajouter le suivant.
+
+## La documentation — obligatoire
+
+Documentez votre workflow dans Notion ou un simple doc : déclencheur, chaque étape, données transmises, cas d'erreur connus. Dans 6 mois, vous ne vous souviendrez plus de rien.
+
+## Ce qu'il faut retenir
+
+Construisez bloc par bloc et testez chaque étape. L'IA dans le workflow prend des décisions intelligentes plutôt que de suivre des règles fixes. Documentez tout — votre futur vous remerciera. Et gardez une validation humaine pour les décisions importantes.

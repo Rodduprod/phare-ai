@@ -1,0 +1,71 @@
+---
+title: "Tests automatiques — L'IA comme partenaire QA"
+description: "L'IA est particulièrement efficace pour générer des tests. À condition de savoir quoi lui demander et comment valider ce qu'elle produit."
+order: 4
+duration: 10
+published: true
+qcm:
+  - question: "Quelle approche améliore le plus la couverture de tests avec l'IA ?"
+    options:
+      - "Demander à l'IA de générer tous les tests du projet en une fois"
+      - "Fournir la fonction à tester + les cas edge identifiés + demander à l'IA d'en trouver d'autres"
+      - "Utiliser l'IA uniquement pour les tests de performance"
+      - "Demander à l'IA de générer uniquement les tests qui échouent"
+    answer: 1
+  - question: "Qu'est-ce que le TDD assisté par IA ?"
+    options:
+      - "L'IA écrit tous les tests à votre place"
+      - "Écrire d'abord les tests, puis demander à l'IA d'implémenter la fonction qui les fait passer"
+      - "L'IA remplace l'étape de test dans le cycle de développement"
+      - "Utiliser l'IA pour décider quels tests écrire"
+    answer: 1
+  - question: "Pourquoi les tests générés par IA doivent-ils être relus attentivement ?"
+    options:
+      - "Parce qu'ils sont toujours dans le mauvais framework de test"
+      - "Parce que l'IA peut générer des tests qui passent sans vraiment tester le comportement attendu"
+      - "Parce qu'ils sont trop lents à s'exécuter"
+      - "Parce qu'ils utilisent toujours des données réelles"
+    answer: 1
+  - question: "Comment l'IA aide-t-elle à identifier des edge cases non couverts ?"
+    options:
+      - "En exécutant automatiquement le code avec des inputs aléatoires"
+      - "En analysant la fonction et en proposant des scénarios limites auxquels vous n'auriez peut-être pas pensé"
+      - "En comparant avec des tests d'autres projets open source"
+      - "En mesurant la couverture de code existante"
+    answer: 1
+---
+
+## Pourquoi les tests sont le meilleur cas d'usage IA
+
+Écrire des tests est fastidieux. Les développeurs le savent et le font souvent en dernier — ou pas du tout. L'IA réduit suffisamment la friction pour que ça devienne pratique.
+
+Un bon test unitaire est aussi prévisible qu'un code de produit : inputs définis, output attendu, comportement exact à vérifier. C'est exactement ce que les LLMs font bien.
+
+## Le workflow efficace
+
+**Étape 1 — Donnez le contexte** : copiez la fonction à tester, précisez le framework et le style voulu.
+
+**Étape 2 — Listez VOS cas connus** :
+> "Je sais que la fonction doit gérer : input vide, string avec espaces, valeur null, et le cas nominal. Génère les tests pour ces cas."
+
+**Étape 3 — Demandez les edge cases oubliés** :
+> "Maintenant identifie les edge cases auxquels je n'ai pas pensé."
+
+L'IA trouve souvent des cas limites pertinents — types inattendus, encodages, valeurs limites numériques.
+
+## Le TDD assisté
+
+L'approche la plus puissante : écrire les tests *avant* le code avec l'aide de l'IA.
+
+1. Décrivez le comportement attendu en langage naturel
+2. Demandez à l'IA de générer les tests
+3. Vérifiez que les tests sont corrects
+4. Demandez à l'IA d'implémenter la fonction qui les fait passer
+
+## Le piège des tests vides
+
+L'IA peut générer des tests qui passent sans tester grand-chose. Vérifiez que les assertions sont précises et testent vraiment le comportement, pas juste que quelque chose est "défini".
+
+## Ce qu'il faut retenir
+
+Les tests sont un des meilleurs cas d'usage IA. Fournissez la fonction + vos cas connus + demandez les edge cases. Le TDD assisté IA est particulièrement efficace. Relisez les assertions — un test qui passe sans vraiment tester ne vaut rien.

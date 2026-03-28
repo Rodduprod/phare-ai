@@ -1,0 +1,73 @@
+---
+title: "Zapier et Make — Vos premiers workflows"
+description: "Créer votre première automatisation étape par étape. Avec des exemples concrets que vous pouvez reproduire immédiatement."
+order: 2
+duration: 8
+published: true
+qcm:
+  - question: "Dans Zapier, qu'est-ce qu'un 'Zap' ?"
+    options:
+      - "Un abonnement premium"
+      - "Une automatisation complète : un déclencheur + une ou plusieurs actions"
+      - "Un type de connexion entre applications"
+      - "Un message de notification"
+    answer: 1
+  - question: "Quelle est l'étape la plus importante avant de créer une automatisation ?"
+    options:
+      - "Choisir le plan payant le plus adapté"
+      - "Apprendre le code de l'outil"
+      - "Définir précisément le déclencheur, les données à transmettre et l'action souhaitée"
+      - "Tester toutes les intégrations disponibles"
+    answer: 2
+  - question: "Comment tester une automatisation avant de la rendre active ?"
+    options:
+      - "La rendre active directement et voir si elle fonctionne"
+      - "Utiliser la fonctionnalité de test avec des données réelles ou de test pour vérifier chaque étape"
+      - "Demander à un développeur de valider le workflow"
+      - "Il n'est pas possible de tester avant activation"
+    answer: 1
+  - question: "Que faire si une automatisation échoue en production ?"
+    options:
+      - "La supprimer et recommencer depuis zéro"
+      - "Vérifier les logs d'erreur de l'outil, identifier l'étape qui échoue, et corriger la configuration"
+      - "Contacter le support immédiatement sans chercher à diagnostiquer"
+      - "Ignorer — les erreurs occasionnelles sont normales et sans conséquence"
+    answer: 1
+---
+
+## Votre première automatisation en 15 minutes
+
+Exemple concret : recevoir un email avec un formulaire de contact → ajouter automatiquement le contact dans une feuille Google Sheets.
+
+**Sur Zapier :**
+1. Créez un compte gratuit sur zapier.com
+2. Cliquez "Create Zap"
+3. Choisissez le déclencheur : "Gmail" → "New Email"
+4. Configurez le filtre : emails avec "Formulaire de contact" dans le sujet
+5. Choisissez l'action : "Google Sheets" → "Create Spreadsheet Row"
+6. Mappez les champs : nom → colonne A, email → colonne B, message → colonne C
+7. Testez avec un vrai email
+8. Activez le Zap
+
+C'est tout. Le Zap tourne en arrière-plan 24h/24.
+
+## Ajouter l'IA dans le workflow
+
+Le même workflow, mais maintenant l'IA analyse le message avant de l'ajouter :
+
+**Ajoutez une étape entre l'email et Sheets :**
+- Action : "ChatGPT" (dans Zapier)
+- Prompt : "Analyse ce message de contact et détermine : 1) le type de demande (commercial, support, autre), 2) l'urgence (haute/normale/basse). Réponds en JSON."
+- Puis mappez aussi ces champs dans Sheets
+
+Résultat : chaque nouveau contact est automatiquement classifié. Vous voyez en un coup d'œil ce qui est urgent.
+
+## Make vs Zapier — quand choisir ?
+
+**Zapier** si vous débutez, si vous avez besoin de connecter des outils classiques rapidement, si vous êtes prêt à payer un peu plus pour la simplicité.
+
+**Make** si vous voulez créer des workflows complexes avec des boucles et des conditions, si le volume est important (Make facture par opération, moins cher), si vous aimez visualiser l'ensemble du flux.
+
+## Ce qu'il faut retenir
+
+Créez votre premier Zap sur un problème concret et simple. Testez avant d'activer. Ajoutez l'IA comme étape intermédiaire pour enrichir les données. Déboguez toujours en consultant les logs — pas en devinant.

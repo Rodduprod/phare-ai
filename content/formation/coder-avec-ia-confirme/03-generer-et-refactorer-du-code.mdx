@@ -1,0 +1,74 @@
+---
+title: "Générer et refactorer — Les bons patterns"
+description: "Générer du code fonctionnel est facile. Générer du code maintenable, sécurisé et cohérent avec votre codebase, c'est là que 90% des gens échouent."
+order: 3
+duration: 10
+published: true
+qcm:
+  - question: "Quelle est la meilleure approche pour générer du code complexe avec un LLM ?"
+    options:
+      - "Demander la fonction complète en une seule fois"
+      - "Décomposer en petites unités testables, générer et valider chaque partie avant la suivante"
+      - "Toujours demander le code le plus court possible"
+      - "Éviter de donner des exemples pour ne pas biaiser l'IA"
+    answer: 1
+  - question: "Qu'est-ce que la 'dette technique IA' ?"
+    options:
+      - "Le coût des abonnements aux outils IA"
+      - "L'accumulation de code généré par IA non relu ni compris, difficile à maintenir"
+      - "Les limitations techniques des modèles IA actuels"
+      - "Le temps perdu à apprendre à utiliser les outils IA"
+    answer: 1
+  - question: "Comment bien utiliser l'IA pour refactorer du code legacy ?"
+    options:
+      - "Demander à l'IA de réécrire entièrement le fichier"
+      - "Fournir le code + les tests existants + des instructions précises sur les patterns à appliquer"
+      - "Supprimer d'abord les commentaires pour ne pas perturber l'IA"
+      - "Refactorer uniquement les fonctions de moins de 20 lignes"
+    answer: 1
+  - question: "Quel risque spécifique l'IA introduit-elle dans le code de sécurité ?"
+    options:
+      - "Elle génère du code trop lent"
+      - "Elle peut générer du code d'apparence correcte mais avec des vulnérabilités subtiles"
+      - "Elle refuse de générer du code de sécurité"
+      - "Elle utilise des bibliothèques obsolètes"
+    answer: 1
+---
+
+## L'erreur classique : tout générer d'un coup
+
+Beaucoup de développeurs demandent à l'IA de générer une fonctionnalité entière en une fois. Ça donne un code qui semble fonctionner — jusqu'à ce que vous essayez de le tester, l'étendre ou le déboguer.
+
+La bonne approche : **décomposer**.
+
+## La méthode de génération en couches
+
+**1. La signature d'abord** — Génère uniquement l'interface avec les types. Pas d'implémentation. Validez que l'interface est correcte.
+
+**2. Le cas nominal** — Implémente le chemin qui fonctionne. Ignore les erreurs pour l'instant. Testez.
+
+**3. La gestion d'erreurs** — Ajoute les cas d'erreur un par un. Vérifiez que chaque cas est couvert.
+
+## Refactoring de code legacy
+
+Pour du code existant, le contexte est crucial :
+
+```
+Voici cette fonction de 80 lignes [coller le code].
+Elle fonctionne mais elle est difficile à tester et modifier.
+Refactorise-la en appliquant le principe de responsabilité unique.
+Chaque sous-fonction doit être testable indépendamment.
+Ne change pas le comportement observable — j'ai des tests que je veux faire passer.
+```
+
+Incluez vos tests existants dans le contexte si possible.
+
+## La dette technique IA
+
+Accepter du code IA sans le comprendre crée une dette technique particulièrement toxique. Vous vous retrouvez avec du code que vous ne pouvez ni déboguer ni faire évoluer.
+
+Règle : **ne commitez jamais du code que vous ne comprenez pas**, même s'il a l'air de fonctionner.
+
+## Ce qu'il faut retenir
+
+Générez en couches : interface → cas nominal → gestion d'erreurs. Pour le legacy : fournissez le code + les tests existants + les patterns cibles. Ne commitez pas ce que vous ne comprenez pas. Le code de sécurité IA mérite une vigilance particulière.

@@ -1,0 +1,92 @@
+---
+title: "Structures de prompt qui fonctionnent"
+description: "Les frameworks éprouvés — CARE, chain-of-thought, few-shot — pour des prompts qui donnent des résultats prévisibles, quelle que soit la tâche."
+order: 2
+duration: 9
+published: true
+qcm:
+  - question: "Que signifie l'approche 'chain-of-thought' dans un prompt ?"
+    options:
+      - "Enchaîner plusieurs prompts dans une même conversation"
+      - "Demander à l'IA de montrer son raisonnement étape par étape avant de conclure"
+      - "Utiliser des listes numérotées dans le prompt"
+      - "Connecter plusieurs modèles IA ensemble"
+    answer: 1
+  - question: "Dans le framework CARE, que représente le 'A' ?"
+    options:
+      - "Automatisation"
+      - "Ambiguïté"
+      - "Action — ce que l'IA doit faire concrètement"
+      - "Analyse"
+    answer: 2
+  - question: "Pourquoi donner des exemples dans un prompt est-il efficace ?"
+    options:
+      - "Pour allonger le prompt et paraître plus sérieux"
+      - "Pour montrer exactement le format et le registre attendus (few-shot prompting)"
+      - "Parce que l'IA ne comprend que les exemples concrets"
+      - "Pour contourner les filtres de sécurité"
+    answer: 1
+  - question: "Quelle instruction améliore la qualité sur les tâches de raisonnement complexes ?"
+    options:
+      - "Répondre en moins de 100 mots"
+      - "Utiliser uniquement des listes"
+      - "'Réfléchis étape par étape avant de répondre'"
+      - "Commencer la réponse par une question de clarification"
+    answer: 2
+---
+
+## Les frameworks ne sont pas de la magie
+
+Un framework de prompt, c'est juste une liste de rappels pour ne rien oublier d'important. Ils ne font pas la qualité — vous si. Mais ils évitent les oublis bêtes qui ruinent un prompt par ailleurs bien construit.
+
+## CARE — pour les tâches courantes
+
+| Lettre | Élément | Exemple |
+|--------|---------|---------|
+| **C** | Context | "Je suis responsable marketing d'une startup SaaS B2B" |
+| **A** | Action | "Rédige 5 accroches LinkedIn pour promouvoir notre nouveau feature" |
+| **R** | Result | "Chaque accroche en 2 phrases max, punchy, pas de hashtags" |
+| **E** | Example | "Style souhaité : direct, sans formule creuse, comme ce post : [...]" |
+
+Simple. Fonctionne pour 80% des tâches quotidiennes.
+
+## Chain-of-thought — pour le raisonnement
+
+Sur les tâches qui demandent de la réflexion (analyse, comparaison, diagnostic), ajoutez :
+
+> "Réfléchis étape par étape avant de donner ta conclusion."
+
+Pourquoi ça marche : le modèle génère ses "pensées" intermédiaires, ce qui l'ancre mieux dans la logique du problème. La réponse finale est plus fiable. Sans cette instruction, le modèle donne souvent une conclusion directe qui semble assurée — mais qui peut être mal fondée.
+
+## Few-shot prompting — montrer avant de demander
+
+Au lieu d'expliquer ce que vous voulez, montrez-le :
+
+```
+Transforme ces titres en titres accrocheurs pour LinkedIn.
+
+Exemple :
+Avant : "Notre nouveau rapport sur l'adoption de l'IA en entreprise"
+Après : "75% des équipes utilisent l'IA. 60% ne savent pas ce qu'elles font."
+
+Maintenant transforme :
+- "Guide de démarrage avec ChatGPT pour les équipes RH"
+- "Étude : impact de l'IA générative sur la productivité"
+```
+
+Le modèle comprend immédiatement le registre, le niveau de punch, la structure. Bien plus efficace qu'une longue description du style souhaité.
+
+## Les instructions négatives
+
+Dire ce qu'on ne veut pas est aussi important que ce qu'on veut :
+
+- "Pas de bullet points"
+- "Évite les phrases qui commencent par 'Il est important de'"
+- "Pas d'introduction qui répète la question"
+- "Zéro jargon non défini"
+
+Les modèles ont des tendances naturelles — souvent des tics agaçants. Les instructions négatives les court-circuitent.
+
+## Ce qu'il faut retenir
+
+Framework > improvisation pour les tâches répétitives. Chain-of-thought pour le raisonnement. Few-shot quand vous avez un exemple de ce que vous cherchez. Instructions négatives pour éviter les tics du modèle.

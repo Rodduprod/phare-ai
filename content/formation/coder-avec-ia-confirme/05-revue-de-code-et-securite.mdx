@@ -1,0 +1,74 @@
+---
+title: "Revue de code et sécurité — L'IA comme second regard"
+description: "L'IA fait d'excellentes revues de code si vous savez comment l'utiliser. Et elle détecte des patterns de sécurité que l'œil humain rate souvent."
+order: 5
+duration: 10
+published: true
+qcm:
+  - question: "Dans quel cadre l'IA est-elle la plus utile pour la revue de code ?"
+    options:
+      - "Pour remplacer entièrement la revue humaine"
+      - "Comme premier filtre sur des critères objectifs avant la revue humaine"
+      - "Uniquement pour les projets open source"
+      - "Pour valider que le code compile correctement"
+    answer: 1
+  - question: "Quel type de vulnérabilité l'IA détecte-t-elle le mieux ?"
+    options:
+      - "Les erreurs de logique métier complexes"
+      - "Les problèmes d'architecture système"
+      - "Les patterns connus de vulnérabilités présents dans ses données d'entraînement"
+      - "Les bugs liés à l'état de la base de données"
+    answer: 2
+  - question: "Pourquoi ne faut-il pas partager du code avec des données sensibles dans un LLM public ?"
+    options:
+      - "Parce que l'IA ne peut pas analyser ce type de code"
+      - "Parce que les CGU peuvent autoriser l'utilisation de ces données"
+      - "Parce que ça ralentit l'analyse"
+      - "Parce que les résultats sont moins précis avec des données réelles"
+    answer: 1
+  - question: "Comment obtenir la meilleure revue de sécurité d'un LLM ?"
+    options:
+      - "Demander génériquement 'est-ce que ce code est sécurisé ?'"
+      - "Cibler : 'Analyse ce code pour les vulnérabilités OWASP Top 10, en particulier les injections et la gestion des sessions'"
+      - "Partager l'intégralité de la codebase en une fois"
+      - "Demander une notation de 1 à 10 de la sécurité"
+    answer: 1
+---
+
+## L'IA comme premier filtre de revue
+
+Dans les équipes qui utilisent bien l'IA, la revue de code fonctionne en deux temps.
+
+**Premier temps — l'IA** : revue automatique sur des critères objectifs : lisibilité, patterns potentiellement problématiques, edge cases non gérés. L'IA ne se fatigue pas, n'a pas de biais de complaisance.
+
+**Deuxième temps — l'humain** : la revue humaine se concentre sur ce que l'IA ne voit pas : cohérence avec la vision produit, décisions d'architecture, adéquation avec les pratiques d'équipe.
+
+## Le prompt de revue efficace
+
+```
+Voici ce code [coller]. Fais une revue critique sur :
+1. Lisibilité et maintenabilité
+2. Gestion des erreurs et edge cases
+3. Performance évidente
+4. Sécurité — cherche les patterns connus de vulnérabilités
+5. Bonnes pratiques [langage]
+
+Pour chaque problème : localise-le, explique pourquoi c'est un problème, propose une correction.
+```
+
+## La sécurité — où l'IA est vraiment utile
+
+Les LLMs ont été entraînés sur des millions de rapports de sécurité et CVEs. Ils reconnaissent les patterns classiques : injections SQL, XSS, gestion incorrecte des tokens, exposition d'informations dans les erreurs, race conditions.
+
+Pour une revue de sécurité ciblée :
+> "Analyse ce code en te concentrant sur l'OWASP Top 10. Identifie précisément chaque vulnérabilité potentielle et explique comment la corriger."
+
+## Ce que l'IA ne voit pas
+
+L'IA ne comprend pas votre contexte métier. Elle ne détecte pas les bugs logiques qui nécessitent une compréhension du domaine. La revue IA est un filtre, pas un remplacement.
+
+**Toujours anonymiser** les données sensibles avant de soumettre du code à un LLM cloud.
+
+## Ce qu'il faut retenir
+
+L'IA comme premier filtre avant la revue humaine. Prompts ciblés sur des dimensions précises. Excellent pour les patterns de sécurité connus. Pas fiable pour la logique métier. Anonymisez toujours les données sensibles.
