@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { ModuleIllustration } from "@/components/formation/ModuleIllustration";
 import { formatDuration, LEVEL_COLORS } from "@/lib/formation-utils";
 import { FormationSignupCTA } from "@/components/formation/FormationSignupCTA";
 
@@ -119,17 +119,7 @@ export function FormationClientPage({ modules }: Props) {
               href={`/formation/${module.slug}`}
               className="group bg-white rounded-2xl border border-border hover:border-primary/40 hover:shadow-lg transition-all overflow-hidden"
             >
-              {module.image && (
-                <div className="relative h-44 sm:h-48 overflow-hidden bg-bg-alt">
-                  <Image
-                    src={module.image}
-                    alt={module.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-              )}
+              <ModuleIllustration slug={module.slug} className="h-44 sm:h-48" />
               <div className="p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${LEVEL_COLORS[module.level]}`}>

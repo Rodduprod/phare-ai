@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { ModuleIllustration } from "@/components/formation/ModuleIllustration";
 import type { Metadata } from "next";
 import { getModule, getModuleLessons, formatDuration, LEVEL_COLORS, getAllModules } from "@/lib/formation";
 import { siteConfig } from "@/lib/config";
@@ -38,11 +38,7 @@ export default function ModulePage({ params }: Props) {
       </nav>
 
       {/* Header module */}
-      {module.image && (
-        <div className="relative h-56 rounded-2xl overflow-hidden mb-8 bg-bg-alt">
-          <Image src={module.image} alt={module.title} fill className="object-cover" sizes="768px" />
-        </div>
-      )}
+      <ModuleIllustration slug={params.module} className="h-56 rounded-2xl mb-8" iconSize="lg" />
 
       <div className="flex items-center gap-2 mb-4">
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${LEVEL_COLORS[module.level]}`}>

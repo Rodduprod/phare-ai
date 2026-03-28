@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import Image from "next/image";
+import { ModuleIllustration } from "@/components/formation/ModuleIllustration";
 import { ArticleLevel, ArticleGroup, levelConfig } from "@/lib/articles-types";
 import { formatDuration, LEVEL_COLORS } from "@/lib/formation-utils";
 import { ArticleGroupCard } from "@/components/ArticleGroupCard";
@@ -165,17 +165,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
                   href={`/formation/${module.slug}`}
                   className={`group bg-white rounded-2xl border border-border hover:border-primary/40 hover:shadow-md transition-all overflow-hidden ${LEVEL_BORDER[module.level] ?? ''}`}
                 >
-                  {module.image && (
-                    <div className="relative h-36 bg-bg-alt overflow-hidden">
-                      <Image
-                        src={module.image}
-                        alt={module.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 640px) 100vw, 33vw"
-                      />
-                    </div>
-                  )}
+                  <ModuleIllustration slug={module.slug} className="h-36" />
                   <div className="p-4 sm:p-5">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${LEVEL_COLORS[module.level]}`}>
