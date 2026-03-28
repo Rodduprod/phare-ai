@@ -92,10 +92,10 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
       {/* ── Formation mise en avant ───────────────────────── */}
       {modules.length > 0 && (
         <section className="py-10 border-b border-border">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-2xl font-bold text-text">Commencer à se former</h2>
-            <Link href="/formation" className="text-sm text-primary hover:underline">
-              Voir tous les modules →
+          <div className="flex items-start sm:items-center justify-between mb-6 gap-3">
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-text">Commencer à se former</h2>
+            <Link href="/formation" className="text-sm text-primary hover:underline whitespace-nowrap shrink-0">
+              Voir tout →
             </Link>
           </div>
 
@@ -150,10 +150,10 @@ export function ClientHomePage({ groups, modules }: ClientHomePageProps) {
 
       {/* ── Derniers articles ─────────────────────────────── */}
       <section className="py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-2xl font-bold text-text">Derniers articles</h2>
-          <Link href="/articles" className="text-sm text-primary hover:underline">
-            Tous les articles →
+        <div className="flex items-start sm:items-center justify-between mb-6 gap-3">
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-text">Derniers articles</h2>
+          <Link href="/articles" className="text-sm text-primary hover:underline whitespace-nowrap shrink-0">
+            Voir tout →
           </Link>
         </div>
 

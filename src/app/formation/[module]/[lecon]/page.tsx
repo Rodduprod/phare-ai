@@ -10,6 +10,7 @@ import {
 import { siteConfig } from "@/lib/config";
 import { LessonCompleteButton } from "@/components/formation/LessonCompleteButton";
 import { LessonSidebar } from "@/components/formation/LessonSidebar";
+import { LessonMobileNav } from "@/components/formation/LessonMobileNav";
 
 interface Props { params: { module: string; lecon: string } }
 
@@ -49,7 +50,7 @@ export default function LeconPage({ params }: Props) {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 flex gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex gap-8">
 
         {/* Sidebar — liste des leçons avec état de complétion (client) */}
         <LessonSidebar
@@ -64,14 +65,15 @@ export default function LeconPage({ params }: Props) {
 
         {/* Contenu principal */}
         <main className="flex-1 min-w-0 max-w-2xl">
-          {/* Breadcrumb mobile */}
-          <nav className="lg:hidden text-sm text-text-muted mb-6 flex items-center gap-2 flex-wrap">
-            <Link href="/formation" className="hover:text-primary transition-colors">Formation</Link>
-            <span>/</span>
-            <Link href={`/formation/${params.module}`} className="hover:text-primary transition-colors truncate max-w-32">{module.title}</Link>
-            <span>/</span>
-            <span className="text-text">Leçon {nav.current}</span>
-          </nav>
+          {/* Navigation mobile — remplace le breadcrumb */}
+          <LessonMobileNav
+            moduleSlug={params.module}
+            moduleTitle={module.title}
+            lessons={lessons}
+            currentSlug={params.lecon}
+            current={nav.current}
+            total={nav.total}
+          />
 
           {/* Header leçon */}
           <header className="mb-10 pb-8 border-b border-border">

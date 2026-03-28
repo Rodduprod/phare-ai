@@ -29,7 +29,7 @@ export default function ModulePage({ params }: Props) {
   const lessons = getModuleLessons(params.module);
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       {/* Breadcrumb */}
       <nav className="text-sm text-text-muted mb-8 flex items-center gap-2">
         <Link href="/formation" className="hover:text-primary transition-colors">Formation</Link>
@@ -57,7 +57,7 @@ export default function ModulePage({ params }: Props) {
       <p className="text-text-muted text-lg mb-6">{module.description}</p>
 
       {/* Intro du module */}
-      <div className="prose prose-sm max-w-none text-text-muted mb-8">
+      <div className="text-text-muted text-sm leading-relaxed mb-8">
         <p>{module.intro}</p>
       </div>
 
