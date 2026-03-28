@@ -104,6 +104,10 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            {/* Compte — séparé par un divider */}
+            <div className="border-t border-border mt-2 pt-3 px-1">
+              <AuthButton />
+            </div>
           </div>
         </nav>
       )}
