@@ -1,0 +1,167 @@
+---
+title: "LangChain et LlamaIndex — les frameworks essentiels"
+description: "Présentation des deux frameworks principaux pour construire des applications LLM. Quand utiliser LangChain, quand utiliser LlamaIndex, et comment ils s'articulent dans une architecture d'agent."
+order: 2
+duration: 11
+published: true
+---
+
+## Pourquoi un framework ?
+
+Quand vous voulez construire un agent, vous pourriez tout faire à la main : appeler directement l'API OpenAI, gérer manuellement la mémoire, écrire votre propre gestionnaire d'outils, implémenter la boucle ReAct...
+
+C'est faisable. C'est aussi 10x plus de travail que nécessaire. Les frameworks LangChain et LlamaIndex font ce travail à votre place.
+
+---
+
+## LangChain — le framework généraliste
+
+LangChain est le framework le plus populaire pour construire des applications LLM. Il fournit des abstractions pour :
+
+- **Chains** — des séquences d'opérations LLM
+- **Agents** — des LLMs qui utilisent des outils de manière autonome
+- **Memory** — différents types de mémoire (conversation, vectorielle)
+- **Tools** — intégrations avec des centaines d'outils et APIs
+- **Callbacks** — observabilité et logging
+
+### Installation et exemple minimal
+
+```python
+pip install langchain langchain-openai
+```
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain.schema import HumanMessage
+
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+response = llm.invoke([HumanMessage(content="Explique le RAG en 2 phrases.")])
+print(response.content)
+```
+
+### Créer un agent avec des outils
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain.agents import create_react_agent, AgentExecutor
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain import hub
+
+# Outils disponibles pour l'agent
+tools = [DuckDuckGoSearchRun()]
+
+# Modèle
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+# Prompt ReAct standard (depuis LangChain Hub)
+prompt = hub.pull("hwchase17/react")
+
+# Création de l'agent
+agent = create_react_agent(llm, tools, prompt)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+# Exécution
+result = agent_executor.invoke({
+    "input": "Quelles sont les 3 dernières actualités sur Mistral AI ?"
+})
+print(result["output"])
+```
+
+Le `verbose=True` vous permet de voir exactement ce que l'agent pense et fait à chaque étape — indispensable pour le debug.
+
+---
+
+## LangChain Expression Language (LCEL)
+
+La version moderne de LangChain utilise LCEL — une syntaxe pipe (`|`) pour chaîner les composants :
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+prompt = ChatPromptTemplate.from_template(
+    "Résume ce texte en 3 points : {texte}"
+)
+llm = ChatOpenAI(model="gpt-4o")
+parser = StrOutputParser()
+
+# La chaîne : prompt → LLM → parser
+chain = prompt | llm | parser
+
+result = chain.invoke({"texte": "Votre texte ici..."})
+```
+
+---
+
+## LlamaIndex — le spécialiste des données
+
+LlamaIndex (anciennement GPT Index) est optimisé pour un cas d'usage précis : **connecter des LLMs à vos propres données**.
+
+Là où LangChain est généraliste, LlamaIndex excelle pour :
+- Indexer des documents (PDF, Word, Notion, bases de données)
+- Construire des pipelines RAG (voir leçon suivante)
+- Requêter des données structurées avec du langage naturel
+
+### Exemple — indexer un PDF et l'interroger
+
+```python
+pip install llama-index llama-index-llms-openai
+```
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.llms.openai import OpenAI
+
+# Charger les documents d'un dossier
+documents = SimpleDirectoryReader("./mes_docs/").load_data()
+
+# Créer un index vectoriel
+index = VectorStoreIndex.from_documents(documents)
+
+# Créer un moteur de requête
+query_engine = index.as_query_engine(
+    llm=OpenAI(model="gpt-4o")
+)
+
+# Poser une question
+response = query_engine.query(
+    "Quelles sont les clauses de résiliation de ce contrat ?"
+)
+print(response)
+```
+
+---
+
+## Quand utiliser lequel ?
+
+| Cas d'usage | Framework recommandé |
+|-------------|---------------------|
+| Agent avec outils externes (web, API, email) | LangChain |
+| RAG sur vos documents internes | LlamaIndex |
+| Chaînes de traitement complexes | LangChain (LCEL) |
+| Chatbot sur base de connaissances | LlamaIndex |
+| Multi-agents | LangChain (LangGraph) |
+| Analyse de données non structurées | LlamaIndex |
+
+**Bonne nouvelle :** les deux s'intègrent facilement. Un agent LangChain peut utiliser un index LlamaIndex comme outil.
+
+---
+
+## L'écosystème en 2025
+
+LangChain a évolué vers **LangGraph** pour les agents complexes (graphes d'états plutôt que chaînes linéaires). Si vous démarrez un projet agent en 2025, regardez LangGraph directement — c'est la direction que prend l'écosystème.
+
+**LangSmith** — la plateforme d'observabilité de LangChain, pour tracer, évaluer et déboguer vos agents en production.
+
+---
+
+## Ce qu'il faut retenir
+
+- LangChain = framework généraliste pour agents, chaînes, et intégrations d'outils
+- LlamaIndex = spécialiste de l'indexation de documents et du RAG
+- LCEL (LangChain) permet de chaîner les composants de manière lisible
+- LangGraph est l'évolution pour les agents complexes avec états
+- Les deux frameworks s'intègrent — choisissez selon votre cas d'usage principal
+
+Dans la prochaine leçon : le RAG (Retrieval Augmented Generation) — comment donner de la mémoire à votre agent sur vos propres données.

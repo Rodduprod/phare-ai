@@ -1,0 +1,87 @@
+---
+title: "Sécurité et confidentialité des données avec l'IA"
+description: "Ce que vous devez savoir avant de donner vos données à une IA. Où vont vos informations, quels risques vous prenez, et comment vous protéger sans sacrifier la productivité."
+order: 4
+duration: 8
+published: true
+---
+
+## La question que personne ne pose assez
+
+Quand vous copiez un email client dans ChatGPT pour qu'il vous aide à répondre, où va cet email ? Qui peut le lire ? Est-il utilisé pour entraîner le modèle ?
+
+Ces questions dérangent parce que les réponses sont inconfortables — et parce que la plupart d'entre nous ne les ont pas posées avant d'avoir déjà tout collé.
+
+---
+
+## Ce qui se passe quand vous envoyez des données à une IA
+
+Quand vous utilisez ChatGPT, Claude, Gemini ou un autre LLM, vos données partent sur les serveurs du fournisseur. Ce qui arrive ensuite dépend :
+
+1. **Du plan que vous utilisez** (gratuit, individuel payant, entreprise)
+2. **Des conditions d'utilisation que vous n'avez pas lues**
+3. **De la législation applicable** (RGPD en Europe, lois US pour les services américains)
+
+### Plans gratuits
+Généralement, les fournisseurs se réservent le droit d'utiliser vos conversations pour améliorer leurs modèles. OpenAI le précise dans ses CGU. Vous pouvez désactiver cette option dans les paramètres, mais pas toujours.
+
+### Plans payants individuels (ChatGPT Plus, Claude Pro)
+Meilleures garanties. OpenAI et Anthropic s'engagent à ne pas utiliser vos données pour l'entraînement par défaut.
+
+### Plans entreprise (ChatGPT Team/Enterprise, Claude for Business)
+Garanties contractuelles, données isolées, pas d'utilisation pour l'entraînement. C'est ce qu'il faut pour des données sensibles.
+
+---
+
+## Ce que vous ne devez JAMAIS coller dans une IA (sans vérification)
+
+- **Données clients personnelles** (nom, email, numéro de téléphone, adresse)
+- **Données financières** (chiffre d'affaires, marges, données bancaires)
+- **Secrets commerciaux** (formules, brevets, plans stratégiques)
+- **Données de santé** (cas patients, dossiers médicaux)
+- **Données RH confidentielles** (salaires, évaluations, dossiers disciplinaires)
+
+Pas parce que OpenAI va forcément les lire — mais parce que **vous ne contrôlez plus ce qui leur arrive** dès qu'elles ont quitté vos serveurs.
+
+---
+
+## Comment travailler avec l'IA sans exposer vos données
+
+### Technique 1 — L'anonymisation
+Avant de coller un texte dans l'IA, remplacez les informations sensibles par des placeholders.
+
+"Mon client Acme Corp avec un CA de 2,3M€..." → "Mon client [CLIENT] avec un CA de [MONTANT]..."
+
+Vous obtenez la même aide, sans exposer les vraies données.
+
+### Technique 2 — Les résumés sans données brutes
+Au lieu de coller un contrat complet, décrivez-le en termes généraux : "J'ai un contrat de prestation qui inclut une clause de non-concurrence de 2 ans sur le territoire français. Est-ce légalement défendable ?"
+
+### Technique 3 — Les outils en local
+Des modèles comme **Llama 3** (Meta) peuvent tourner sur votre propre machine. Vos données ne quittent jamais votre ordinateur. La qualité est légèrement inférieure aux meilleurs modèles cloud — mais pour des données ultra-sensibles, c'est le bon choix.
+
+### Technique 4 — Les offres entreprise
+Si vous traitez régulièrement des données confidentielles, le coût d'un plan entreprise (ChatGPT Enterprise, Claude for Business, Microsoft Copilot 365) se justifie. Les garanties contractuelles existent.
+
+---
+
+## Le RGPD et l'IA — ce que ça change pour vous
+
+En Europe, le RGPD s'applique. Si vous traitez des données personnelles de clients européens via une IA américaine, vous devez théoriquement avoir vérifié :
+
+- Que le fournisseur a des mécanismes de transfert de données conformes (Privacy Shield, BCR, etc.)
+- Que vous avez mentionné l'utilisation de l'IA dans votre politique de confidentialité
+- Que vous n'utilisez pas des données pour lesquelles vous n'avez pas le consentement
+
+En pratique, peu d'entreprises ont fait cette vérification. C'est un risque juridique réel — minime aujourd'hui, mais croissant avec l'évolution de la réglementation IA.
+
+---
+
+## Ce qu'il faut retenir
+
+- Les plans gratuits offrent peu de garanties sur l'utilisation de vos données
+- Anonymisez les données sensibles avant de les passer à une IA
+- Les plans entreprise existent et offrent des garanties contractuelles sérieuses
+- Le RGPD s'applique — vérifiez vos pratiques si vous êtes en Europe
+
+Dernière leçon de ce module : comment construire un workflow IA dans votre équipe, de zéro à un premier résultat concret.

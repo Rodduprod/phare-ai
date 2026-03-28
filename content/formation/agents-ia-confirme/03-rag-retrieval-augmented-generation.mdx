@@ -1,0 +1,163 @@
+---
+title: "RAG (Retrieval Augmented Generation) en pratique"
+description: "Le RAG permet à un LLM de répondre à partir de vos propres documents plutôt que de ses seules connaissances d'entraînement. Architecture, implémentation, et pièges à éviter."
+order: 3
+duration: 12
+published: true
+---
+
+## Le problème que le RAG résout
+
+Un LLM comme GPT-4 ne connaît que ce sur quoi il a été entraîné — et rien après sa date de coupure. Si vous voulez qu'il réponde à des questions sur vos contrats internes, votre documentation technique, vos emails, ou les actualités de la semaine dernière — il ne peut pas. Il inventera quelque chose.
+
+Le **RAG** (Retrieval Augmented Generation) résout ce problème : avant de générer une réponse, l'agent **récupère** les documents pertinents dans votre base de données, et les intègre dans le contexte du prompt. Le LLM répond alors à partir de vos vraies données — pas de ses approximations.
+
+---
+
+## L'architecture RAG
+
+```
+Question utilisateur
+        ↓
+[Embedding de la question] → vecteur de la question
+        ↓
+[Recherche dans la base vectorielle] → top-k documents similaires
+        ↓
+[Construction du prompt augmenté]
+  = "Réponds à cette question : {question}
+     En t'appuyant sur ces documents : {documents}"
+        ↓
+[LLM génère la réponse]
+        ↓
+Réponse basée sur vos données
+```
+
+---
+
+## Les embeddings — la clé du système
+
+Pour comparer la question de l'utilisateur avec vos documents, vous avez besoin d'une représentation mathématique du texte — c'est ce qu'on appelle un **embedding**.
+
+Un embedding convertit un texte en vecteur (tableau de nombres). Des textes similaires ont des vecteurs proches dans l'espace mathématique. C'est ce qui permet de trouver les documents les plus pertinents pour une question.
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def embed_text(text: str) -> list[float]:
+    response = client.embeddings.create(
+        model="text-embedding-3-small",  # modèle d'embedding OpenAI
+        input=text
+    )
+    return response.data[0].embedding
+
+# Un embedding = liste de 1536 nombres
+vector = embed_text("Comment fonctionne le RAG ?")
+print(len(vector))  # → 1536
+```
+
+---
+
+## Implémentation complète avec LlamaIndex
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.llms.openai import OpenAI
+from llama_index.embeddings.openai import OpenAIEmbedding
+
+# Configuration des modèles
+Settings.llm = OpenAI(model="gpt-4o", temperature=0)
+Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
+
+# 1. Indexation des documents
+documents = SimpleDirectoryReader("./docs/").load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# 2. Sauvegarde de l'index (pour ne pas réindexer à chaque démarrage)
+index.storage_context.persist("./index_storage/")
+
+# 3. Requête
+query_engine = index.as_query_engine(similarity_top_k=3)
+response = query_engine.query(
+    "Quelles sont les conditions de résiliation de notre contrat type ?"
+)
+
+print(response.response)
+print("\n--- Sources utilisées ---")
+for node in response.source_nodes:
+    print(f"- {node.metadata.get('file_name', 'inconnu')} (score: {node.score:.2f})")
+```
+
+---
+
+## Les bases vectorielles
+
+Pour des projets en production, vous avez besoin d'une vraie base vectorielle plutôt que d'un index en mémoire :
+
+**Chroma** — open source, parfait pour commencer, peut tourner localement
+
+```python
+pip install chromadb llama-index-vector-stores-chroma
+```
+
+```python
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+from llama_index.core import StorageContext
+
+# Connexion à Chroma
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+chroma_collection = chroma_client.get_or_create_collection("mes_docs")
+
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+# Index persistant dans Chroma
+index = VectorStoreIndex.from_documents(
+    documents,
+    storage_context=storage_context
+)
+```
+
+**Pinecone, Qdrant, Weaviate** — pour des projets en production à grande échelle, avec des garanties de performance et de disponibilité.
+
+**pgvector** — extension PostgreSQL pour le stockage vectoriel. Si vous avez déjà PostgreSQL (comme Supabase), c'est la solution la plus simple pour éviter une nouvelle infrastructure.
+
+---
+
+## Les pièges classiques du RAG
+
+### Chunking mal calibré
+Si vous découpez vos documents en morceaux trop petits, le contexte est perdu. Trop grands, la recherche est imprécise.
+
+Règle de base : **chunks de 512-1024 tokens** avec un overlap de 10-20% pour ne pas couper les idées en plein milieu.
+
+```python
+from llama_index.core.node_parser import SentenceSplitter
+
+splitter = SentenceSplitter(chunk_size=512, chunk_overlap=50)
+```
+
+### Mauvais modèle d'embedding
+Tous les modèles d'embedding ne se valent pas. `text-embedding-3-small` est un bon défaut pour l'anglais. Pour le français, des modèles multilingues comme `multilingual-e5-large` peuvent donner de meilleurs résultats.
+
+### Hallucination malgré le RAG
+Si les documents récupérés ne contiennent pas la réponse, le LLM peut quand même halluciner. Ajoutez une instruction explicite dans votre prompt : 
+
+*"Si la réponse ne se trouve pas dans les documents fournis, dis-le clairement plutôt que d'inventer."*
+
+### Absence de re-ranking
+Le top-k par similarité vectorielle n'est pas toujours optimal. Un **re-ranker** (modèle qui réordonne les résultats par pertinence sémantique réelle) améliore significativement la qualité.
+
+---
+
+## Ce qu'il faut retenir
+
+- Le RAG permet à un LLM de répondre à partir de vos documents sans halluciner vos données
+- Les embeddings convertissent le texte en vecteurs pour permettre la recherche par similarité
+- LlamaIndex simplifie l'implémentation du RAG avec quelques lignes de Python
+- Calibrez le chunking, choisissez le bon modèle d'embedding, et gérez les cas "hors contexte"
+- En production, utilisez une base vectorielle persistante (Chroma, pgvector, Pinecone)
+
+Prochaine leçon : orchestration multi-agents — faire travailler plusieurs agents spécialisés ensemble.

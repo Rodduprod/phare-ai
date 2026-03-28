@@ -1,0 +1,98 @@
+---
+title: "Automatiser les tâches répétitives avec l'IA"
+description: "Identifier ce qui vaut la peine d'être automatisé, choisir la bonne approche, et éviter les pièges classiques de l'automatisation mal pensée."
+order: 2
+duration: 9
+published: true
+---
+
+## L'automatisation n'est pas une fin en soi
+
+Avant de vouloir automatiser quoi que ce soit, posez-vous cette question : **combien de temps cette tâche me prend par semaine ?**
+
+Une tâche qui prend 5 minutes par semaine — soit 4 heures par an — ne vaut probablement pas 3 jours d'efforts pour l'automatiser. Le calcul paraît évident, mais on l'oublie souvent dans l'enthousiasme.
+
+L'automatisation vaut vraiment la peine quand :
+- La tâche prend **plus d'une heure par semaine**
+- Elle est **répétitive et peu variable** (même structure, données différentes)
+- Elle ne nécessite **pas de jugement humain complexe**
+- Elle est **source d'erreurs** quand faite manuellement (copier-coller, saisie)
+
+---
+
+## Les 3 niveaux d'automatisation
+
+### Niveau 1 — Le prompt réutilisable
+Le plus simple. Vous écrivez une fois un prompt bien formulé, vous le sauvegardez, vous le réutilisez en changeant les variables.
+
+**Exemple :** "Résume cet email en 3 points d'action pour moi : [coller l'email]"
+
+Aucun outil spécifique requis. Juste de la discipline.
+
+### Niveau 2 — Les workflows no-code
+Avec des outils comme **Zapier**, **Make**, ou **n8n**, vous connectez vos applications et créez des chaînes d'actions automatiques.
+
+**Exemple de workflow :**
+1. Un client remplit un formulaire Typeform
+2. Zapier envoie le texte à ChatGPT pour analyse
+3. GPT catégorise la demande et rédige une première réponse
+4. L'email est envoyé automatiquement depuis votre boîte
+5. La demande est créée dans votre CRM
+
+Tout ça sans écrire une ligne de code.
+
+### Niveau 3 — L'automatisation sur mesure
+Scripts Python, API OpenAI, agents IA. Plus puissant, mais plus technique. On y reviendra dans le module "Agents IA" (niveau confirmé).
+
+---
+
+## Cas d'usage concrets par métier
+
+**Équipe marketing**
+- Générer des variantes de textes publicitaires à partir d'un brief
+- Résumer les rapports de performance en insights actionnables
+- Rédiger des réponses types aux commentaires négatifs
+
+**Ressources humaines**
+- Analyser des CV pour en extraire les informations clés dans un tableau
+- Générer des comptes-rendus d'entretien à partir de notes brèves
+- Rédiger des fiches de poste à partir d'un template
+
+**Support client**
+- Catégoriser automatiquement les tickets entrants
+- Proposer une première réponse basée sur les FAQ
+- Résumer les échanges longs pour les nouveaux agents
+
+**Gestion de projet**
+- Transformer des notes de réunion en liste de tâches avec responsables
+- Générer des comptes-rendus à partir d'une transcription (Otter.ai → GPT)
+- Rédiger des rapports d'avancement à partir de tickets Jira/Notion
+
+---
+
+## La méthode pour démarrer
+
+1. **Listez vos tâches répétitives** — passez 15 minutes à noter tout ce que vous faites qui ressemble à "remplir", "résumer", "trier", "reformater"
+2. **Choisissez la plus longue** — c'est votre première cible
+3. **Prototypez en 30 minutes** — essayez avec ChatGPT ou Claude, manuellement, avant d'automatiser
+4. **Validez le résultat** — est-ce que l'IA s'en sort bien ? À 80% ? À 50% ?
+5. **Automatisez seulement si ça fonctionne** — une mauvaise automatisation fait plus de mal qu'une tâche manuelle
+
+---
+
+## Le piège à éviter
+
+L'automatisation sans validation humaine. L'IA se trompe. Pas souvent, mais ça arrive — et ça arrive surtout quand vous ne regardez plus ce qu'elle produit.
+
+Gardez toujours une étape de vérification dans vos workflows importants. Pour les tâches à faible risque (tri, résumé interne), l'automatisation totale est fine. Pour tout ce qui va au client ou engage votre entreprise, gardez un œil.
+
+---
+
+## Ce qu'il faut retenir
+
+- Automatisez en priorité les tâches longues, répétitives, et peu risquées
+- Commencez par des prompts réutilisables avant de passer aux outils complexes
+- Validez toujours le résultat avant d'enlever la supervision humaine
+- Zapier, Make et n8n permettent de créer des workflows puissants sans coder
+
+Prochaine leçon : comment utiliser ChatGPT en entreprise sans se planter — ce qui marche vraiment, et ce qui semble marcher mais ne marche pas.

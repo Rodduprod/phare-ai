@@ -1,0 +1,208 @@
+---
+title: "Orchestration multi-agents"
+description: "Comment faire travailler plusieurs agents IA spécialisés ensemble. Architecture supervisor/worker, communication entre agents, LangGraph pour les workflows complexes, et gestion des erreurs."
+order: 4
+duration: 12
+published: true
+---
+
+## Pourquoi plusieurs agents ?
+
+Un agent unique avec beaucoup d'outils devient rapidement difficile à gérer : les prompts s'allongent, les comportements deviennent imprévisibles, les erreurs se multiplient.
+
+La solution : des agents **spécialisés** qui collaborent, chacun expert dans son domaine. Un orchestrateur coordonne leur travail.
+
+C'est le même principe que dans une équipe humaine : plutôt qu'un généraliste qui fait tout, vous avez un chef de projet (orchestrateur) et des spécialistes (agents workers).
+
+---
+
+## Le pattern Supervisor/Worker
+
+### L'architecture de base
+
+```
+                    ┌─────────────────┐
+     Question  ──▶  │  ORCHESTRATEUR  │
+                    │  (Supervisor)   │
+                    └────────┬────────┘
+                             │ délègue
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+       ┌──────────┐  ┌──────────────┐  ┌──────────┐
+       │  Agent   │  │    Agent     │  │  Agent   │
+       │Research  │  │   Writer     │  │  Coder   │
+       └──────────┘  └──────────────┘  └──────────┘
+```
+
+L'orchestrateur :
+1. Analyse la tâche
+2. Décide quel(s) agent(s) appeler
+3. Passe les résultats entre agents si nécessaire
+4. Agrège les résultats finaux
+
+---
+
+## Implémentation avec LangGraph
+
+LangGraph est la solution recommandée pour les systèmes multi-agents en 2025. Il modélise les agents comme un graphe d'états — plus flexible et fiable que les chaînes linéaires.
+
+```python
+pip install langgraph langchain-openai
+```
+
+### Exemple — système de recherche et rédaction
+
+```python
+from typing import TypedDict, Annotated, Sequence
+from langchain_openai import ChatOpenAI
+from langchain_community.tools import DuckDuckGoSearchRun
+from langgraph.graph import StateGraph, END
+from langgraph.prebuilt import ToolNode
+import operator
+
+# État partagé entre agents
+class AgentState(TypedDict):
+    messages: Annotated[Sequence, operator.add]
+    research_results: str
+    final_article: str
+
+# Agent de recherche
+search_tool = DuckDuckGoSearchRun()
+research_llm = ChatOpenAI(model="gpt-4o").bind_tools([search_tool])
+
+def research_agent(state: AgentState):
+    """Agent spécialisé dans la recherche web."""
+    response = research_llm.invoke(state["messages"])
+    return {"messages": [response], "research_results": response.content}
+
+# Agent de rédaction
+writer_llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+
+def writer_agent(state: AgentState):
+    """Agent spécialisé dans la rédaction."""
+    prompt = f"""
+    À partir de ces recherches : {state["research_results"]}
+    Rédige un article structuré de 400 mots sur le sujet demandé.
+    """
+    response = writer_llm.invoke(prompt)
+    return {"final_article": response.content}
+
+# Construction du graphe
+workflow = StateGraph(AgentState)
+workflow.add_node("research", research_agent)
+workflow.add_node("tools", ToolNode([search_tool]))
+workflow.add_node("writer", writer_agent)
+
+# Transitions
+workflow.set_entry_point("research")
+workflow.add_edge("research", "tools")
+workflow.add_edge("tools", "writer")
+workflow.add_edge("writer", END)
+
+# Compilation
+app = workflow.compile()
+
+# Exécution
+result = app.invoke({
+    "messages": [("human", "Écris un article sur les derniers modèles d'IA d'OpenAI")]
+})
+print(result["final_article"])
+```
+
+---
+
+## Patterns avancés
+
+### Le Critic Agent
+Un agent dont le rôle est de critiquer et améliorer le travail des autres agents.
+
+```python
+def critic_agent(state: AgentState):
+    """Agent qui évalue et améliore la rédaction."""
+    critique_prompt = f"""
+    Évalue cet article selon ces critères :
+    1. Exactitude factuelle
+    2. Clarté de la structure
+    3. Ton approprié
+    
+    Article : {state["final_article"]}
+    
+    Si des améliorations sont nécessaires, propose-les.
+    Si l'article est satisfaisant, réponds "APPROVED".
+    """
+    response = ChatOpenAI(model="gpt-4o").invoke(critique_prompt)
+    return {"critique": response.content}
+```
+
+### La boucle de révision
+Plutôt qu'une exécution linéaire, le graphe peut inclure des boucles : si le Critic n'approuve pas, il renvoie vers le Writer.
+
+```python
+def should_revise(state: AgentState):
+    if "APPROVED" in state.get("critique", ""):
+        return "publish"
+    return "revise"
+
+workflow.add_conditional_edges(
+    "critic",
+    should_revise,
+    {"publish": END, "revise": "writer"}
+)
+```
+
+---
+
+## Gestion des erreurs et timeouts
+
+Les agents peuvent planter, boucler, ou prendre trop de temps. En production, vous devez gérer ça :
+
+```python
+from langgraph.graph import StateGraph
+from langchain_core.runnables import RunnableConfig
+
+# Timeout global sur l'exécution
+config = RunnableConfig(
+    recursion_limit=25,  # Limite le nombre d'itérations
+    timeout=60.0         # 60 secondes max
+)
+
+try:
+    result = app.invoke(initial_state, config=config)
+except Exception as e:
+    print(f"Agent failed: {e}")
+    # Fallback ou notification
+```
+
+---
+
+## Observabilité avec LangSmith
+
+En production, vous avez besoin de voir ce que font vos agents.
+
+```python
+import os
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "votre_clé_langsmith"
+os.environ["LANGCHAIN_PROJECT"] = "mon-projet-agents"
+
+# Toutes les exécutions sont maintenant tracées sur LangSmith
+result = app.invoke(initial_state)
+```
+
+LangSmith vous donne :
+- La trace complète de chaque exécution
+- Le temps et le coût par étape
+- Les inputs/outputs de chaque agent
+- Les erreurs avec contexte complet
+
+---
+
+## Ce qu'il faut retenir
+
+- Le pattern Supervisor/Worker structure les systèmes multi-agents de manière claire
+- LangGraph modélise les agents comme un graphe d'états — idéal pour les workflows complexes
+- Les boucles de révision (Writer → Critic → Writer) améliorent la qualité des outputs
+- Gérez toujours les timeouts et erreurs en production
+- LangSmith est indispensable pour l'observabilité en production
+
+Dernière leçon : déployer un agent IA en production.

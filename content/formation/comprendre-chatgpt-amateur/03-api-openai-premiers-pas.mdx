@@ -1,0 +1,103 @@
+---
+title: "API OpenAI — premiers pas sans coder"
+description: "L'API OpenAI vous donne accès à GPT sans interface — ce qui permet d'intégrer l'IA dans vos outils. Voici comment fonctionne une API, comment la tester, et ce que vous pouvez en faire sans être développeur."
+order: 3
+duration: 8
+published: true
+---
+
+## Pourquoi l'API ?
+
+ChatGPT est une interface confortable, mais elle a des limites : vous ne pouvez pas l'intégrer directement dans vos propres outils, automatiser des conversations en masse, ou accéder à des fonctionnalités avancées.
+
+L'API OpenAI donne accès aux mêmes modèles — mais directement, sans interface graphique, de manière programmable.
+
+Vous n'avez pas besoin de savoir coder pour comprendre ce qu'est une API et comment vous pouvez en tirer profit.
+
+---
+
+## Qu'est-ce qu'une API ?
+
+API signifie **Application Programming Interface** — une interface qui permet à deux logiciels de communiquer entre eux.
+
+Analogie concrète : quand vous réservez un vol sur un site de comparaison comme Kayak, Kayak n'a pas sa propre base de données de vols. Il envoie une requête aux API des compagnies aériennes, qui lui répondent avec les disponibilités et les prix.
+
+L'API OpenAI fonctionne pareil : vous envoyez un message à GPT via l'API, GPT vous répond. La différence avec ChatGPT : c'est vous qui décidez du contexte, des paramètres, de ce qui est fait avec la réponse.
+
+---
+
+## Comment tester l'API sans coder
+
+OpenAI propose **Playground** — une interface web qui permet de tester l'API sans écrire une ligne de code.
+
+Pour y accéder :
+1. Créez un compte sur platform.openai.com
+2. Allez dans "Playground"
+3. Choisissez un modèle (GPT-4o pour commencer)
+4. Entrez un "System prompt" (les instructions de base que le modèle reçoit)
+5. Envoyez des messages et observez les réponses
+
+C'est ChatGPT — mais avec le contrôle total sur les paramètres.
+
+---
+
+## Les paramètres clés
+
+### Le System prompt
+C'est le texte qui définit le comportement du modèle pour toute la conversation. C'est là que vous définissez le "personnage" et les règles.
+
+Exemple de system prompt :
+```
+Tu es un assistant spécialisé dans le service client pour une boutique
+de vêtements de sport. Tu réponds uniquement aux questions liées à nos
+produits, la livraison et les retours. Tu es chaleureux mais concis.
+Si on te pose une question hors sujet, tu le signales poliment.
+```
+
+### Temperature
+Un paramètre entre 0 et 2 qui contrôle la "créativité" du modèle.
+- Proche de 0 : réponses déterministes, très cohérentes (idéal pour les faits, le code)
+- Proche de 1 : réponses variées et créatives (idéal pour la rédaction)
+- Au-dessus de 1.5 : réponses très aléatoires, souvent incohérentes
+
+### Max tokens
+Le nombre maximum de tokens que le modèle peut générer dans sa réponse. Utile pour éviter des réponses trop longues (et des coûts excessifs).
+
+---
+
+## Outils no-code qui utilisent l'API
+
+Vous n'avez pas à utiliser l'API directement pour en bénéficier. Des outils no-code s'appuient dessus :
+
+**Zapier avec ChatGPT** — crée des workflows où l'API OpenAI traite automatiquement des emails, des formulaires, des données.
+
+**Make (ex-Integromat)** — même principe, plus flexible.
+
+**Notion AI** — utilise l'API OpenAI (entre autres) en coulisses.
+
+**Bubble, Webflow + GPT plugins** — pour créer des applications web avec IA sans coder.
+
+---
+
+## Le coût de l'API
+
+L'API est payante à l'usage — vous payez par token consommé (prompt + réponse).
+
+Tarifs indicatifs (se vérifient sur platform.openai.com/pricing) :
+- GPT-4o : ~2.50$ pour 1M de tokens en entrée, ~10$ en sortie
+- GPT-4o mini : beaucoup moins cher, ~0.15$/1M en entrée
+- o3 : plus cher, réservé aux usages qui le nécessitent vraiment
+
+Pour un usage courant (quelques centaines d'appels par mois), le coût est généralement de l'ordre de quelques euros.
+
+---
+
+## Ce qu'il faut retenir
+
+- Une API permet à des logiciels de communiquer — l'API OpenAI donne accès à GPT sans interface
+- OpenAI Playground permet de tester l'API sans coder
+- Le System prompt définit le comportement du modèle, la temperature contrôle la créativité
+- Des outils no-code (Zapier, Make) utilisent l'API OpenAI sans que vous ayez à coder
+- L'API est payante à l'usage, mais souvent moins chère que les abonnements pour des usages automatisés
+
+Dans la prochaine leçon : créer son propre GPT personnalisé — sans coder, directement dans ChatGPT.

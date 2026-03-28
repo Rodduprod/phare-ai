@@ -1,0 +1,82 @@
+---
+title: "Comment fonctionne ChatGPT vraiment ?"
+description: "Sous le capot de ChatGPT : tokens, transformers, probabilités. Une explication claire et sans formules mathématiques de ce qui se passe quand vous posez une question à ChatGPT."
+order: 1
+duration: 9
+published: true
+---
+
+## L'illusion de la compréhension
+
+Quand vous posez une question à ChatGPT et qu'il vous répond de manière pertinente, il est difficile de ne pas avoir l'impression qu'il "comprend" ce que vous dites.
+
+Il ne comprend pas. Pas au sens humain du terme. Ce qu'il fait est à la fois plus simple et plus impressionnant : il prédit, mot après mot, quel texte est le plus probable en réponse à votre message.
+
+Pour comprendre comment ça marche, il faut comprendre trois concepts : les tokens, les transformers, et l'entraînement.
+
+---
+
+## Les tokens — l'unité de base
+
+ChatGPT ne lit pas des mots. Il lit des **tokens** — des fragments de texte qui peuvent être des mots entiers, des parties de mots, ou même des caractères isolés.
+
+Exemples :
+- "intelligence" → 1 token
+- "artificielle" → 2 tokens ("artifi" + "cielle")
+- " bonjour" → 1 token (l'espace est inclus)
+- "ChatGPT" → 3 tokens ("Chat" + "G" + "PT")
+
+Pourquoi c'est important pour vous ? Parce que les LLMs ont une **fenêtre de contexte** limitée, mesurée en tokens. GPT-4 peut traiter environ 128 000 tokens (environ 100 000 mots) dans une seule conversation. Au-delà, il "oublie" le début.
+
+---
+
+## Les transformers — l'architecture
+
+ChatGPT est basé sur une architecture appelée **transformer**, inventée par Google en 2017. C'est devenu la base de presque tous les grands modèles de langage.
+
+Le mécanisme central s'appelle l'**attention** : le modèle apprend à pondérer quels mots dans une phrase sont importants les uns par rapport aux autres.
+
+Dans la phrase "Le chat mange la souris parce qu'elle était affamée", le pronom "elle" renvoie à quoi ? Au chat ? À la souris ? Un transformer apprend à faire ce type d'association contextuelle à l'échelle de milliards de mots.
+
+---
+
+## L'entraînement — comment il a appris
+
+GPT-4 a été entraîné sur des centaines de milliards de mots de texte — pages web, livres, articles scientifiques, code, conversations. L'objectif pendant l'entraînement était simple : **prédire le mot suivant**.
+
+En apprenant à prédire des milliards de fois, le modèle a développé une représentation interne du langage — et, par extension, du monde décrit dans ce langage.
+
+Mais ChatGPT n'est pas juste un modèle de langage de base. Il a ensuite été affiné avec une technique appelée **RLHF** (Reinforcement Learning from Human Feedback) : des humains ont évalué ses réponses, et ces évaluations ont guidé son amélioration pour être plus utile, plus honnête, moins dangereux.
+
+---
+
+## Pourquoi ça hallucine ?
+
+Le modèle génère des tokens en fonction des probabilités apprises. Parfois, la suite la plus probable statistiquement... est fausse.
+
+Si ChatGPT ne sait pas quelque chose avec certitude, il peut quand même générer une réponse plausible — une réponse qui *ressemble* à la vérité mais qui est inventée. C'est une **hallucination**.
+
+Ce n'est pas un bug qui sera corrigé un jour. C'est une conséquence directe de la façon dont les LLMs fonctionnent. La mitigation est possible (sources, vérification externe, RLHF), mais l'élimination totale est impossible à ce stade.
+
+---
+
+## Ce que ça change pour vous en pratique
+
+Comprendre que ChatGPT prédit plutôt qu'il ne "sait" change votre façon de l'utiliser :
+
+- **Vérifiez les faits importants** — surtout les dates, les chiffres, les citations
+- **Donnez du contexte** — plus vous en donnez, meilleure est la prédiction
+- **Posez des questions précises** — les questions vagues obtiennent des réponses vagues
+- **Challengez les réponses** — demandez-lui de vérifier, de trouver une objection, d'argumenter l'inverse
+
+---
+
+## Ce qu'il faut retenir
+
+- ChatGPT prédit le token suivant — il ne "comprend" pas au sens humain
+- Les transformers apprennent les relations entre les mots à grande échelle
+- L'entraînement sur des milliards de textes + le RLHF produit un assistant utile
+- Les hallucinations sont une conséquence structurelle, pas un bug corrigeable
+- Vérifiez toujours les informations factuelles importantes
+
+Dans la prochaine leçon : les différences entre GPT-4, o1, o3 — et lequel choisir selon votre usage.

@@ -1,0 +1,105 @@
+---
+title: "Qu'est-ce qu'un agent IA ?"
+description: "La différence entre un LLM et un agent IA. Architecture, boucle de raisonnement, outils, mémoire — les concepts fondamentaux pour comprendre ce qui rend un agent autonome."
+order: 1
+duration: 10
+published: true
+---
+
+## Au-delà du chatbot
+
+ChatGPT, dans son usage basique, est un système de question-réponse. Vous posez une question, il répond. L'interaction s'arrête là.
+
+Un **agent IA**, c'est fondamentalement différent : c'est un système qui peut **agir** sur le monde, pas seulement générer du texte. Il planifie une séquence d'actions, exécute des outils, observe les résultats, et ajuste sa stratégie — de manière autonome, jusqu'à accomplir un objectif.
+
+La différence n'est pas de degré — c'est de nature.
+
+---
+
+## L'architecture d'un agent
+
+Un agent IA est composé de plusieurs éléments :
+
+### 1. Le LLM — le cerveau
+Le modèle de langage (GPT-4, Claude, Llama...) est le "cerveau" de l'agent. Il reçoit les informations disponibles et décide quoi faire ensuite.
+
+### 2. Les outils (Tools)
+Ce sont les actions que l'agent peut effectuer. Exemples :
+- **Recherche web** — chercher des informations sur Google ou Bing
+- **Exécution de code** — écrire et exécuter du Python
+- **Accès à une base de données** — lire ou écrire des données
+- **Envoi d'emails** — communiquer avec des systèmes externes
+- **Appels d'API** — interagir avec n'importe quel service externe
+
+Le LLM décide *quel* outil utiliser, avec *quels* paramètres, en fonction de l'objectif.
+
+### 3. La mémoire
+Un agent a besoin de mémoire pour fonctionner sur des tâches longues.
+
+- **Mémoire à court terme** (contexte de la conversation) — les informations de la session en cours
+- **Mémoire à long terme** (base vectorielle) — des informations persistantes entre les sessions
+- **Mémoire épisodique** — l'historique des actions passées
+
+### 4. La boucle de raisonnement (ReAct)
+La plupart des agents modernes utilisent le pattern **ReAct** (Reasoning + Acting) :
+
+```
+1. THINK  — L'agent analyse la situation et planifie
+2. ACT    — Il choisit et exécute un outil
+3. OBSERVE — Il lit le résultat de l'action
+4. THINK  — Il analyse le résultat et décide de la prochaine étape
+5. ACT    — Et ainsi de suite jusqu'à atteindre l'objectif
+```
+
+---
+
+## Exemple concret
+
+Tâche : "Recherche les 3 dernières actualités sur Mistral AI, résume-les, et envoie-moi un email avec le résumé."
+
+Boucle d'exécution d'un agent :
+
+1. **THINK** : "Je dois chercher des actualités sur Mistral AI"
+2. **ACT** : appelle l'outil `search_web("Mistral AI actualités 2025")`
+3. **OBSERVE** : reçoit 10 résultats
+4. **THINK** : "J'ai les résultats, je dois extraire les 3 plus récents et les résumer"
+5. **ACT** : génère un résumé des 3 actualités
+6. **THINK** : "J'ai le résumé, je dois l'envoyer par email"
+7. **ACT** : appelle l'outil `send_email(to="...", subject="...", body="...")`
+8. **OBSERVE** : email envoyé avec succès
+9. **THINK** : "La tâche est accomplie"
+
+---
+
+## Les types d'agents
+
+**Agents réactifs** — répondent à chaque input sans état persistant. Simples, rapides, limités.
+
+**Agents planificateurs** — décomposent un objectif complexe en sous-tâches avant d'agir. Plus robustes sur les tâches longues.
+
+**Agents multi-outils** — accèdent à plusieurs outils et choisissent le bon en contexte.
+
+**Agents multi-agents** — plusieurs agents spécialisés qui collaborent (voir leçon 4).
+
+---
+
+## Pourquoi les agents sont-ils difficiles à fiabiliser ?
+
+Les agents introduisent de nouvelles sources d'erreur :
+- Le LLM peut choisir le mauvais outil
+- Le LLM peut mal interpréter le résultat d'un outil
+- La boucle peut s'emballer (l'agent tourne en rond)
+- Les actions ont des effets réels (envoyer un email, supprimer des données)
+
+C'est pourquoi la supervision humaine reste importante — surtout pour les agents qui prennent des actions irréversibles.
+
+---
+
+## Ce qu'il faut retenir
+
+- Un agent IA peut agir, pas seulement générer du texte — c'est la différence fondamentale
+- Il est composé d'un LLM (cerveau), d'outils (actions), et d'une mémoire
+- Le pattern ReAct (Reason + Act) structure la boucle de raisonnement
+- La fiabilisation des agents est un problème ouvert — la supervision humaine reste nécessaire
+
+Dans la prochaine leçon : LangChain et LlamaIndex — les frameworks qui structurent le développement d'agents.
