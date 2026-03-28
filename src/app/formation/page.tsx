@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getAllModules, formatDuration, LEVEL_COLORS } from "@/lib/formation";
 import { siteConfig } from "@/lib/config";
+import { FormationSignupCTA } from "@/components/formation/FormationSignupCTA";
 
 export const metadata: Metadata = {
   title: "Formation IA — Le Labo AI",
@@ -28,6 +29,9 @@ export default function FormationPage() {
           &ldquo;j&apos;entends parler d&apos;IA partout&rdquo; à &ldquo;je sais m&apos;en servir vraiment&rdquo;.
         </p>
       </header>
+
+      {/* CTA inscription — visible uniquement pour les non-connectés */}
+      <FormationSignupCTA />
 
       {/* Modules */}
       {modules.length === 0 ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { siteConfig } from "@/lib/config";
@@ -10,6 +10,7 @@ import { AuthButton } from "@/components/AuthButton";
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Ferme le menu à chaque changement de page
   useEffect(() => {
@@ -22,8 +23,20 @@ export function Header() {
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
+  // Ferme le menu en cliquant en dehors
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-[12px] border-b border-border">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-[12px] border-b border-border" ref={menuRef}>
       <div className="max-w-content mx-auto px-4unit flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="group flex items-center">
@@ -71,12 +84,10 @@ export function Header() {
           aria-expanded={menuOpen}
         >
           {menuOpen ? (
-            // Icône ✕
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-text">
               <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           ) : (
-            // Icône ☰
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-text">
               <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
