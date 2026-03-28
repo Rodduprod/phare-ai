@@ -82,7 +82,37 @@ export default function RootLayout({
         {/* DNS prefetch pour les domaines externes fréquents */}
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         <link rel="dns-prefetch" href="//vercel-insights.com" />
-        {/* Google Tag (GA4 direct) */}
+
+        {/*
+          Filtre trafic interne — doit s'exécuter AVANT GA4/GTM.
+          Visite ?internal=true une fois par appareil pour t'exclure définitivement.
+          Visite ?internal=false pour réactiver le tracking (ex: tester GA4).
+        */}
+        <Script
+          id="internal-traffic-filter"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+(function() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('internal') === 'true') {
+      localStorage.setItem('lelabo_internal', 'true');
+    } else if (params.get('internal') === 'false') {
+      localStorage.removeItem('lelabo_internal');
+    }
+    if (localStorage.getItem('lelabo_internal') === 'true') {
+      window['ga-disable-${GA_ID}'] = true;
+      window['ga-disable-G-JD2WB9GW19'] = true;
+      window.__INTERNAL_TRAFFIC__ = true;
+    }
+  } catch(e) {}
+})();
+            `,
+          }}
+        />
+
+        {/* Google Tag (GA4 direct) — ignoré si __INTERNAL_TRAFFIC__ */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"
@@ -91,7 +121,13 @@ export default function RootLayout({
           id="ga4-script"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
+            __html: `
+if (!window.__INTERNAL_TRAFFIC__) {
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());
+  gtag('config','${GA_ID}');
+}`,
           }}
         />
         {/* Google Tag Manager */}
