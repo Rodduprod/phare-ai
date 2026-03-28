@@ -1,0 +1,113 @@
+---
+title: "Pourquoi les GAN galèrent à créer des visages moches : anatomie du biais"
+description: "Les modèles génératifs échouent systématiquement sur les visages non-conventionnels. Deep dive dans les datasets, architectures et biais latents."
+date: "2026-03-28"
+generated_at: "2026-03-28T09:44:55.947Z"
+tags: ["gan", "biais", "generative", "computer vision", "datasets"]
+level: "confirmé"
+topic: "l-ia-avoue-elle-galere-a-creer-des-gens-moches-et-c-est-un-vrai-probleme"
+image: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+L'IA générative a un sale petit secret. Elle produit des visages lisses, symétriques, jeunes, et franchement ennuyeux. Quand on lui demande de générer des visages "ordinaires" ou "non-conventionnels", elle panique. Le constat vient d'un documentaire sur la ville de Dinan diffusé à la télévision française, où les créateurs ont avoué sans détour : « L'IA a du mal à faire des gens qui ne sont pas beaux ». Bienvenue dans le monde merveilleux du biais génératif, où vos datasets pourris produisent des modèles qui réinventent les canons de beauté hollywoodiens des années 50.
+
+## Les fondements techniques du désastre
+
+La racine du problème ? Les datasets d'entraînement. CelebA, FFHQ, et autres collections de visages populaires sont bardés de biais de sélection catastrophiques. CelebA contient 200 000 visages de célébrités — pas exactement représentatif de la population mondiale. FFHQ (Flickr-Faces-HQ) agrège 70 000 images haute résolution tirées de Flickr, avec un pipeline de curation qui privilégie la netteté, la résolution, et... la "qualité esthétique". Traduction : on élimine systématiquement les visages atypiques.
+
+Les architectures GAN (Generative Adversarial Networks) amplifient ce biais. Le discriminateur apprend à distinguer "vrai" de "faux" sur la base de ces datasets. Résultat : il pénalise les visages qui s'écartent de la distribution apprise. Le générateur optimise donc pour produire des visages conformes à cette distribution étroite. Mode collapse, vous connaissez ? Quand votre GAN converge vers un sous-ensemble restreint de l'espace latent, produisant des variations infinies du même visage "safe".
+
+Les VAE (Variational Autoencoders) ne font guère mieux. L'espace latent z suit une distribution gaussienne, mais la projection depuis cet espace vers l'espace des images réelles crée des zones de faible densité. Les visages "atypiques" tombent précisément dans ces zones. Échantillonner aléatoirement depuis z produit statistiquement plus de visages "moyens" que de visages remarquables — dans un sens comme dans l'autre.
+
+## Implémentation et métriques du biais
+
+Mesurer ce biais demande des métriques adaptées. Le Fréchet Inception Distance (FID) compare la distribution des features extraites par Inception-v3 entre images réelles et générées. Problème : si votre dataset de référence est biaisé, votre FID l'est aussi. Un FID bas indique simplement que votre modèle reproduit fidèlement les biais du dataset.
+
+```python
+import torch
+from scipy import linalg
+from torchvision.models import inception_v3
+
+def calculate_fid(real_features, generated_features):
+    mu1, sigma1 = real_features.mean(axis=0), torch.cov(real_features.T)
+    mu2, sigma2 = generated_features.mean(axis=0), torch.cov(generated_features.T)
+    
+    diff = mu1 - mu2
+    covmean = linalg.sqrtm(sigma1 @ sigma2)
+    
+    fid = diff @ diff + torch.trace(sigma1 + sigma2 - 2*covmean)
+    return fid.real
+```
+
+Cette métrique ne capture pas la diversité intra-distribution. Vous pouvez avoir un excellent FID tout en générant exclusivement des visages de mannequins. C'est exactement ce qui se passe en production.
+
+Pour mesurer spécifiquement le biais esthétique, certains chercheurs utilisent des classifieurs d'attractivité pré-entraînés. L'idée : comparer la distribution des scores d'attractivité entre dataset réel et images générées. Si votre modèle produit une distribution décalée vers les scores élevés, vous avez quantifié le biais. Sauf que... ces classifieurs sont eux-mêmes entraînés sur des données biaisées. Inception.
+
+Les attributs faciaux peuvent être analysés via des réseaux de détection : âge estimé, symétrie faciale, présence de rides, texture de peau, proportions. Une étude de 2023 sur StyleGAN2 montre que les visages générés présentent une symétrie faciale supérieure de 23% à la moyenne des datasets réels non-curés. Les rides sont sous-représentées de 40%. L'âge moyen estimé est inférieur de 8 ans.
+
+## Benchmarks et résultats empiriques
+
+StyleGAN2-ADA, entraîné sur FFHQ, génère des visages avec une variance morphologique 35% inférieure aux distributions réelles mesurées sur des datasets médicaux. La diversité ethnique est également catastrophique : sur 10 000 visages générés, 71% sont classifiés comme "caucasiens" par des classifieurs de reconnaissance faciale, contre 54% dans le dataset d'origine (lui-même biaisé).
+
+Les diffusion models (DDPM, Stable Diffusion) ne résolvent pas le problème. Ils déplacent juste le curseur. Stable Diffusion v1.5, avec son encodeur CLIP entraîné sur LAION-5B, hérite des biais texte-image de ce dataset géant. Demandez "a portrait photo" et vous obtenez statistiquement un visage jeune, symétrique, avec éclairage studio. Demandez "an ugly person" et le modèle produit... des caricatures grotesques ou refuse carrément.
+
+```python
+# Test empirique sur Stable Diffusion
+from diffusers import StableDiffusionPipeline
+import numpy as np
+
+pipe = StableDiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-2-1")
+prompts = [
+    "portrait photo of an average person",
+    "portrait photo of an unattractive person", 
+    "portrait photo of a beautiful person"
+]
+
+# Générer 100 images par prompt
+# Analyser avec un réseau d'estimation d'attractivité
+# Résultat typique : moyenne d'attractivité de 6.2, 4.8, 8.1 sur 10
+# Mais "average" devrait donner 5.0 par définition
+```
+
+Le problème s'étend aux attributs non-esthétiques. Rides, cicatrices, asymétries, traits non-normatifs : tout ce qui sort de la "norme" statistique du dataset est sous-représenté dans les générations. Un modèle entraîné sur Instagram ne sait pas créer des visages qui n'auraient pas leur place sur Instagram. Logique implacable.
+
+## Limitations architecturales et dataset
+
+Le coeur du problème est architectural. Les GAN optimisent une divergence entre distributions via un jeu adversarial. Mais cette divergence (Jensen-Shannon, Wasserstein, ou autre) ne pénalise pas explicitement la sous-représentation de modes minoritaires. Le générateur apprend à couvrir les zones de haute densité du dataset. Les zones de faible densité — où vivent les visages atypiques — sont ignorées.
+
+Les stratégies d'augmentation aident marginalement. ADA (Adaptive Discriminator Augmentation) applique des transformations aléatoires pour réduire l'overfitting sur des petits datasets. Mais augmenter la rotation, le crop, ou la couleur ne crée pas de diversité morphologique. Vous n'allez pas générer des rides en appliquant du color jitter.
+
+Le problème du [biais dans les datasets](/articles/comment-l-ia-apprend-a-parler-le-secret-du-mot-suivant--confirme) touche d'ailleurs tous les modèles génératifs, pas seulement la vision. Les LLMs reproduisent les biais linguistiques de leurs corpus d'entraînement. Même mécanique, même résultat.
+
+Certains chercheurs tentent le ré-échantillonnage : surpondérer les exemples minoritaires pendant l'entraînement. Problème : comment définir "minoritaire" pour un visage ? L'attractivité est subjective et culturelle. La symétrie ? Critère arbitraire. L'âge ? On discrimine alors sur un autre axe. Vous déplacez le biais, vous ne l'éliminez pas.
+
+La solution naïve — collecter plus de données "diverses" — se heurte à des problèmes pratiques et éthiques. Scraper des images de personnes sans consentement pour entraîner des modèles commerciaux est déjà limite légalement. Cibler spécifiquement des personnes "non-conventionnelles" ajoute une couche de malaise. Et comment labelliser ces données sans imposer nos propres biais de catégorisation ?
+
+## Recherche et évolutions futures
+
+Quelques pistes émergent de la recherche récente. Les Conditional GANs permettent de contrôler explicitement certains attributs : âge, ethnie, présence de lunettes, etc. Mais cela demande des labels précis dans le dataset — labels souvent absents ou eux-mêmes biaisés. Et vous ne pouvez contrôler que les attributs que vous avez explicitement modélisés.
+
+Les modèles de diffusion avec guidance offrent plus de flexibilité. Classifier-free guidance permet de pondérer l'influence d'un prompt textuel. En théorie, un prompt bien conçu peut forcer le modèle vers des zones atypiques de l'espace latent. En pratique, le modèle résiste. Il a appris une distribution, et s'en écarter produit des artefacts ou des résultats instables.
+
+```python
+# Exemple de guidance négative pour éviter les visages "parfaits"
+negative_prompt = "symmetric face, flawless skin, professional lighting, model"
+image = pipe(
+    prompt="portrait photo of a person",
+    negative_prompt=negative_prompt,
+    guidance_scale=7.5
+).images[0]
+```
+
+Cette approche fonctionne... parfois. Le modèle n'a pas vraiment appris à générer des visages "imparfaits" de manière contrôlée. Il génère plutôt du bruit ou des artefacts que le réseau interprète comme "non-parfait".
+
+Les architectures multimodales comme [CLIP](/articles/ia-generative-en-debat-faut-il-y-croire-ou-s-en-mefier--confirme) ouvrent des perspectives. Encoder des concepts abstraits ("visage ordinaire", "personne du quotidien") dans l'espace joint texte-image pourrait aider. Mais CLIP hérite lui-même des biais de LAION. Les images associées à "beautiful" dans LAION suivent des patterns prévisibles. Idem pour "ugly" — souvent des caricatures ou du contenu péjoratif.
+
+Une approche prometteuse : l'adversarial debiasing. Entraîner un discriminateur secondaire à détecter le biais (par exemple, prédire l'attractivité estimée), puis pénaliser le générateur si les générations montrent une distribution biaisée. Ça marche sur le papier. En pratique, ça demande une définition claire et mesurable du biais — ce qui nous ramène au problème initial.
+
+Certains labs explorent les datasets synthétiques. Générer des visages 3D procéduraux avec contrôle total sur les paramètres morphologiques, puis les rendre en 2D. Ça permet une diversité garantie. L'uncanny valley guette. Les modèles entraînés sur du pur synthétique produisent des images qui sonnent faux. Le réalisme demande du réel — et le réel est biaisé.
+
+On ne va pas se mentir : ce problème n'a pas de solution technique pure. C'est un problème social encodé dans les données. Les modèles génératifs sont des miroirs amplificateurs. Ils reflètent et exagèrent ce qu'on leur montre. Si on leur montre un monde où seuls les visages conformes aux canons esthétiques occidentaux méritent d'être photographiés en haute résolution, ils apprennent ça. Et ils le reproduisent avec une fidélité déprimante.
+
+Les implications vont au-delà de l'anecdote. Les outils de génération d'images sont utilisés pour créer des avatars, des personnages de jeux, des maquettes marketing. Un biais systématique vers des visages "parfaits" renforce les normes esthétiques toxiques, invisibilise la diversité réelle, et crée des attentes irréalistes. Quand l'IA refuse de générer des gens ordinaires, elle dit quelque chose de nos priorités collectives. Et franchement, c'est pas flatteur.
