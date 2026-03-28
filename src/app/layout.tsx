@@ -4,6 +4,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WebsiteSchema } from "@/components/WebsiteSchema";
 import { siteConfig } from "@/lib/config";
+import { getArticleGroups } from "@/lib/articles-server";
+import { getAllModules } from "@/lib/formation";
 import "./globals.css";
 
 const GTM_ID = "GTM-PP47M2T9";
@@ -154,7 +156,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         <WebsiteSchema />
-        <Header />
+        <Header
+          searchArticles={getArticleGroups().map(g => ({
+            topic: g.topic,
+            title: g.canonical.title,
+            description: g.canonical.description,
+            level: g.canonical.level,
+            slug: g.canonical.slug,
+          }))}
+          searchModules={getAllModules().map(m => ({ slug: m.slug, title: m.title, description: m.description, level: m.level }))}
+        />
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

@@ -6,8 +6,14 @@ import { usePathname } from "next/navigation";
 import { siteConfig } from "@/lib/config";
 import Image from "next/image";
 import { AuthButton } from "@/components/AuthButton";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
-export function Header() {
+interface HeaderProps {
+  searchArticles?: { topic: string; title: string; description: string; level: string; slug: string }[];
+  searchModules?: { slug: string; title: string; description: string; level: string }[];
+}
+
+export function Header({ searchArticles = [], searchModules = [] }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -37,9 +43,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-[12px] border-b border-border" ref={menuRef}>
-      <div className="max-w-content mx-auto px-4unit flex items-center justify-between h-16">
+      <div className="max-w-content mx-auto px-4unit flex items-center justify-between h-16 gap-3">
         {/* Logo */}
-        <Link href="/" className="group flex items-center">
+        <Link href="/" className="group flex items-center shrink-0">
           <Image
             src="/images/logo.svg"
             alt="Le Labo AI"
@@ -50,11 +56,11 @@ export function Header() {
         </Link>
 
         {/* Navigation desktop */}
-        <nav className="hidden sm:flex items-center gap-6">
+        <nav className="hidden sm:flex items-center gap-4 flex-1 justify-end">
           {/* Formation — CTA en premier, bien visible */}
           <Link
             href="/formation"
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 shrink-0 ${
               pathname?.startsWith('/formation')
                 ? 'bg-primary text-white'
                 : 'bg-primary text-white hover:bg-primary-hover'
@@ -67,32 +73,38 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-nav text-text hover:text-primary transition-colors duration-200"
+              className="text-nav text-text hover:text-primary transition-colors duration-200 shrink-0"
             >
               {item.label}
             </Link>
           ))}
 
+          {/* Barre de recherche globale */}
+          <GlobalSearch articles={searchArticles} modules={searchModules} />
+
           <AuthButton />
         </nav>
 
-        {/* Bouton burger mobile */}
-        <button
-          className="sm:hidden flex items-center justify-center w-10 h-10 rounded-md hover:bg-bg-alt transition-colors"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-text">
-              <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-text">
-              <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          )}
-        </button>
+        {/* Boutons mobile : recherche + burger */}
+        <div className="sm:hidden flex items-center gap-2">
+          <GlobalSearch articles={searchArticles} modules={searchModules} />
+          <button
+            className="flex items-center justify-center w-10 h-10 rounded-md hover:bg-bg-alt transition-colors"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-text">
+                <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-text">
+                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Menu mobile déroulant */}
