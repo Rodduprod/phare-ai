@@ -127,7 +127,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
             {[
               { icon: "🌍", title: "Veille mondiale", desc: "US, Europe, Chine — les acteurs qui comptent, sans les communiqués de presse." },
               { icon: "📶", title: "3 niveaux de lecture", desc: "Débutant, amateur ou confirmé — chaque sujet expliqué à votre niveau." },
-              { icon: "🔄", title: "Mis à jour chaque jour", desc: "Nouveaux articles générés quotidiennement. L'IA évolue, le contenu aussi." },
+              { icon: "🔄", title: "Mis à jour chaque jour", desc: "Nouveaux articles publiés chaque jour. L'IA évolue, notre veille aussi." },
             ].map((item) => (
               <div key={item.title} className="flex flex-col items-center gap-2">
                 <span className="text-3xl">{item.icon}</span>
