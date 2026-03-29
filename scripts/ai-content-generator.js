@@ -513,7 +513,22 @@ RÈGLES DE FORMATAGE OBLIGATOIRES (violations = build cassé) :
 - INTERDIT : accolades { } hors des blocs de code — elles cassent le rendu MDX
 - INTERDIT : balises HTML commençant par une majuscule (<Table>, <Component>, etc.)
 - Les blocs de code doivent TOUJOURS spécifier le langage (\`\`\`python, \`\`\`json, \`\`\`bash...)
-- Exprimer les formules en texte clair : "la perte diminue de X%" plutôt que "L = ∑..."${topic.sourcesContext || ''}${internalLinksContext}`;
+- Exprimer les formules en texte clair : "la perte diminue de X%" plutôt que "L = ∑..."
+
+SECTION FAQ OBLIGATOIRE (SEO rich results) :
+Terminer chaque article par une section "## FAQ" avec exactement 3 questions/réponses pertinentes sur le sujet.
+Format strict à respecter (les accolades sont INTERDITES, utiliser uniquement ce format) :
+
+## FAQ
+
+**[Question directe sur le sujet ?]**
+[Réponse concise de 2-3 phrases maximum, sans listes, sans markdown complexe]
+
+**[Autre question fréquente ?]**
+[Réponse concise...]
+
+**[Troisième question utile ?]**
+[Réponse concise...]${topic.sourcesContext || ''}${internalLinksContext}`;
 
   console.log(`🤖 Generating ${level} article for: ${topic.title}`);
 

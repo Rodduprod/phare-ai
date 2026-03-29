@@ -10,6 +10,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/config";
 import { ArticleSchema } from "@/components/ArticleSchema";
+import { FAQSchema, extractFAQ } from "@/components/FAQSchema";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { LevelSwitcher } from "@/components/LevelSwitcher";
@@ -115,6 +116,9 @@ export default function ArticlePage({ params }: PageProps) {
   // Table des matières extraite côté serveur
   const tocItems = extractHeadings(article.content);
 
+  // FAQ extraite pour le rich result JSON-LD
+  const faqItems = extractFAQ(article.content);
+
   return (
     <>
       <ArticleSchema
@@ -124,6 +128,7 @@ export default function ArticlePage({ params }: PageProps) {
           { name: article.title, url: `${siteConfig.url}/articles/${article.slug}` },
         ]}
       />
+      {faqItems.length > 0 && <FAQSchema items={faqItems} />}
 
       {/* Barre de progression */}
       <ReadingProgress color={lv.color} />
