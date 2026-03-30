@@ -519,11 +519,14 @@ function sanitizeMdxContent(content) {
     return part; // blocs code classiques : inchangés
   };
 
-  return parts.map((part, i) => {
+  const result = parts.map((part, i) => {
     if (i % 2 === 0) return sanitizeText(part);  // texte normal
     if (part.startsWith('`')) return part;        // code block : inchangé
     return rewriteMathBlock(part);               // $$ ou $ math → code
   }).join('');
+
+  // Filet de sécurité : supprimer tout $$ résiduel (orphelins, non appariés)
+  return result.replace(/\$\$/g, '').replace(/(?<![`\\])\$(?!\d)/g, '');
 }
 
 /**
@@ -687,13 +690,7 @@ const IMAGE_STYLES = [
 async function generateImagePrompt(title, tags) {
   try {
     const styleHints = IMAGE_STYLES.map((s, i) => `${i + 1}. ${s}`).join('\n');
-    
-    const response = await anthropic.messages.create({
-      model: modelToUse,
-      max_tokens: 300,
-      messages: [{
-        role: 'user',
-        content: `Tu es un directeur artistique pour un magazine tech français. Génère UN prompt de génération d'image (en anglais) pour cet article :
+    const imagePromptText = `Tu es un directeur artistique pour un magazine tech français. Génère UN prompt de génération d'image (en anglais) pour cet article :
 
 Titre : "${title}"
 Tags : ${tags}
@@ -709,13 +706,22 @@ ${styleHints}
 - Style éditorial magazine haut de gamme (Wired, Monocle, The Verge)
 - Varie les palettes de couleurs (pas toujours bleu/violet tech)
 
-Réponds UNIQUEMENT avec le prompt, rien d'autre. Pas d'introduction, pas d'explication.`
-      }],
-    });
+Réponds UNIQUEMENT avec le prompt, rien d'autre. Pas d'introduction, pas d'explication.`;
 
-    const prompt = response.content[0].text.trim();
-    console.log(`  🎨 Prompt image : ${prompt.slice(0, 80)}...`);
-    return prompt;
+    let promptText;
+    if (LLM_PROVIDER === 'mistral') {
+      promptText = await callMistral(imagePromptText);
+    } else {
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: imagePromptText }],
+      });
+      promptText = response.content[0].text.trim();
+    }
+
+    console.log(`  🎨 Prompt image : ${promptText.slice(0, 80)}...`);
+    return promptText;
   } catch (err) {
     console.log(`  ⚠️ Erreur génération prompt image: ${err.message}`);
     // Fallback sur un prompt basique
