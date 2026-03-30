@@ -78,3 +78,13 @@ jobs:
         echo "::error::Causes possibles : rate limit non écoulé, clé API invalide, 0 actu IA détectée."
         echo "::error::Vérifier les logs de l'étape 'Scrape AI News & Generate Articles' ci-dessus."
         exit 1
+
+    - name: 🔔 Alerte Telegram si échec
+      if: failure()
+      run: |
+        RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        MESSAGE="🚨 *Le Labo AI : génération échouée*%0A%0ARun : $RUN_URL%0ATrigger : ${{ github.event_name }}%0ADate : $(date -u '+%Y-%m-%d %H:%M UTC')"
+        curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d "text=${MESSAGE}" \
+          -d "parse_mode=Markdown" > /dev/null
