@@ -1,4 +1,5 @@
 import { getArticleGroups, getAllTags } from "@/lib/articles";
+import { Suspense } from "react";
 import { ClientArticlesPage } from "@/components/ClientArticlesPage";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -80,7 +81,9 @@ export default function ArticlesPage() {
           </p>
         </section>
 
-        <ClientArticlesPage groups={groups} />
+        <Suspense fallback={<div className="py-8 text-center text-text-muted">Chargement…</div>}>
+          <ClientArticlesPage groups={groups} />
+        </Suspense>
 
         <NewsletterSignup />
       </div>
