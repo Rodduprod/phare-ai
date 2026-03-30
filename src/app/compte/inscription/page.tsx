@@ -62,9 +62,12 @@ export default function InscriptionPage() {
           <span className="text-3xl">✅</span>
         </div>
         <h1 className="font-display text-2xl text-text font-bold mb-3">Vérifiez votre email</h1>
-        <p className="text-text-muted">
+        <p className="text-text-muted mb-4">
           Un lien de confirmation a été envoyé à <strong className="text-text">{email}</strong>.
           Cliquez dessus pour activer votre compte.
+        </p>
+        <p className="text-text-muted text-sm">
+          Après confirmation, vous serez redirigé vers votre tableau de bord personnalisé.
         </p>
       </div>
     );
@@ -72,17 +75,33 @@ export default function InscriptionPage() {
 
   return (
     <div>
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
           <span className="text-2xl">🧪</span>
         </div>
-        <h1 className="font-display text-2xl text-text font-bold mb-2">Créer un compte</h1>
+        <h1 className="font-display text-2xl text-text font-bold mb-2">Commencer votre parcours IA</h1>
         <p className="text-text-muted text-sm">
           Déjà inscrit ?{" "}
           <Link href="/compte/connexion" className="text-primary hover:underline font-medium">
             Se connecter
           </Link>
         </p>
+      </div>
+
+      {/* Bénéfices */}
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
+        <ul className="space-y-2">
+          {[
+            { icon: "📈", text: "Suivez votre progression dans les modules de formation" },
+            { icon: "🎯", text: "Accédez aux articles adaptés à votre niveau automatiquement" },
+            { icon: "🏆", text: "Gagnez des points XP et débloquez des badges de compétence" },
+          ].map((item) => (
+            <li key={item.icon} className="flex items-start gap-2.5 text-sm text-gray-700">
+              <span className="shrink-0">{item.icon}</span>
+              <span>{item.text}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">

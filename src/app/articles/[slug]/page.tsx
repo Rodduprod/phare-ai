@@ -21,6 +21,8 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { SaveArticleButton } from "@/components/SaveArticleButton";
 import { FormationCTA } from "@/components/formation/FormationCTA";
 import { FormationCTAInline } from "@/components/formation/FormationCTAInline";
+import { getAllModules } from "@/lib/formation";
+import { ArticleFormationLink } from "@/components/formation/ArticleFormationLink";
 import { splitContentAtMidpoint } from "@/lib/split-content";
 import { extractHeadings } from "@/lib/toc";
 import type { ArticleVersion } from "@/lib/articles-types";
@@ -117,6 +119,22 @@ export default function ArticlePage({ params }: PageProps) {
 
   // Table des matières extraite côté serveur
   const tocItems = extractHeadings(article.content);
+
+  // Trouver un module de formation lié par tags
+  const allModules = getAllModules();
+  const relatedModule = allModules.find(m =>
+    article.tags.some(tag =>
+      m.tags?.some((mt: string) => mt.toLowerCase() === tag.toLowerCase()) ||
+      m.level === article.level
+    )
+  ) ?? null;
+  const relatedModuleMeta = relatedModule ? {
+    slug: relatedModule.slug,
+    title: relatedModule.title,
+    level: relatedModule.level,
+    lessonCount: relatedModule.lessonCount,
+    duration: relatedModule.duration,
+  } : null;
 
   // Split contenu pour CTA mid-article
   const [contentFirst, contentSecond] = splitContentAtMidpoint(article.content);
@@ -270,6 +288,11 @@ export default function ArticlePage({ params }: PageProps) {
                 </div>
               </div>
             </footer>
+
+            {/* Lien module formation lié */}
+            {relatedModuleMeta && (
+              <ArticleFormationLink module={relatedModuleMeta} />
+            )}
 
             {/* Articles liés */}
             <FormationCTA level={article.level} />

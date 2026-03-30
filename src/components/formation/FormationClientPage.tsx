@@ -46,6 +46,9 @@ export function FormationClientPage({ modules }: Props) {
 
   const levels: (FormationLevel | 'all')[] = ['all', 'débutant', 'amateur', 'confirmé'];
 
+  // Module recommandé pour commencer (débutant en premier, sinon premier module)
+  const startModule = modules.find(m => m.level === 'débutant') ?? modules[0];
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
 
@@ -65,6 +68,24 @@ export function FormationClientPage({ modules }: Props) {
 
       {/* CTA inscription */}
       <FormationSignupCTA />
+
+      {/* Commencer par ici */}
+      {startModule && (
+        <div className="mb-10 p-5 sm:p-6 rounded-2xl border-2 border-primary/30 bg-primary/5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="text-3xl shrink-0">👇</div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-primary-deep uppercase tracking-wide mb-1">Nouveau par ici ? Commencer par ici</p>
+            <p className="font-bold text-gray-900 text-base leading-snug">{startModule.title}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{startModule.lessonCount} leçons · {formatDuration(startModule.duration)} · niveau {startModule.level}</p>
+          </div>
+          <Link
+            href={`/formation/${startModule.slug}`}
+            className="shrink-0 bg-primary-deep hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors no-underline text-sm"
+          >
+            Démarrer →
+          </Link>
+        </div>
+      )}
 
       {/* Filtre par niveau */}
       <div className="mb-8">
@@ -113,37 +134,44 @@ export function FormationClientPage({ modules }: Props) {
         </div>
       ) : (
         <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
-          {filteredModules.map((module) => (
-            <Link
-              key={module.slug}
-              href={`/formation/${module.slug}`}
-              className="group bg-white rounded-2xl border border-border hover:border-primary/40 hover:shadow-lg transition-all overflow-hidden"
-            >
-              <ModuleIllustration slug={module.slug} className="h-44 sm:h-48" />
-              <div className="p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${LEVEL_COLORS[module.level]}`}>
-                    {module.level}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    {module.lessonCount} leçon{module.lessonCount > 1 ? "s" : ""} · {formatDuration(module.duration)}
-                  </span>
+          {filteredModules.map((module, index) => {
+            const globalIndex = modules.indexOf(module);
+            return (
+              <Link
+                key={module.slug}
+                href={`/formation/${module.slug}`}
+                className="group bg-white rounded-2xl border border-border hover:border-primary/40 hover:shadow-lg transition-all overflow-hidden relative"
+              >
+                {/* Numéro de module */}
+                <div className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-xs font-bold text-gray-600 shadow-sm">
+                  {globalIndex + 1}
                 </div>
-                <h2 className="font-display text-lg sm:text-xl font-bold text-text mb-2 group-hover:text-primary transition-colors leading-snug">
-                  {module.title}
-                </h2>
-                <p className="text-text-muted text-sm leading-relaxed line-clamp-3">
-                  {module.description}
-                </p>
-                <div className="mt-4 flex items-center gap-1.5 text-primary text-sm font-medium">
-                  Commencer
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
+                <ModuleIllustration slug={module.slug} className="h-44 sm:h-48" />
+                <div className="p-5 sm:p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${LEVEL_COLORS[module.level]}`}>
+                      {module.level}
+                    </span>
+                    <span className="text-xs text-text-muted">
+                      {module.lessonCount} leçon{module.lessonCount > 1 ? "s" : ""} · {formatDuration(module.duration)}
+                    </span>
+                  </div>
+                  <h2 className="font-display text-lg sm:text-xl font-bold text-text mb-2 group-hover:text-primary transition-colors leading-snug">
+                    {module.title}
+                  </h2>
+                  <p className="text-text-muted text-sm leading-relaxed line-clamp-3">
+                    {module.description}
+                  </p>
+                  <div className="mt-4 flex items-center gap-1.5 text-primary text-sm font-medium">
+                    Commencer
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 

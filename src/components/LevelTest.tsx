@@ -6,6 +6,14 @@ import { createBrowserClient } from "@supabase/ssr";
 
 type Level = 'débutant' | 'amateur' | 'confirmé';
 
+interface ArticleItem { slug: string; title: string; description: string; }
+interface ModuleItem { slug: string; title: string; lessonCount: number; }
+
+interface Props {
+  articles?: Record<Level, ArticleItem[]>;
+  modules?: Record<Level, ModuleItem | null>;
+}
+
 interface Question {
   id: number;
   text: string;
@@ -109,7 +117,7 @@ function computeLevel(scores: number[]): Level {
   return 'confirmé';
 }
 
-export function LevelTest() {
+export function LevelTest({ articles, modules }: Props = {}) {
   const [step, setStep] = useState<'intro' | 'quiz' | 'result'>('intro');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState<number[]>([]);
@@ -311,30 +319,73 @@ export function LevelTest() {
   // --- RESULT ---
   if (step === 'result' && result) {
     const cfg = LEVEL_CONFIG[result];
-    return (
-      <div className="max-w-xl mx-auto text-center">
-        <div className="text-6xl mb-4">{cfg.emoji}</div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Votre niveau : {cfg.title}</h1>
+    const levelArticles = articles?.[result] ?? [];
+    const levelModule = modules?.[result] ?? null;
 
-        <div className={`my-6 p-6 rounded-2xl border ${cfg.bg} ${cfg.border}`}>
-          <p className={`text-base leading-relaxed ${cfg.color}`}>{cfg.description}</p>
+    return (
+      <div className="max-w-2xl mx-auto">
+        {/* Header résultat */}
+        <div className="text-center mb-8">
+          <div className="text-6xl mb-4">{cfg.emoji}</div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Votre niveau : {cfg.title}</h1>
+          <div className={`inline-block mt-4 px-6 py-4 rounded-2xl border ${cfg.bg} ${cfg.border} max-w-lg`}>
+            <p className={`text-base leading-relaxed ${cfg.color}`}>{cfg.description}</p>
+          </div>
         </div>
 
-        <div className="space-y-3">
+        {/* Module recommandé */}
+        {levelModule && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Formation recommandée pour vous
+            </h2>
+            <Link
+              href={`/formation/${levelModule.slug}`}
+              className="flex items-center justify-between gap-4 bg-primary-deep text-white rounded-2xl p-5 hover:bg-blue-700 transition-colors no-underline group"
+            >
+              <div>
+                <p className="font-bold text-lg leading-tight">{levelModule.title}</p>
+                <p className="text-primary/80 text-sm mt-1">{levelModule.lessonCount} leçons · gratuit</p>
+              </div>
+              <span className="text-2xl shrink-0 group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
+          </div>
+        )}
+
+        {/* Articles recommandés */}
+        {levelArticles.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Articles pour commencer
+            </h2>
+            <div className="space-y-3">
+              {levelArticles.map(article => (
+                <Link
+                  key={article.slug}
+                  href={`/articles/${article.slug}`}
+                  className="flex items-start gap-3 bg-white border border-gray-200 hover:border-primary/40 hover:shadow-sm rounded-xl p-4 transition-all no-underline group"
+                >
+                  <span className={`mt-0.5 shrink-0 text-lg ${cfg.emoji}`}>{cfg.emoji}</span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm leading-snug group-hover:text-primary-deep transition-colors line-clamp-2">
+                      {article.title}
+                    </p>
+                    <p className="text-gray-500 text-xs mt-1 line-clamp-1">{article.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Actions secondaires */}
+        <div className="space-y-2 pt-2">
           <Link
             href={cfg.ctaLink}
-            className="block w-full bg-primary-deep hover:bg-blue-700 text-white font-semibold py-4 rounded-xl text-lg transition-colors no-underline"
+            className="block w-full text-center border border-gray-200 hover:border-primary/40 text-gray-700 hover:text-primary font-medium py-3 rounded-xl transition-colors no-underline text-sm"
           >
-            {cfg.cta}
+            Voir tous les articles {result} →
           </Link>
-
-          <Link
-            href="/formation"
-            className="block w-full border-2 border-primary-deep text-primary-deep hover:bg-primary/10 font-semibold py-3 rounded-xl transition-colors no-underline"
-          >
-            Découvrir la formation →
-          </Link>
-
           <button
             onClick={handleReset}
             className="w-full text-sm text-gray-400 hover:text-gray-600 py-2 transition-colors"

@@ -4,6 +4,7 @@ import { ModuleIllustration } from "@/components/formation/ModuleIllustration";
 import { ArticleGroup } from "@/lib/articles-types";
 import { formatDuration, LEVEL_COLORS } from "@/lib/formation-utils";
 import { ClientArticlesSection } from "@/components/ClientArticlesSection";
+import { ResumeProgress } from "@/components/ResumeProgress";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 
 interface ModuleMeta {
@@ -170,6 +171,11 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
       </section>
 
       <div className="max-w-content mx-auto px-4 sm:px-6">
+
+        {/* ── Reprendre la formation (utilisateurs connectés) ─────────────── */}
+        <div className="pt-8">
+          <ResumeProgress />
+        </div>
 
         {/* ── Formation mise en avant ─────────────────────────────────────── */}
         {modules.length > 0 && (
