@@ -611,7 +611,11 @@ Règles importantes :
 - Contenu 100% original, inspiré des sources mais jamais copié
 - **Maillage interne obligatoire** : minimum 2 liens internes dans le corps du texte (voir liste ci-dessous)
 - **Synthèse multi-sources** : cite les sources naturellement dans le texte ("selon TechCrunch", "d'après Google News"...)
-- Titre accrocheur, clair, informatif — pas un titre de communiqué de presse
+- Titre didactique, clair et informatif : expliquer ce que le lecteur va apprendre, pas provoquer une réaction émotionnelle
+- INTERDIT dans les titres : langage vulgaire, agressif ou insultant ("piège à cons", "arnaque", "idiot", etc.)
+- INTERDIT dans les titres : métaphores guerrières ou violentes ("cowboys", "guerre", "bombe", etc.)
+- Préférer des titres de type : "Comment X fonctionne", "Ce que X change vraiment", "Comprendre X en 5 minutes", "Pourquoi X mérite attention"
+- Ton : pédagogique et bienveillant, comme un expert qui explique à un ami curieux
 - **Accents obligatoires** : utiliser TOUJOURS les accents français (é, è, ê, à, â, ù, û, ô, î, ï, ç) — ne JAMAIS les omettre dans le titre, la description ou le contenu
 
 RÈGLES DE FORMATAGE OBLIGATOIRES (violations = build cassé) :
