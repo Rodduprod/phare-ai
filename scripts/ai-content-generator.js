@@ -675,8 +675,10 @@ Format strict à respecter (les accolades sont INTERDITES, utiliser uniquement c
  * Génère une image éditoriale unique pour chaque topic d'article.
  * Fallback sur le pool Unsplash si l'API est indisponible ou quota dépassé.
  */
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_API_KEY = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY || '';
 const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
+// Clé dédiée à la génération d'images (séparée de la clé OpenClaw pour préserver le quota)
+const GEMINI_IMAGE_API_KEY = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY;
 
 // Styles visuels variés — Claude en choisit un adapté au sujet
 const IMAGE_STYLES = [
