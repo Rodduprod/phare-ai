@@ -526,7 +526,13 @@ function sanitizeMdxContent(content) {
   }).join('');
 
   // Filet de sécurité : supprimer tout $$ résiduel (orphelins, non appariés)
-  return result.replace(/\$\$/g, '').replace(/(?<![`\\])\$(?!\d)/g, '');
+  let sanitized = result.replace(/\$\$/g, '').replace(/(?<![`\\])\$(?!\d)/g, '');
+
+  // Corriger les listes ordonnées imbriquées : transformer les sous-items numérotés en tirets
+  // Pattern : lignes indentées (3+ espaces) commençant par un chiffre + point
+  sanitized = sanitized.replace(/^( {3,}|\t)\d+\.\s/gm, '$1- ');
+
+  return sanitized;
 }
 
 /**
@@ -547,6 +553,7 @@ TON ET STYLE (non négociable) :
 - INTERDIT : tirets longs (—). Utiliser des virgules, des deux-points ou reformuler la phrase. Le tiret long est un marqueur typique du texte généré par IA.
 - INTERDIT : références à des années spécifiques dans le corps de l'article ("En 2024", "En 2023", "depuis 2022") — utiliser des formules intemporelles ("aujourd'hui", "ces dernières années", "récemment")
 - INTERDIT : listes à puces systématiques — les utiliser avec parcimonie, seulement quand elles apportent vraiment de la clarté
+- INTERDIT : listes ordonnées imbriquées (nested numbered lists). Si des sous-items sont nécessaires, utiliser des tirets (-) au premier niveau, jamais de numéros dans les sous-items. Préférer des paragraphes avec du **gras** plutôt que des listes imbriquées.
 - Des opinions assumées : "c'est discutable", "on ne va pas se mentir", "franchement", "bonne chance avec ça"
 - Des analogies concrètes et inattendues — comparer à des situations du quotidien, pas à d'autres technos
 - L'article doit sonner comme un journaliste tech français qui a un peu d'humour, pas comme un rapport d'entreprise`;
