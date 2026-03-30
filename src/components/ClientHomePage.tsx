@@ -1,13 +1,10 @@
-'use client';
-
+// Server Component — pas de 'use client'
 import Link from "next/link";
 import { ModuleIllustration } from "@/components/formation/ModuleIllustration";
-import { ArticleLevel, ArticleGroup, levelConfig } from "@/lib/articles-types";
+import { ArticleGroup } from "@/lib/articles-types";
 import { formatDuration, LEVEL_COLORS } from "@/lib/formation-utils";
-import { ArticleGroupCard } from "@/components/ArticleGroupCard";
+import { ClientArticlesSection } from "@/components/ClientArticlesSection";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { LevelFilter } from "@/components/LevelFilter";
-import { useState, useMemo } from "react";
 
 interface ModuleMeta {
   slug: string;
@@ -38,34 +35,6 @@ const LEVEL_BORDER: Record<string, string> = {
 };
 
 export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) {
-  const [selectedLevel, setSelectedLevel] = useState<ArticleLevel | 'all'>('all');
-  const ARTICLES_LIMIT = 6;
-
-  const articleCounts = useMemo(() => {
-    const counts = { débutant: 0, amateur: 0, confirmé: 0 } as Record<ArticleLevel, number>;
-    groups.forEach(g => g.versions.forEach(v => { counts[v.level]++; }));
-    return counts;
-  }, [groups]);
-
-  const filteredGroups = useMemo(() => {
-    const filtered = selectedLevel === 'all'
-      ? groups
-      : groups.filter(g => g.versions.some(v => v.level === selectedLevel)).map(group => {
-          const matchingVersion = group.versions.find(v => v.level === selectedLevel);
-          if (!matchingVersion) return group;
-          return {
-            ...group,
-            canonical: {
-              ...group.canonical,
-              level: selectedLevel,
-              slug: matchingVersion.slug,
-              readingTime: matchingVersion.readingTime,
-            },
-          };
-        });
-    return filtered.slice(0, ARTICLES_LIMIT);
-  }, [groups, selectedLevel]);
-
   return (
     <div>
 
@@ -87,15 +56,15 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
           </div>
 
           {/* H1 SEO */}
-          <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
+          <h1 className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
             Formation IA et actualités — comprenez l&apos;intelligence artificielle
-          </p>
+          </h1>
 
           {/* Slogan */}
-          <h2 className="font-display text-4xl sm:text-6xl font-bold leading-tight max-w-2xl mb-6">
+          <p className="font-display text-4xl sm:text-6xl font-bold leading-tight max-w-2xl mb-6 text-white">
             L&apos;IA évolue tous les jours.{" "}
             <span className="text-primary">Restez à la page.</span>
-          </h2>
+          </p>
 
           <p className="text-white/70 text-lg max-w-xl mb-10 leading-relaxed">
             Actualités, décryptages et formations pour comprendre l&apos;IA —
@@ -196,7 +165,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
           </section>
         )}
 
-        {/* ── Derniers articles ─────────────────────────────────────────────── */}
+        {/* ── Derniers articles (Client Component — filtre interactif) ──── */}
         <section className="py-10 sm:py-14">
           <div className="flex items-start sm:items-center justify-between mb-6 gap-3">
             <div>
@@ -208,40 +177,8 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
             </Link>
           </div>
 
-          <LevelFilter
-            selectedLevel={selectedLevel}
-            onLevelChange={setSelectedLevel}
-            articleCounts={articleCounts}
-          />
-
-          {filteredGroups.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredGroups.map(group => (
-                <ArticleGroupCard key={group.topic} group={group} />
-              ))}
-            </div>
-          ) : selectedLevel === 'all' ? (
-            <p className="text-center text-text-muted py-8">Aucun article pour le moment. Revenez bientôt ! 🚀</p>
-          ) : (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-alt rounded-lg">
-                <span className="text-2xl">{levelConfig[selectedLevel].icon}</span>
-                <p className="text-text-muted text-sm">
-                  Aucun article niveau <strong>{levelConfig[selectedLevel].label}</strong> pour le moment.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* CTA voir tous les articles */}
-          <div className="mt-10 text-center">
-            <Link
-              href="/articles"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-border hover:border-primary/40 hover:text-primary text-text-muted font-medium rounded-xl transition-colors text-sm"
-            >
-              Voir les {stats.articles} articles →
-            </Link>
-          </div>
+          {/* Seule la partie interactive reste client-side */}
+          <ClientArticlesSection groups={groups} totalArticles={stats.articles} />
         </section>
 
         {/* ── Newsletter ────────────────────────────────────────────────────── */}
