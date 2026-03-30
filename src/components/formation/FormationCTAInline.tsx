@@ -57,7 +57,7 @@ export function FormationCTAInline({ level }: Props) {
           </p>
           <Link
             href={config.href}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover !text-white text-sm font-semibold rounded-lg transition-colors no-underline"
           >
             {config.cta}
             <svg
