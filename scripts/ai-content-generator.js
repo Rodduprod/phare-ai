@@ -1226,6 +1226,7 @@ async function main() {
     // Générer les 3 niveaux pour chaque topic sélectionné
     const levels = ['débutant', 'amateur', 'confirmé'];
     let totalCreated = 0;
+    const createdArticles = []; // pour post-to-x.js
 
     for (let i = 0; i < selectedTopics.length; i++) {
       const topic = selectedTopics[i];
@@ -1264,7 +1265,16 @@ async function main() {
         // Ajouter le slug français au set pour éviter les doublons intra-run
         existingSlugs.add(frenchSlug);
         const created = await createMDXFile(topic, generated, level, frenchSlug);
-        if (created) createdCount++;
+        if (created) {
+          createdCount++;
+          const levelSlug = { 'débutant': 'debutant', 'amateur': 'amateur', 'confirmé': 'confirme' }[level] || level;
+          createdArticles.push({
+            slug: `${frenchSlug}--${levelSlug}`,
+            title: generated.title,
+            level,
+            tags: generated.tags || [],
+          });
+        }
         await new Promise(r => setTimeout(r, 2000));
       }
 
@@ -1275,6 +1285,13 @@ async function main() {
     }
 
     console.log(`\n✅ Run complet: ${totalCreated} fichiers créés (${selectedTopics.length} topics × 3 niveaux)`);
+
+    // Exporter les articles créés pour le script X
+    if (createdArticles.length > 0) {
+      const fs2 = await import('fs');
+      fs2.default.writeFileSync('/tmp/generated_articles.json', JSON.stringify(createdArticles, null, 2));
+      console.log(`📋 Exported ${createdArticles.length} articles to /tmp/generated_articles.json`);
+    }
 
 
   } catch (error) {

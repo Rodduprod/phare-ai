@@ -80,6 +80,22 @@ jobs:
         echo "::error::Vérifier les logs de l'étape 'Scrape AI News & Generate Articles' ci-dessus."
         exit 1
 
+    - name: 🐦 Publier sur X (@le_labo_ai)
+      if: steps.commit_push.outputs.articles_count != '0'
+      env:
+        X_API_KEY: ${{ secrets.X_API_KEY }}
+        X_API_SECRET: ${{ secrets.X_API_SECRET }}
+        X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+        X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      run: |
+        ARTICLES_FILE="/tmp/generated_articles.json"
+        if [ -f "$ARTICLES_FILE" ]; then
+          echo "📤 Publication sur X..."
+          node scripts/post-to-x.js "$(cat $ARTICLES_FILE)" || echo "⚠️ Erreur X (non bloquant)"
+        else
+          echo "ℹ️ Pas de fichier articles — skip X"
+        fi
+
     - name: 🔔 Alerte Telegram si échec
       if: failure()
       run: |
