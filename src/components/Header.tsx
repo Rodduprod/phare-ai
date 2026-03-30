@@ -79,6 +79,17 @@ export function Header({ searchArticles = [], searchModules = [] }: HeaderProps)
             </Link>
           ))}
 
+          <Link
+            href="/test-de-niveau"
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 shrink-0 ${
+              pathname === '/test-de-niveau'
+                ? 'text-primary-deep'
+                : 'text-text-muted hover:text-primary'
+            }`}
+          >
+            🧪 Mon niveau
+          </Link>
+
           {/* Barre de recherche globale */}
           <GlobalSearch articles={searchArticles} modules={searchModules} />
 

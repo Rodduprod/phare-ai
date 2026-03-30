@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ArticleGroup, ArticleLevel, levelConfig } from '@/lib/articles-types';
 import { ArticleGroupCard } from './ArticleGroupCard';
 import { LevelFilter } from './LevelFilter';
@@ -10,7 +11,21 @@ interface ClientArticlesPageProps {
 }
 
 export function ClientArticlesPage({ groups }: ClientArticlesPageProps) {
+  const searchParams = useSearchParams();
   const [selectedLevel, setSelectedLevel] = useState<ArticleLevel | 'all'>('all');
+
+  // Pré-sélectionner le niveau : 1) URL param, 2) localStorage
+  useEffect(() => {
+    const urlLevel = searchParams.get('level') as ArticleLevel | null;
+    if (urlLevel && ['débutant', 'amateur', 'confirmé'].includes(urlLevel)) {
+      setSelectedLevel(urlLevel);
+      return;
+    }
+    const saved = localStorage.getItem('lelabo_user_level') as ArticleLevel | null;
+    if (saved && ['débutant', 'amateur', 'confirmé'].includes(saved)) {
+      setSelectedLevel(saved);
+    }
+  }, [searchParams]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Comptage par level (en comptant chaque version disponible)
