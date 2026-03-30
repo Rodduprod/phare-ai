@@ -108,6 +108,67 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
         </div>
       </section>
 
+      {/* ── Pour qui ? ───────────────────────────────────────────────────── */}
+      <section className="border-b border-border">
+        <div className="max-w-content mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
+              Pour qui ?
+            </p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-text mb-6 leading-snug">
+              L&apos;IA évolue chaque semaine.<br className="hidden sm:block" />
+              Pas question de se laisser distancer.
+            </h2>
+            <p className="text-text-body text-base sm:text-lg leading-relaxed mb-6">
+              Le Labo AI s&apos;adresse à toutes celles et ceux qui veulent comprendre l&apos;intelligence
+              artificielle et rester vraiment à jour — qu&apos;ils en soient à leurs premiers pas ou
+              qu&apos;ils travaillent déjà avec des outils IA au quotidien.
+            </p>
+            <p className="text-text-body text-base sm:text-lg leading-relaxed mb-6">
+              Le problème avec l&apos;IA, c&apos;est que ça va vite — très vite. Un modèle sort, un autre
+              le dépasse trois mois plus tard. Sans repères solides, on lit des articles sans
+              vraiment comprendre, on suit des tendances sans savoir les évaluer. On a vite
+              fait de se retrouver largué, même en s&apos;informant régulièrement.
+            </p>
+            <p className="text-text-body text-base sm:text-lg leading-relaxed">
+              C&apos;est pourquoi Le Labo AI combine les deux leviers qui manquent souvent séparément :
+              une <strong className="text-text font-semibold">formation structurée</strong> pour
+              construire des bases solides, et une <strong className="text-text font-semibold">veille
+              quotidienne</strong> pour suivre ce qui change. L&apos;un sans l&apos;autre ne suffit pas —
+              ensemble, ils permettent de comprendre, d&apos;anticiper, et de ne plus subir le rythme
+              de l&apos;IA.
+            </p>
+          </div>
+
+          {/* Personas */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto">
+            {[
+              {
+                icon: "🌱",
+                label: "Débutant complet",
+                desc: "Vous entendez parler de ChatGPT mais ne savez pas par où commencer. On vous guide pas à pas, sans jargon.",
+              },
+              {
+                icon: "⚡",
+                label: "Curieux averti",
+                desc: "Vous utilisez déjà des outils IA mais voulez comprendre ce qui se passe vraiment sous le capot et dans l'actu.",
+              },
+              {
+                icon: "🔬",
+                label: "Professionnel tech",
+                desc: "Vous suivez les sorties de modèles, évaluez les architectures, cherchez l'analyse qui va au fond des choses.",
+              },
+            ].map((p) => (
+              <div key={p.label} className="bg-bg-alt rounded-2xl p-5 text-left">
+                <span className="text-2xl mb-3 block">{p.icon}</span>
+                <h3 className="font-semibold text-text text-sm mb-1.5">{p.label}</h3>
+                <p className="text-text-muted text-sm leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="max-w-content mx-auto px-4 sm:px-6">
 
         {/* ── Formation mise en avant ─────────────────────────────────────── */}
