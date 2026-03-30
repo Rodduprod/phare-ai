@@ -91,7 +91,7 @@ jobs:
         ARTICLES_FILE="/tmp/generated_articles.json"
         if [ -f "$ARTICLES_FILE" ]; then
           echo "📤 Publication sur X..."
-          node scripts/post-to-x.js "$(cat $ARTICLES_FILE)" || echo "⚠️ Erreur X (non bloquant)"
+          node scripts/post-to-x.cjs "$(cat $ARTICLES_FILE)" || echo "⚠️ Erreur X (non bloquant)"
         else
           echo "ℹ️ Pas de fichier articles — skip X"
         fi
