@@ -11,6 +11,7 @@ interface Props {
   savedArticles: { article_slug: string; saved_at: string }[];
   enrollments: { module_slug: string; enrolled_at: string }[];
   progressCount: number;
+  moduleTitles: Record<string, string>;
 }
 
 // ─── XP System ────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ const LEVELS = [
   { value: "confirmé",  label: "Expert",        icon: "🔬" },
 ] as const;
 
-export function ProfilClient({ user, profile, savedArticles, enrollments, progressCount }: Props) {
+export function ProfilClient({ user, profile, savedArticles, enrollments, progressCount, moduleTitles }: Props) {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
@@ -235,7 +236,7 @@ export function ProfilClient({ user, profile, savedArticles, enrollments, progre
                   className="flex items-center justify-between bg-bg-alt rounded-lg px-4 py-3 hover:bg-primary/5 transition-colors"
                 >
                   <span className="text-sm text-text hover:text-primary transition-colors">
-                    {module_slug.replace(/-/g, ' ')}
+                    {moduleTitles[module_slug] ?? module_slug.replace(/-/g, ' ')}
                   </span>
                   <span className="text-xs text-text-muted">
                     {new Date(enrolled_at).toLocaleDateString("fr-FR")}

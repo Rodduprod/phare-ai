@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getAllModules } from "@/lib/formation";
 import { ProfilClient } from "./ProfilClient";
 import type { Metadata } from "next";
 
@@ -38,6 +39,12 @@ export default async function ProfilPage() {
     .select("lesson_path")
     .eq("user_id", user.id);
 
+  // Charger les titres des modules depuis le FS
+  const allModules = getAllModules();
+  const moduleTitles = Object.fromEntries(
+    allModules.map((m) => [m.slug, m.title])
+  );
+
   return (
     <ProfilClient
       user={{ email: user.email!, id: user.id }}
@@ -45,6 +52,7 @@ export default async function ProfilPage() {
       savedArticles={savedArticles ?? []}
       enrollments={enrollments ?? []}
       progressCount={progress?.length ?? 0}
+      moduleTitles={moduleTitles}
     />
   );
 }
