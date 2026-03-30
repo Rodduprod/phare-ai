@@ -10,63 +10,65 @@ interface ModuleConfig {
   accent: string;     // couleur du pattern overlay (hex, opacité gérée inline)
 }
 
+// Gradient unifié sur la charte Le Labo AI : #99ccff → #2a6db5
+// Chaque module a son propre motif et icône pour rester distinct visuellement.
 const MODULE_CONFIGS: Record<string, ModuleConfig> = {
   "comprendre-ia-debutant": {
-    gradient: "from-sky-400 via-blue-500 to-blue-700",
+    gradient: "from-[#c5e3ff] via-[#99ccff] to-[#2a6db5]",
     icon: "🧠",
     pattern: "dots",
     accent: "#ffffff",
   },
   "ia-au-travail-amateur": {
-    gradient: "from-blue-500 via-blue-600 to-indigo-800",
+    gradient: "from-[#99ccff] via-[#5ba3e6] to-[#2a6db5]",
     icon: "⚡",
     pattern: "grid",
     accent: "#ffffff",
   },
   "creer-avec-ia-debutant": {
-    gradient: "from-cyan-400 via-sky-500 to-blue-600",
+    gradient: "from-[#c5e3ff] via-[#99ccff] to-[#3a85c8]",
     icon: "✨",
     pattern: "circles",
     accent: "#ffffff",
   },
   "comprendre-chatgpt-amateur": {
-    gradient: "from-blue-400 via-blue-600 to-violet-700",
+    gradient: "from-[#99ccff] via-[#4d9de0] to-[#1e5fa0]",
     icon: "💬",
     pattern: "lines",
     accent: "#ffffff",
   },
   "agents-ia-confirme": {
-    gradient: "from-indigo-500 via-blue-700 to-slate-900",
+    gradient: "from-[#5ba3e6] via-[#2a6db5] to-[#1a4a80]",
     icon: "🤖",
     pattern: "dots",
     accent: "#ffffff",
   },
   "prompt-engineering-amateur": {
-    gradient: "from-blue-400 via-blue-600 to-indigo-700",
+    gradient: "from-[#99ccff] via-[#5ba3e6] to-[#2a6db5]",
     icon: "✍️",
     pattern: "lines",
     accent: "#ffffff",
   },
   "ia-et-societe-debutant": {
-    gradient: "from-sky-500 via-blue-500 to-blue-700",
+    gradient: "from-[#b8d9ff] via-[#99ccff] to-[#3a85c8]",
     icon: "🌍",
     pattern: "circles",
     accent: "#ffffff",
   },
   "coder-avec-ia-confirme": {
-    gradient: "from-slate-700 via-blue-800 to-indigo-900",
+    gradient: "from-[#4d9de0] via-[#2a6db5] to-[#1a4a80]",
     icon: "💻",
     pattern: "grid",
     accent: "#ffffff",
   },
   "ia-pour-entrepreneurs-amateur": {
-    gradient: "from-blue-500 via-cyan-600 to-blue-700",
+    gradient: "from-[#99ccff] via-[#5ba3e6] to-[#1e5fa0]",
     icon: "🚀",
     pattern: "dots",
     accent: "#ffffff",
   },
   "no-code-ia-debutant": {
-    gradient: "from-cyan-400 via-blue-500 to-sky-700",
+    gradient: "from-[#c5e3ff] via-[#99ccff] to-[#2a6db5]",
     icon: "⚡",
     pattern: "lines",
     accent: "#ffffff",
@@ -74,7 +76,7 @@ const MODULE_CONFIGS: Record<string, ModuleConfig> = {
 };
 
 const DEFAULT_CONFIG: ModuleConfig = {
-  gradient: "from-blue-500 to-blue-800",
+  gradient: "from-[#99ccff] via-[#5ba3e6] to-[#2a6db5]",
   icon: "🎓",
   pattern: "dots",
   accent: "#ffffff",

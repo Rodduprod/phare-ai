@@ -19,9 +19,9 @@ interface GlobalSearchProps {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  débutant: "bg-green-100 text-green-700",
-  amateur:  "bg-blue-100 text-blue-700",
-  confirmé: "bg-purple-100 text-purple-700",
+  débutant: "bg-primary/15 text-primary-deep",
+  amateur:  "bg-primary/15 text-primary-deep",
+  confirmé: "bg-primary/15 text-primary-deep",
 };
 
 export function GlobalSearch({ articles, modules }: GlobalSearchProps) {

@@ -32,9 +32,9 @@ interface ClientHomePageProps {
 }
 
 const LEVEL_BORDER: Record<string, string> = {
-  débutant: "border-l-4 border-l-green-400",
-  amateur:  "border-l-4 border-l-blue-400",
-  confirmé: "border-l-4 border-l-purple-400",
+  débutant: "border-l-4 border-l-primary",
+  amateur:  "border-l-4 border-l-primary",
+  confirmé: "border-l-4 border-l-primary",
 };
 
 export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) {
@@ -87,14 +87,14 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
           </div>
 
           {/* H1 SEO */}
-          <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest mb-4">
+          <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
             Formation IA et actualités — comprenez l&apos;intelligence artificielle
           </p>
 
           {/* Slogan */}
           <h2 className="font-display text-4xl sm:text-6xl font-bold leading-tight max-w-2xl mb-6">
             L&apos;IA évolue tous les jours.{" "}
-            <span className="text-blue-300">Restez à la page.</span>
+            <span className="text-primary">Restez à la page.</span>
           </h2>
 
           <p className="text-white/70 text-lg max-w-xl mb-10 leading-relaxed">
@@ -106,7 +106,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
           <div className="flex flex-wrap gap-3">
             <Link
               href="/formation"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-text font-semibold rounded-xl transition-colors"
             >
               🎓 Se former gratuitement
             </Link>
@@ -130,7 +130,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
               { icon: "🔄", title: "Mis à jour chaque jour", desc: "Nouveaux articles publiés chaque jour. L'IA évolue, notre veille aussi." },
             ].map((item) => (
               <div key={item.title} className="flex flex-col items-center gap-2">
-                <span className="text-3xl">{item.icon}</span>
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/15 text-2xl">{item.icon}</span>
                 <h3 className="font-semibold text-text">{item.title}</h3>
                 <p className="text-text-muted text-sm leading-relaxed">{item.desc}</p>
               </div>

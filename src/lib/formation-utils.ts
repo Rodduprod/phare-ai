@@ -11,7 +11,7 @@ export function formatDuration(minutes: number): string {
 }
 
 export const LEVEL_COLORS: Record<string, string> = {
-  débutant: "bg-green-100 text-green-800",
-  amateur: "bg-blue-100 text-blue-800",
-  confirmé: "bg-purple-100 text-purple-800",
+  débutant: "bg-primary/15 text-primary-deep",
+  amateur:  "bg-primary/15 text-primary-deep",
+  confirmé: "bg-primary/15 text-primary-deep",
 };
