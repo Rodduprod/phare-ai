@@ -57,7 +57,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
 
           {/* H1 SEO */}
           <h1 className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">
-            Formation IA et actualités — comprenez l&apos;intelligence artificielle
+            Formation IA et actualités : comprenez l&apos;intelligence artificielle
           </h1>
 
           {/* Slogan */}
@@ -67,7 +67,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
           </p>
 
           <p className="text-white/70 text-lg max-w-xl mb-10 leading-relaxed">
-            Actualités, décryptages et formations pour comprendre l&apos;IA —
+            Actualités, décryptages et formations pour comprendre l&apos;IA,
             sans jargon, en français.
           </p>
 
@@ -94,8 +94,8 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
         <div className="max-w-content mx-auto px-4 sm:px-6 py-10 sm:py-12">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
             {[
-              { icon: "🌍", title: "Veille mondiale", desc: "US, Europe, Chine — les acteurs qui comptent, sans les communiqués de presse." },
-              { icon: "📶", title: "3 niveaux de lecture", desc: "Débutant, amateur ou confirmé — chaque sujet expliqué à votre niveau." },
+              { icon: "🌍", title: "Veille mondiale", desc: "US, Europe, Chine : les acteurs qui comptent, sans les communiqués de presse." },
+              { icon: "📶", title: "3 niveaux de lecture", desc: "Débutant, amateur ou confirmé : chaque sujet expliqué à votre niveau." },
               { icon: "🔄", title: "Mis à jour chaque jour", desc: "Nouveaux articles publiés chaque jour. L'IA évolue, notre veille aussi." },
             ].map((item) => (
               <div key={item.title} className="flex flex-col items-center gap-2">
@@ -121,11 +121,11 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
             </h2>
             <p className="text-text-body text-base sm:text-lg leading-relaxed mb-6">
               Le Labo AI s&apos;adresse à toutes celles et ceux qui veulent comprendre l&apos;intelligence
-              artificielle et rester vraiment à jour — qu&apos;ils en soient à leurs premiers pas ou
+              artificielle et rester vraiment à jour, qu&apos;ils en soient à leurs premiers pas ou
               qu&apos;ils travaillent déjà avec des outils IA au quotidien.
             </p>
             <p className="text-text-body text-base sm:text-lg leading-relaxed mb-6">
-              Le problème avec l&apos;IA, c&apos;est que ça va vite — très vite. Un modèle sort, un autre
+              Le problème avec l&apos;IA, c&apos;est que ça va vite, très vite. Un modèle sort, un autre
               le dépasse trois mois plus tard. Sans repères solides, on lit des articles sans
               vraiment comprendre, on suit des tendances sans savoir les évaluer. On a vite
               fait de se retrouver largué, même en s&apos;informant régulièrement.
@@ -134,7 +134,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
               C&apos;est pourquoi Le Labo AI combine les deux leviers qui manquent souvent séparément :
               une <strong className="text-text font-semibold">formation structurée</strong> pour
               construire des bases solides, et une <strong className="text-text font-semibold">veille
-              quotidienne</strong> pour suivre ce qui change. L&apos;un sans l&apos;autre ne suffit pas —
+              quotidienne</strong> pour suivre ce qui change. L&apos;un sans l&apos;autre ne suffit pas :
               ensemble, ils permettent de comprendre, d&apos;anticiper, et de ne plus subir le rythme
               de l&apos;IA.
             </p>

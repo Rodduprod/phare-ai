@@ -544,6 +544,7 @@ TON ET STYLE (non négociable) :
 - Ton sarcastique et décalé bienvenu — on peut se permettre une vanne sur les annonces marketing, les promesses d'entreprises IA, les buzzwords
 - Phrases courtes et longues alternées — jamais 5 phrases de longueur identique d'affilée. Varier le rythme : phrase courte. Très courte. Puis une longue qui développe une idée avec nuance et contexte. Ça crée du mouvement.
 - INTERDIT : style "IA générique". Pas de "Il est important de noter que", "En conclusion, nous pouvons voir que", "Dans un monde de plus en plus connecté", "cette avancée majeure", "révolution sans précédent", "changer la donne", "à la pointe de l'innovation"
+- INTERDIT : tirets longs (—). Utiliser des virgules, des deux-points ou reformuler la phrase. Le tiret long est un marqueur typique du texte généré par IA.
 - INTERDIT : références à des années spécifiques dans le corps de l'article ("En 2024", "En 2023", "depuis 2022") — utiliser des formules intemporelles ("aujourd'hui", "ces dernières années", "récemment")
 - INTERDIT : listes à puces systématiques — les utiliser avec parcimonie, seulement quand elles apportent vraiment de la clarté
 - Des opinions assumées : "c'est discutable", "on ne va pas se mentir", "franchement", "bonne chance avec ça"
