@@ -60,6 +60,101 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Provider LLM : 'mistral' | 'anthropic' (défaut : mistral si clé dispo, sinon anthropic)
+const LLM_PROVIDER = process.env.LLM_PROVIDER ||
+  (process.env.MISTRAL_API_KEY ? 'mistral' : 'anthropic');
+
+/**
+ * Appel Mistral API (compatible OpenAI) — retourne le texte brut généré
+ */
+async function callMistral(prompt) {
+  const model = process.env.MISTRAL_MODEL || 'mistral-medium-latest';
+  console.log(`   🌀 Mistral — modèle: ${model}`);
+  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.MISTRAL_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 4000,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Mistral API error ${res.status}: ${err.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+
+/**
+ * Appel Anthropic — découverte dynamique du modèle + probe + génération
+ */
+async function callAnthropicForArticle(prompt) {
+  let modelId = null;
+
+  try {
+    const modelsPage = await anthropic.models.list({ limit: 20 });
+    const models = modelsPage.data ?? [];
+    console.log(`   📋 Modèles disponibles: ${models.map(m => m.id).join(', ')}`);
+    const versionedSonnet = models.find(m => /sonnet.*\d{8}/i.test(m.id) || /\d{8}.*sonnet/i.test(m.id));
+    const anySonnet = models.find(m => m.id.toLowerCase().includes('sonnet') && /\d{6,}/.test(m.id));
+    const versioned = models.find(m => /\d{8}/.test(m.id));
+    const preferred = versionedSonnet ?? anySonnet ?? versioned;
+    if (preferred) { modelId = preferred.id; console.log(`   ✅ Modèle sélectionné: ${modelId}`); }
+  } catch (err) {
+    console.log(`   ⚠️ models.list() indisponible: ${err.message}`);
+  }
+
+  if (!modelId) {
+    const FALLBACKS = [
+      'claude-sonnet-4-5-20250929', 'claude-sonnet-4-20250514',
+      'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022',  'claude-3-haiku-20240307',
+    ];
+    for (const m of FALLBACKS) {
+      try {
+        await anthropic.messages.create({ model: m, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] });
+        modelId = m;
+        console.log(`   ✅ Fallback model OK: ${modelId}`);
+        break;
+      } catch (err) {
+        console.log(`   ⚠️ ${m}: ${err.status ?? '?'} ${err.message?.slice(0, 60)}`);
+      }
+    }
+  }
+
+  if (!modelId) throw new Error('Aucun modèle Anthropic disponible — vérifier la clé API et les modèles autorisés.');
+
+  console.log(`   🔬 Test minimal du modèle ${modelId}...`);
+  try {
+    const probe = await anthropic.messages.create({ model: modelId, max_tokens: 10, messages: [{ role: 'user', content: 'ping' }] });
+    console.log(`   ✅ Probe OK: ${JSON.stringify(probe.content)}`);
+  } catch (probeErr) {
+    console.error(`   ❌ Probe failed: ${probeErr.status} — ${JSON.stringify(probeErr.error)}`);
+    throw new Error(`Modèle ${modelId} inaccessible: ${probeErr.status}`);
+  }
+
+  const message = await anthropic.messages.create({
+    model: modelId,
+    max_tokens: 4000,
+    messages: [{ role: 'user', content: prompt }],
+  });
+  return message.content[0].text;
+}
+
+/**
+ * Dispatch provider — appelle Mistral ou Anthropic selon LLM_PROVIDER
+ */
+async function callLLM(prompt) {
+  console.log(`   🤖 Provider: ${LLM_PROVIDER.toUpperCase()}`);
+  if (LLM_PROVIDER === 'mistral') return await callMistral(prompt);
+  return await callAnthropicForArticle(prompt);
+}
+
 /**
  * Vérifie si un titre est lié à l'IA
  */
@@ -530,78 +625,10 @@ Format strict à respecter (les accolades sont INTERDITES, utiliser uniquement c
 **[Troisième question utile ?]**
 [Réponse concise...]${topic.sourcesContext || ''}${internalLinksContext}`;
 
-  console.log(`🤖 Generating ${level} article for: ${topic.title}`);
+  console.log(`🤖 Generating ${level} article for: ${topic.title} [provider: ${LLM_PROVIDER}]`);
 
-  // Découverte dynamique du modèle via l'API
-  let modelId = null;
-
-  // Sélection du modèle : on préfère les modèles versionnés (avec date ex: -20250929)
-  // Les alias courts (claude-sonnet-4-6) peuvent apparaître dans models.list() mais échouent en appel direct
-  try {
-    const modelsPage = await anthropic.models.list({ limit: 20 });
-    const models = modelsPage.data ?? [];
-    console.log(`   📋 Modèles disponibles: ${models.map(m => m.id).join(', ')}`);
-
-    // Préférer les modèles avec un identifiant versionné (contenant une date YYYYMMDD)
-    // pour éviter les alias qui peuvent ne pas fonctionner avec les appels directs
-    const versionedSonnet = models.find(m => /sonnet.*\d{8}/i.test(m.id) || /\d{8}.*sonnet/i.test(m.id));
-    const anySonnet = models.find(m => m.id.toLowerCase().includes('sonnet') && /\d{6,}/.test(m.id));
-    const versioned = models.find(m => /\d{8}/.test(m.id)); // n'importe quel modèle versionné
-    const preferred = versionedSonnet ?? anySonnet ?? versioned;
-
-    if (preferred) {
-      modelId = preferred.id;
-      console.log(`   ✅ Modèle sélectionné: ${modelId}`);
-    }
-  } catch (err) {
-    console.log(`   ⚠️ models.list() indisponible: ${err.message}`);
-  }
-
-  // Fallback hardcodé si la liste ne fonctionne pas ou ne retourne que des alias
-  if (!modelId) {
-    const FALLBACKS = [
-      'claude-sonnet-4-5-20250929',
-      'claude-sonnet-4-20250514',
-      'claude-3-7-sonnet-20250219',
-      'claude-3-5-sonnet-20241022',
-      'claude-3-5-haiku-20241022',
-      'claude-3-haiku-20240307',
-    ];
-    for (const m of FALLBACKS) {
-      try {
-        await anthropic.messages.create({ model: m, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] });
-        modelId = m;
-        console.log(`   ✅ Fallback model OK: ${modelId}`);
-        break;
-      } catch (err) {
-        console.log(`   ⚠️ ${m}: ${err.status ?? '?'} ${err.message?.slice(0, 60)}`);
-      }
-    }
-  }
-
-  if (!modelId) throw new Error('Aucun modèle Anthropic disponible — vérifier la clé API et les modèles autorisés.');
-
-  // Probe avec un appel minimal pour vérifier que le modèle répond
-  console.log(`   🔬 Test minimal du modèle ${modelId}...`);
-  try {
-    const probe = await anthropic.messages.create({
-      model: modelId,
-      max_tokens: 10,
-      messages: [{ role: 'user', content: 'ping' }]
-    });
-    console.log(`   ✅ Probe OK: ${JSON.stringify(probe.content)}`);
-  } catch (probeErr) {
-    console.error(`   ❌ Probe failed: ${probeErr.status} — ${JSON.stringify(probeErr.error)}`);
-    throw new Error(`Modèle ${modelId} inaccessible: ${probeErr.status}`);
-  }
-
-  const message = await anthropic.messages.create({
-    model: modelId,
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }]
-  });
-
-  const raw = message.content[0].text;
+  // ── Appel LLM (Mistral ou Anthropic) ────────────────────────────────────
+  const raw = await callLLM(prompt);
 
   // Parse le format structuré : TITRE / DESCRIPTION / TAGS / --- / contenu
   const titreMatch    = raw.match(/^TITRE:\s*(.+)$/m);
@@ -966,8 +993,12 @@ async function main() {
   }
   if (forceGenerate) console.log('⚡ Force mode — rate limit ignoré');
 
-  // Check API key
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // Check API key selon le provider
+  if (LLM_PROVIDER === 'mistral' && !process.env.MISTRAL_API_KEY) {
+    console.error('❌ MISTRAL_API_KEY not found');
+    return;
+  }
+  if (LLM_PROVIDER === 'anthropic' && !process.env.ANTHROPIC_API_KEY) {
     console.error('❌ ANTHROPIC_API_KEY not found');
     return;
   }

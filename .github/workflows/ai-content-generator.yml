@@ -42,6 +42,8 @@ jobs:
     - name: 🔍 Scrape AI News & Generate Articles
       run: node scripts/ai-content-generator.js
       env:
+        LLM_PROVIDER: mistral
+        MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         FORCE_GENERATE: ${{ github.event.inputs.force || 'false' }}
