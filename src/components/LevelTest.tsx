@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createBrowserClient } from "@supabase/ssr";
 
 type Level = 'débutant' | 'amateur' | 'confirmé';
 
@@ -116,11 +117,36 @@ export function LevelTest() {
   const [result, setResult] = useState<Level | null>(null);
   const [animating, setAnimating] = useState(false);
 
-  // Lire le niveau déjà sauvegardé
+  // Lire le niveau déjà sauvegardé (localStorage + Supabase si connecté)
   const [savedLevel, setSavedLevel] = useState<Level | null>(null);
   useEffect(() => {
-    const stored = localStorage.getItem('lelabo_user_level') as Level | null;
-    if (stored) setSavedLevel(stored);
+    async function loadSavedLevel() {
+      // 1. Tenter de charger depuis Supabase (source de vérité si connecté)
+      try {
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('level')
+            .eq('id', user.id)
+            .single();
+          if (data?.level) {
+            setSavedLevel(data.level as Level);
+            localStorage.setItem('lelabo_user_level', data.level);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
+      // 2. Fallback localStorage
+      const stored = localStorage.getItem('lelabo_user_level') as Level | null;
+      if (stored) setSavedLevel(stored);
+    }
+    loadSavedLevel();
   }, []);
 
   function handleOptionClick(score: number, index: number) {
@@ -128,12 +154,31 @@ export function LevelTest() {
     setSelectedOption(index);
   }
 
+  async function saveLevel(level: Level) {
+    localStorage.setItem('lelabo_user_level', level);
+    // Sauvegarder en BDD si l'utilisateur est connecté
+    try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .upsert({ id: user.id, level, updated_at: new Date().toISOString() });
+      }
+    } catch {
+      // Silencieux — localStorage suffit si pas connecté
+    }
+  }
+
   function handleNext() {
     if (selectedOption === null) return;
     setAnimating(true);
     const newScores = [...scores, QUESTIONS[currentQuestion].options[selectedOption].score];
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentQuestion < QUESTIONS.length - 1) {
         setScores(newScores);
         setCurrentQuestion(currentQuestion + 1);
@@ -142,7 +187,7 @@ export function LevelTest() {
       } else {
         const level = computeLevel(newScores);
         setResult(level);
-        localStorage.setItem('lelabo_user_level', level);
+        await saveLevel(level);
         setStep('result');
         setAnimating(false);
       }
