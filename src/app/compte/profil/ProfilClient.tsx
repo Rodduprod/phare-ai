@@ -13,6 +13,35 @@ interface Props {
   progressCount: number;
 }
 
+// ─── XP System ────────────────────────────────────────────────────────────────
+const XP_PER_LESSON = 10;
+
+interface XpTier {
+  label: string;
+  icon: string;
+  minXp: number;
+  maxXp: number | null; // null = dernier palier
+  color: string;
+}
+
+const XP_TIERS: XpTier[] = [
+  { label: "Novice",      icon: "🌱", minXp: 0,   maxXp: 49,  color: "text-green-600 bg-green-50 border-green-200" },
+  { label: "Apprenti",    icon: "⚡", minXp: 50,  maxXp: 149, color: "text-blue-600 bg-blue-50 border-blue-200" },
+  { label: "Explorateur", icon: "🔭", minXp: 150, maxXp: 299, color: "text-purple-600 bg-purple-50 border-purple-200" },
+  { label: "Chercheur",   icon: "🔬", minXp: 300, maxXp: 499, color: "text-orange-600 bg-orange-50 border-orange-200" },
+  { label: "Expert",      icon: "🏆", minXp: 500, maxXp: null, color: "text-yellow-700 bg-yellow-50 border-yellow-300" },
+];
+
+function getXpTier(xp: number): { current: XpTier; pct: number; xpToNext: number | null } {
+  const current = [...XP_TIERS].reverse().find((t) => xp >= t.minXp) ?? XP_TIERS[0];
+  const next = XP_TIERS[XP_TIERS.indexOf(current) + 1] ?? null;
+  const pct = next
+    ? Math.round(((xp - current.minXp) / (next.minXp - current.minXp)) * 100)
+    : 100;
+  const xpToNext = next ? next.minXp - xp : null;
+  return { current, pct, xpToNext };
+}
+
 const LEVELS = [
   { value: "débutant",  label: "Débutant",     icon: "🌱" },
   { value: "amateur",   label: "Intermédiaire", icon: "⚡" },
@@ -27,6 +56,10 @@ export function ProfilClient({ user, profile, savedArticles, enrollments, progre
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Calcul XP
+  const totalXp = progressCount * XP_PER_LESSON;
+  const { current: xpTier, pct: xpPct, xpToNext } = getXpTier(totalXp);
 
   async function handleSaveLevel() {
     setSaving(true);
@@ -138,6 +171,53 @@ export function ProfilClient({ user, profile, savedArticles, enrollments, progre
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      {/* Progression XP */}
+      <div className="bg-bg-alt rounded-xl p-6">
+        <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+          Ma progression
+        </h2>
+        {/* Badge niveau XP */}
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-semibold mb-4 ${xpTier.color}`}>
+          <span>{xpTier.icon}</span>
+          <span>{xpTier.label}</span>
+          <span className="opacity-70 font-normal">· {totalXp} XP</span>
+        </div>
+        {/* Barre de progression */}
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs text-text-muted">
+            <span>{xpTier.label}</span>
+            {xpToNext !== null ? (
+              <span>Prochain palier dans {xpToNext} XP</span>
+            ) : (
+              <span className="text-yellow-700 font-medium">Niveau max atteint 🏆</span>
+            )}
+          </div>
+          <div className="h-2 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-700"
+              style={{ width: `${xpPct}%` }}
+            />
+          </div>
+        </div>
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="bg-white rounded-lg px-4 py-3 text-center">
+            <div className="text-2xl font-bold text-primary">{progressCount}</div>
+            <div className="text-xs text-text-muted mt-0.5">leçon{progressCount !== 1 ? "s" : ""} complétée{progressCount !== 1 ? "s" : ""}</div>
+          </div>
+          <div className="bg-white rounded-lg px-4 py-3 text-center">
+            <div className="text-2xl font-bold text-primary">{totalXp}</div>
+            <div className="text-xs text-text-muted mt-0.5">points XP</div>
+          </div>
+        </div>
+        {progressCount === 0 && (
+          <p className="text-xs text-text-muted mt-3 text-center">
+            Complète ta première leçon pour gagner tes premiers XP !{" "}
+            <Link href="/formation" className="text-primary hover:underline">Commencer →</Link>
+          </p>
         )}
       </div>
 
