@@ -11,20 +11,20 @@ export default function TestDeNiveauPage() {
   const groups = getArticleGroups();
   const modules = getAllModules();
 
-  // 3 articles par niveau (on prend les 3 premiers de chaque niveau)
+  // 3 articles par niveau (title/description depuis le groupe, slug depuis la version)
+  function getArticlesForLevel(level: 'débutant' | 'amateur' | 'confirmé') {
+    return groups
+      .filter(g => g.versions.some(v => v.level === level))
+      .slice(0, 3)
+      .map(g => {
+        const version = g.versions.find(v => v.level === level)!;
+        return { slug: version.slug, title: g.title, description: g.description };
+      });
+  }
   const articlesByLevel = {
-    débutant: groups
-      .flatMap(g => g.versions.filter(v => v.level === 'débutant'))
-      .slice(0, 3)
-      .map(v => ({ slug: v.slug, title: v.title, description: v.description })),
-    amateur: groups
-      .flatMap(g => g.versions.filter(v => v.level === 'amateur'))
-      .slice(0, 3)
-      .map(v => ({ slug: v.slug, title: v.title, description: v.description })),
-    confirmé: groups
-      .flatMap(g => g.versions.filter(v => v.level === 'confirmé'))
-      .slice(0, 3)
-      .map(v => ({ slug: v.slug, title: v.title, description: v.description })),
+    débutant: getArticlesForLevel('débutant'),
+    amateur:  getArticlesForLevel('amateur'),
+    confirmé: getArticlesForLevel('confirmé'),
   };
 
   // Module recommandé par niveau
