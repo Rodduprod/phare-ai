@@ -20,6 +20,8 @@ import { TableOfContents } from "@/components/TableOfContents";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SaveArticleButton } from "@/components/SaveArticleButton";
 import { FormationCTA } from "@/components/formation/FormationCTA";
+import { FormationCTAInline } from "@/components/formation/FormationCTAInline";
+import { splitContentAtMidpoint } from "@/lib/split-content";
 import { extractHeadings } from "@/lib/toc";
 import type { ArticleVersion } from "@/lib/articles-types";
 
@@ -115,6 +117,9 @@ export default function ArticlePage({ params }: PageProps) {
 
   // Table des matières extraite côté serveur
   const tocItems = extractHeadings(article.content);
+
+  // Split contenu pour CTA mid-article
+  const [contentFirst, contentSecond] = splitContentAtMidpoint(article.content);
 
   // FAQ extraite pour le rich result JSON-LD
   const faqItems = extractFAQ(article.content);
@@ -219,17 +224,29 @@ export default function ArticlePage({ params }: PageProps) {
             {/* Corps de l'article */}
             <div className="prose-article">
               <MDXRemote
-                source={article.content}
+                source={contentFirst}
                 options={{
                   mdxOptions: {
                     remarkPlugins: [remarkGfm],
-                    rehypePlugins: [
-                      rehypeHighlight,
-                      rehypeSlug,
-                    ],
+                    rehypePlugins: [rehypeHighlight, rehypeSlug],
                   },
                 }}
               />
+              {/* CTA formation mid-article (injecté automatiquement) */}
+              {contentSecond && (
+                <FormationCTAInline level={article.level} />
+              )}
+              {contentSecond && (
+                <MDXRemote
+                  source={contentSecond}
+                  options={{
+                    mdxOptions: {
+                      remarkPlugins: [remarkGfm],
+                      rehypePlugins: [rehypeHighlight, rehypeSlug],
+                    },
+                  }}
+                />
+              )}
             </div>
 
             {/* Footer article */}
