@@ -53,7 +53,7 @@ export function ResumeProgress() {
 
         setProgress({
           moduleSlug,
-          moduleTitle: moduleSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          moduleTitle: moduleSlug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
           lessonSlug,
           lessonTitle: lessonSlug.replace(/^\d+-/, '').replace(/-/g, ' '),
           lessonPath: lastPath,
