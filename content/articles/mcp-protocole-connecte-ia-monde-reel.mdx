@@ -10,41 +10,89 @@ published: true
 
 ## C'est quoi MCP ?
 
-Le Model Context Protocol (MCP) est un standard ouvert qui définit comment un modèle de langage peut se connecter à des outils externes — bases de données, APIs, services SaaS, systèmes de fichiers. Pensez-y comme l'USB de l'IA : une interface universelle.
+Le Model Context Protocol (MCP) est un standard ouvert créé par Anthropic qui définit comment un modèle de langage peut se connecter à des outils externes — bases de données, APIs, services SaaS, systèmes de fichiers. Pensez-y comme l'USB de l'IA : une interface universelle, indépendante du fournisseur et du modèle utilisé.
 
-## Pourquoi c'est important
+L'idée est simple en surface, mais son impact est profond. Avant MCP, chaque développeur devait créer ses propres "function calls" ou plugins maison pour connecter un LLM à un outil tiers. Résultat : des intégrations fragiles, redondantes, impossibles à réutiliser d'un projet à l'autre.
 
-Jusqu'ici, connecter un LLM à un outil nécessitait du code custom pour chaque intégration. MCP standardise cette couche avec un protocole client-serveur simple :
+## Pourquoi c'est important pour les développeurs
 
-- **Le client** (l'IA) découvre les outils disponibles
-- **Le serveur** (votre outil) expose ses capacités via un schéma déclaratif
-- **Le protocole** gère la négociation, l'authentification et le transport
+MCP standardise cette couche avec un protocole client-serveur propre :
 
-Le résultat : un LLM compatible MCP peut utiliser n'importe quel outil MCP sans configuration spécifique.
+- **Le client** (l'IA ou l'application hôte) envoie des requêtes et découvre dynamiquement les outils disponibles
+- **Le serveur MCP** (votre outil ou service) expose ses capacités via un schéma déclaratif en JSON Schema
+- **Le protocole** gère la négociation de version, l'authentification, le transport (stdio ou HTTP/SSE) et la sérialisation des messages
 
-## L'écosystème aujourd'hui
+Le résultat concret : un LLM compatible MCP peut utiliser n'importe quel outil MCP sans configuration spécifique à chaque intégration. Vous écrivez le serveur une seule fois, et tous les clients MCP en bénéficient.
 
-L'adoption est rapide. On trouve déjà des serveurs MCP pour :
+## L'architecture en détail
 
-- **Productivité** : Notion, Slack, Google Drive, Asana
-- **Développement** : GitHub, Sentry, bases de données SQL
-- **Business** : HubSpot, Salesforce, Amplitude
-- **Contenu** : Webflow, Figma, Canva
+MCP distingue trois types de primitives :
 
-## En pratique
+### Resources
+Les ressources sont des données exposées en lecture par le serveur. Un serveur GitHub MCP peut exposer les fichiers d'un repo comme ressources, qu'un agent peut ensuite lire et analyser sans API call manuel.
 
-Un agent IA avec MCP peut, sur une seule instruction :
+### Tools
+Les tools sont les actions exécutables. Créer une issue, envoyer un email, mettre à jour un enregistrement CRM. Le modèle reçoit la définition du tool (nom, description, paramètres), décide de l'appeler, et le serveur l'exécute.
 
-1. Chercher un contact dans HubSpot
-2. Vérifier ses dernières interactions dans Slack
-3. Mettre à jour une tâche dans Notion
-4. Envoyer un résumé par email
+### Prompts
+Les prompts sont des templates réutilisables exposés par le serveur — par exemple un prompt "Résume ce ticket" pré-configuré avec le contexte du ticket en question.
 
-Sans écrire une seule ligne de code d'intégration.
+Cette séparation est élégante : les resources nourrissent le contexte, les tools déclenchent des actions, les prompts standardisent les patterns courants.
 
-## Ce qu'on surveille
+## L'écosystème en 2026
 
-La question ouverte est celle de la sécurité et du contrôle d'accès. Quand un agent peut toucher à tout, les garde-fous deviennent critiques. Les prochaines versions du protocole devraient adresser ça.
+L'adoption a été extrêmement rapide depuis le lancement. On trouve des serveurs MCP officiels ou communautaires pour :
+
+- **Productivité** : Notion, Slack, Google Drive, Asana, Linear
+- **Développement** : GitHub, GitLab, Sentry, bases PostgreSQL, SQLite, MongoDB
+- **Business** : HubSpot, Salesforce, Stripe, Amplitude
+- **Contenu** : Webflow, Figma, Canva, Contentful
+- **Infrastructure** : AWS, Docker, Kubernetes via kubectl
+
+Claude supporte MCP nativement dans Claude Desktop. Cursor, Windsurf, et une dizaine d'autres IDE et assistants de code l'ont intégré dans leurs versions récentes. L'interopérabilité devient réelle.
+
+## Un agent MCP en pratique
+
+Voici ce qu'un [agent IA moderne](/articles/agents-ia-2026-etat-des-lieux) peut faire sur une seule instruction utilisateur en chaînant des appels MCP :
+
+1. Chercher un contact dans HubSpot (tool `hubspot_find_contact`)
+2. Récupérer ses dernières interactions dans Slack (resource `slack_messages`)
+3. Lire les tickets Sentry liés à son compte (resource `sentry_issues`)
+4. Mettre à jour le statut dans Notion (tool `notion_update_page`)
+5. Rédiger et envoyer un résumé par email (tool `gmail_send`)
+
+Sans MCP, ce workflow nécessite du code d'intégration sur mesure pour chaque API. Avec MCP, c'est une question de configuration et de prompting.
+
+## Questions de sécurité : le point sensible
+
+MCP amplifie les capacités des agents, mais amplifie aussi les risques. Quelques points à surveiller sérieusement en production :
+
+**Prompt injection via les ressources** : si un fichier lu par l'agent contient des instructions malveillantes, le modèle peut les exécuter. Ce vecteur d'attaque est spécifique aux architectures agentiques.
+
+**Granularité des permissions** : les premières implémentations MCP offraient peu de contrôle fin. Les versions récentes introduisent des scopes, mais c'est encore à maturité.
+
+**Auditabilité** : quand un agent enchaîne 10 appels MCP, il faut pouvoir tracer exactement ce qui a été fait. Les logs structurés deviennent indispensables.
+
+La bonne pratique est d'appliquer le principe du moindre privilège : chaque agent ne doit avoir accès qu'aux tools strictement nécessaires à sa mission.
+
+## Ce qui change pour votre architecture
+
+Si vous construisez des applications IA, MCP change votre façon de penser l'intégration. Le pattern "un LLM + des functions maison" cède la place à "un client MCP + un registre de serveurs". 
+
+Cela a des implications sur la maintenance (les serveurs MCP sont mis à jour indépendamment), la composition (vous pouvez mixer des serveurs communautaires et vos serveurs internes), et la portabilité (votre logique métier est découplée du modèle utilisé).
+
+À titre de comparaison, [Claude 4](/articles/claude-4-nouveau-modele-anthropic) a été conçu dès le départ pour être un client MCP de première classe — ce n'est pas un hasard, c'est une décision d'architecture chez Anthropic.
+
+## L'état du standard
+
+MCP est open source (spécification disponible sur [modelcontextprotocol.io](https://modelcontextprotocol.io)). La gouvernance est encore majoritairement Anthropic, mais plusieurs grandes entreprises contribuent activement.
+
+Les points du roadmap qui retiennent l'attention :
+- **Streaming bidirectionnel** : pour les outils qui retournent des résultats progressifs (recherche, génération longue)
+- **Sessions** : persistance de l'état entre plusieurs appels
+- **Authorization standardisée** : OAuth 2.0 natif au lieu de déléguer à chaque implémentation
+
+MCP n'est pas encore parfait, mais c'est le standard qui a le plus de momentum. Pour quiconque construit sérieusement avec des agents IA, ignorer MCP en 2026 n'est plus raisonnable.
 
 ---
 
