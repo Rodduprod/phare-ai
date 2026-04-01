@@ -90,8 +90,8 @@ export function ClientArticlesSection({ groups, totalArticles }: Props) {
 
       {filteredGroups.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredGroups.map(group => (
-            <ArticleGroupCard key={group.topic} group={group} />
+          {filteredGroups.map((group, index) => (
+            <ArticleGroupCard key={group.topic} group={group} priority={index < 3} />
           ))}
         </div>
       ) : selectedLevel === 'all' ? (

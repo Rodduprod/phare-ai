@@ -7,9 +7,11 @@ import { OptimizedImage } from './OptimizedImage';
 
 interface ArticleGroupCardProps {
   group: ArticleGroup;
+  /** Passer true pour les premières cards above-the-fold (améliore LCP) */
+  priority?: boolean;
 }
 
-export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
+export function ArticleGroupCard({ group, priority = false }: ArticleGroupCardProps) {
   const { canonical, versions } = group;
   const isMultiVersion = versions.length > 1;
   const lv = levelConfig[canonical.level];
@@ -25,6 +27,7 @@ export function ArticleGroupCard({ group }: ArticleGroupCardProps) {
               alt={canonical.title}
               width={400}
               height={225}
+              priority={priority}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>

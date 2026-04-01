@@ -5,6 +5,7 @@ import { getAllArticles, getArticlesByTag, getArticleGroups } from "@/lib/articl
 import { siteConfig } from "@/lib/config";
 import { ArticleGroupCard } from "@/components/ArticleGroupCard";
 import { WebsiteSchema } from "@/components/WebsiteSchema";
+import { tagDescriptions } from "@/lib/tag-descriptions";
 
 interface PageProps {
   params: { tag: string };
@@ -28,11 +29,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .map((l) => l === 'débutant' ? 'débutant' : l === 'amateur' ? 'intermédiaire' : 'expert')
     .join(', ');
 
-  // Tag capitalisé pour les titres
+  // Tag capitalisé + description éditoriale si disponible
   const tagCapitalized = tag.charAt(0).toUpperCase() + tag.slice(1);
+  const tagMeta = tagDescriptions[tag.toLowerCase()] ?? null;
+  const displayTitle = tagMeta?.title ?? tagCapitalized;
 
-  const title = `${tagCapitalized} | Le Labo AI — ${articles.length} article${articles.length > 1 ? 's' : ''}`;
-  const description = `${articles.length} article${articles.length > 1 ? 's' : ''} sur "${tag}" en français — niveaux ${levelsLabel}. Comprendre l'IA facilement, quel que soit votre profil.`;
+  const title = `${displayTitle} | Le Labo AI — ${articles.length} article${articles.length > 1 ? 's' : ''}`;
+  const description = tagMeta?.description
+    ? tagMeta.description.slice(0, 160)
+    : `${articles.length} article${articles.length > 1 ? 's' : ''} sur "${tag}" en français — niveaux ${levelsLabel}. Comprendre l'IA facilement, quel que soit votre profil.`;
   const canonicalUrl = `${siteConfig.url}/articles/tag/${tag}`;
 
   return {
@@ -84,6 +89,9 @@ export default function TagPage({ params }: PageProps) {
     .join(', ');
   const tagCapitalized = tag.charAt(0).toUpperCase() + tag.slice(1);
 
+  // Contenu éditorial SEO pour ce tag
+  const tagMeta = tagDescriptions[tag.toLowerCase()] ?? null;
+
   // Schema CollectionPage pour ce tag
   const collectionSchema = {
     '@context': 'https://schema.org',
@@ -123,17 +131,22 @@ export default function TagPage({ params }: PageProps) {
             🏷️ {tag}
           </div>
           <h1 className="font-display text-display-lg text-text mb-3">
-            {tagCapitalized}
+            {tagMeta?.title ?? tagCapitalized}
           </h1>
-          <p className="text-text-muted text-lg">
+          <p className="text-text-muted text-lg mb-4">
             {groups.length} sujet{groups.length > 1 ? 's' : ''} · {articlesForTag.length} article{articlesForTag.length > 1 ? 's' : ''} · niveaux {levelsLabel}
           </p>
+          {tagMeta?.description && (
+            <p className="text-text-muted leading-relaxed max-w-3xl">
+              {tagMeta.description}
+            </p>
+          )}
         </header>
 
         {/* Grille d'articles */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((group) => (
-            <ArticleGroupCard key={group.topic} group={group} />
+          {groups.map((group, index) => (
+            <ArticleGroupCard key={group.topic} group={group} priority={index < 3} />
           ))}
         </div>
 
