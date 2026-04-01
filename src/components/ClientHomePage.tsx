@@ -117,7 +117,7 @@ export function ClientHomePage({ groups, modules, stats }: ClientHomePageProps) 
               Pour qui ?
             </p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-text mb-6 leading-snug">
-              L&apos;IA évolue chaque semaine.<br className="hidden sm:block" />
+              L&apos;IA évolue chaque semaine.{' '}<br className="hidden sm:block" />
               Pas question de se laisser distancer.
             </h2>
             <p className="text-text-body text-base sm:text-lg leading-relaxed mb-6">
