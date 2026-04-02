@@ -31,6 +31,8 @@ const CONFIG = {
     reddit_ml:        'https://www.reddit.com/r/MachineLearning/hot.json?limit=15',
     reddit_ai:        'https://www.reddit.com/r/artificial/hot.json?limit=15',
     reddit_chatgpt:   'https://www.reddit.com/r/ChatGPT/hot.json?limit=10',
+    the_decoder:      'https://the-decoder.com/feed/',
+    mit_tech_review:  'https://www.technologyreview.com/topic/artificial-intelligence/feed',
     gnews_fr:         'https://news.google.com/rss/search?q=intelligence+artificielle+IA&hl=fr&gl=FR&ceid=FR:fr',
     gnews_en:         'https://news.google.com/rss/search?q=artificial+intelligence+LLM&hl=en-US&gl=US&ceid=US:en',
     techcrunch:       'https://techcrunch.com/category/artificial-intelligence/feed/',
@@ -306,9 +308,18 @@ async function scrapeAINews() {
   } catch (e) { console.log(`  ⚠️ HackerNews: ${e.message}`); }
 
   // --- Reddit (ML + AI + ChatGPT) ---
+  // Reddit bloque les User-Agent bots → on utilise un UA navigateur
   for (const [key, url] of [['reddit_ml', CONFIG.sources.reddit_ml], ['reddit_ai', CONFIG.sources.reddit_ai], ['reddit_chatgpt', CONFIG.sources.reddit_chatgpt]]) {
     try {
-      const res = await fetchWithTimeout(url);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+          'Accept': 'application/json',
+        }
+      }).finally(() => clearTimeout(timer));
       const json = await res.json();
       const posts = json.data?.children?.map(c => c.data) || [];
       const ai = posts.filter(p => p.title && isAIRelated(p.title) && (p.created_utc || 0) >= CUTOFF_UNIX);
@@ -327,6 +338,8 @@ async function scrapeAINews() {
     ['GoogleNews-CN-General', CONFIG.sources.gnews_cn_general],
     ['TechCrunch',            CONFIG.sources.techcrunch],
     ['VentureBeat',           CONFIG.sources.venturebeat],
+    ['TheDecoder',            CONFIG.sources.the_decoder],
+    ['MITTechReview',         CONFIG.sources.mit_tech_review],
   ]) {
     try {
       const res = await fetchWithTimeout(url);
