@@ -51,7 +51,19 @@ export async function GET() {
     lastmod: new Date().toISOString(),
   }));
 
-  const allUrls = [...staticPages, ...articleUrls, ...tagUrls];
+  // Pages de niveau (débutant / amateur / confirmé) — slugs sans accents
+  const levelUrls = [
+    { slug: 'debutant', priority: '0.80' },
+    { slug: 'amateur',  priority: '0.75' },
+    { slug: 'confirme', priority: '0.70' },
+  ].map(({ slug, priority }) => ({
+    url: `${siteConfig.url}/articles/level/${slug}`,
+    priority,
+    changefreq: 'daily',
+    lastmod: new Date().toISOString(),
+  }));
+
+  const allUrls = [...staticPages, ...articleUrls, ...tagUrls, ...levelUrls];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
