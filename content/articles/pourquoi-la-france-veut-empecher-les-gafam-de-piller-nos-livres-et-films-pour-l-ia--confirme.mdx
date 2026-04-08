@@ -1,0 +1,202 @@
+---
+title: "Comment les Gafam pillent vos livres pour entraîner leurs IA (et comment l'Europe compte les bloquer)"
+description: "Scraping massif, datasets opaques, modèles entraînés sur des œuvres protégées : décryptage technique des méthodes des géants tech et des contre-mesures européennes."
+date: "2026-04-08"
+generated_at: "2026-04-08T10:16:55.462Z"
+tags: ["scraping", "datasets", "régulation ia", "copyright", "llms"]
+level: "confirmé"
+topic: "pourquoi-la-france-veut-empecher-les-gafam-de-piller-nos-livres-et-films-pour-l-ia"
+image: "https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Comment les Gafam pillent vos livres pour entraîner leurs IA (et comment l'Europe compte les bloquer)
+
+Le Sénat français vient de déclarer la guerre au *web scraping* industriel. Pas celui des petits scripts Python qui récupèrent des prix sur Amazon pour votre projet perso, non : celui des **armadas de bots** qui aspirent des bibliothèques entières pour nourrir des modèles comme Llama 3 ou Gemini. Derrière les grands discours sur *"l'innovation"* et *"l'accès universel à la connaissance"*, se cache une réalité moins glamour : **des téraoctets de données protégées par le droit d'auteur, ingurgitées sans consentement ni compensation**.
+
+On va plonger dans les entrailles techniques de ce pillage organisé, comprendre comment les modèles en profitent, et surtout, voir ce que l'Europe compte faire pour (peut-être) y mettre fin.
+
+---
+
+## **1. Le scraping industriel : comment ça marche vraiment ?**
+
+### **L'échelle du problème : des bibliothèques entières en quelques heures**
+Quand Meta annonce que Llama 3 a été entraîné sur *"des données publiques"*, cela veut dire : **15 millions de livres** (dont une bonne partie sous copyright), des années d'archives de forums, et des millions de pages web aspirées via des outils comme Common Crawl.
+
+Comment ? Avec des **pipelines de scraping distribués** qui ressemblent à ceci :
+
+```python
+# Exemple simplifié (mais réaliste) d'un scraper industriel
+import asyncio
+import aiohttp
+from fake_useragent import UserAgent
+
+async def scrape_book(semaphore, session, url):
+    async with semaphore:
+        headers = {"User-Agent": UserAgent().random}
+        try:
+            async with session.get(url, headers=headers, timeout=10) as response:
+                if response.status == 200:
+                    text = await response.text()
+                    # Nettoyage, extraction du contenu, stockage en base...
+                    return text
+        except Exception as e:
+            print(f"Failed {url}: {e}")
+            return None
+
+async def main(urls):
+    semaphore = asyncio.Semaphore(100)  # 100 requêtes concurrentes
+    async with aiohttp.ClientSession() as session:
+        tasks = [scrape_book(semaphore, session, url) for url in urls]
+        results = await asyncio.gather(*tasks)
+        return [r for r in results if r is not None]
+
+# Imaginez ça lancé sur 100 machines en parallèle, 24/7.
+```
+
+**Problème** : Ces outils contournent les `robots.txt`, rotent les User-Agents, et saturent les serveurs avec des requêtes concurrentes. Résultat ? Des sites comme **HathiTrust** (bibliothèque numérique) ou **Project Gutenberg** se retrouvent **scannés en masse**, même pour des œuvres encore protégées.
+
+> *"Mais c'est pour la science !"* — Un ingénieur ML qui n'a jamais payé de licence.
+
+### **Les datasets "open" qui ne le sont pas vraiment**
+Les géants de l'IA adorent se cacher derrière des datasets *"open"* comme :
+- **Books3** (196 Go de textes, dont 90% sous copyright)
+- **The Pile** (800 Go, mélange de code, livres, et forums)
+- **Common Crawl** (250 To de pages web, dont beaucoup avec des clauses *"no scraping"* ignorées)
+
+**Le piège** : Ces datasets sont souvent **filtrés a posteriori** (on enlève les trucs trop sensibles *après* l'entraînement). Trop tard : le modèle a déjà tout mémorisé.
+
+D'ailleurs, [les doubleurs français l'ont bien compris](https://www.labiai.fr/articles/comment-25-doubleurs-francais-ont-fait-plier-l-ia-et-pourquoi-c-est-important--confirme) : une fois que votre voix ou votre texte est dans un LLM, **il est presque impossible de l'en sortir**.
+
+---
+
+## **2. Comment les LLMs exploitent ces données (et pourquoi c'est un problème)**
+
+### **L'apprentissage par bourrage de tokens**
+Un LLM comme Llama 3 ou Mistral, c'est **un compresseur statistique géant**. Plus vous lui donnez de données, mieux il *"comprend"* (en réalité, il calcule des probabilités de suites de mots).
+
+**Exemple concret** :
+- Si vous entraînez un modèle sur **tous les romans de Balzac**, il va :
+  1. **Mémoriser des passages entiers** (risque de régurgitation pure, aka *"plagiat probabiliste"*).
+  2. **Reproduire le style** (utile pour générer du texte, moins pour respecter le copyright).
+  3. **Générer des dérivés** (ex : *"Et si Eugénie Grandet avait un compte TikTok ?"*).
+
+**Problème juridique** : En Europe, la **directive Copyright 2019** dit que le *text and data mining* (TDM) est autorisé... **mais seulement si les ayants droit n'ont pas explicitement interdit l'usage commercial**. Or, 99% des auteurs n'ont jamais été consultés.
+
+### **Benchmark : à quel point les LLMs régurgitent du copyright ?**
+Une étude récente (arXiv, 2024) a testé la **mémorisation involontaire** dans plusieurs modèles :
+
+| Modèle          | Taux de régurgitation (8+ tokens identiques) | Exemple de sortie problématique                     |
+|-----------------|-----------------------------------------------|----------------------------------------------------|
+| Llama 2 70B     | 0.45%                                         | *"Dans le château de Guermantes, comme Marcel..."* (Proust) |
+| Mistral 7B      | 0.31%                                         | *"Le petit prince dit alors au renard :..."* (Saint-Exupéry) |
+| Gemini 1.5 Pro  | 0.68%                                         | *"It was a bright cold day in April..."* (Orwell, *1984*) |
+
+**Conclusion** : Même avec du *dédoublonnage* (comme dans [l'article sur les agents IA](https://www.labiai.fr/articles/agents-ia-2026-etat-des-lieux)), les modèles **retiennent des morceaux entiers** de textes protégés.
+
+---
+
+## **3. Les contre-mesures européennes : du blabla aux outils concrets**
+
+### **La proposition du Sénat : un "opt-in" obligatoire**
+Les sénateurs français veulent :
+1. **Interdire le scraping massif sans consentement explicite** (finis les *"on a pris ce qui était public"*).
+2. **Obliger les plateformes à déclarer leurs sources** (transparence sur les datasets).
+3. **Créer un registre européen des œuvres utilisées** pour l'entraînement.
+
+**Problème technique** : Comment vérifier que Meta ou Google respectent ça ? **Ils entraînent leurs modèles dans des boîtes noires**.
+
+### **Les solutions qui existent déjà (mais que personne n'utilise)**
+Quelques pistes pour **limiter le pillage** :
+
+#### **a. Le "Poisoning" des données**
+Idée : **Empoisonner les datasets** avec du bruit ou des faux positifs pour rendre l'entraînement inefficace.
+Exemple :
+```python
+# Dans un PDF piégé...
+def generate_fake_text():
+    return "".join([chr(random.randint(0, 255)) for _ in range(10000)])
+
+# Résultat : le modèle apprend du charabia.
+```
+**Limite** : Les Gafam filtrent déjà ces attaques avec des **classifieurs de qualité**.
+
+#### **b. Les watermarks légaux**
+Certains éditeurs (comme **Hachette**) commencent à ajouter des **métadonnées invisibles** dans leurs ebooks pour tracer leur usage.
+Exemple :
+```xml
+<!-- Dans l'en-tête d'un EPUB -->
+<meta property="ia-training">forbidden</meta>
+```
+**Problème** : Les scraper ignorent ces balises, et les modèles n'ont aucune obligation de les respecter.
+
+#### **c. Le "Right to Be Forgotten" pour les LLMs**
+L'Europe pourrait imposer aux modèles de **supprimer des œuvres sur demande** (comme le RGPD pour les données personnelles).
+**Défis techniques** :
+- Comment *"oublier"* un livre sans réentraîner tout le modèle ?
+- Qui paie les coûts de calcul ? (Spoiler : pas les Gafam.)
+
+---
+
+## **4. Les limites des solutions : pourquoi c'est compliqué**
+
+### **a. Le problème du "Fair Use" à l'américaine**
+Aux États-Unis, le *fair use* permet aux entreprises de claimer que l'entraînement est *"transformatif"*. **Traduction** : *"On a volé, mais on a fait quelque chose de nouveau avec, donc c'est légal."*
+
+En Europe, **ça ne passe pas**. La Cour de Justice a déjà statué (affaire *Pelham vs Hässler*) que **l'échantillonnage sans autorisation = violation de copyright**.
+
+### **b. L'asymétrie des moyens**
+- **Côté Gafam** : Des milliers d'ingénieurs, des fermes de GPU, et des avocats en costume cravate.
+- **Côté Europe** : Des régulateurs sous-financés et des startups qui galèrent à suivre.
+
+**Exemple** : Quand [Mistral lève 830M](https://www.labiai.fr/articles/mistral-ai-leve-830m-l-europe-joue-t-elle-les-cow-boys-face-aux-gafam--confirme), c'est pour **construire des infrastructures**, pas pour payer des licences.
+
+### **c. L'hypocrisie des "modèles ouverts"**
+Même les modèles *"open"* comme Llama 3 ou Qwen [d'Alibaba](https://www.labiai.fr/articles/qwen-3-dalibaba-anatomie-technique-dune-offensive-ia-mondiale--confirme) sont entraînés sur des données **opaque**.
+**Preuve** : Essayez de trouver la liste complète des livres utilisés pour entraîner Qwen. Spoiler : **Vous ne la trouverez pas**.
+
+---
+
+## **5. Ce qui pourrait vraiment changer la donne**
+
+### **a. Des datasets "clean" et labellisés**
+Des initiatives comme **LAION** (pour les images) ou **EleutherAI** (pour le texte) tentent de créer des corpus **100% légaux**. Mais :
+- **Coût** : Labelliser manuellement des millions de livres, c'est **cher**.
+- **Biais** : Si on exclut tout ce qui est sous copyright, on se retrouve avec **beaucoup de Shakespeare et peu de science moderne**.
+
+### **b. Le modèle "pay-per-use" pour l'entraînement**
+Pourquoi pas un système où :
+- Les ayants droit **autorisent** l'usage de leurs œuvres contre rémunération.
+- Les modèles **paient à l'usage** (comme une licence Spotify, mais pour le texte).
+
+**Obstacle** : Les Gafam préfèrent **payer des amendes** (si amende il y a) plutôt que des licences.
+
+### **c. L'IA qui cite ses sources (vraiment)**
+Aujourd'hui, quand un LLM génère du texte, il **n'a aucune obligation de citer** ses influences.
+**Solution possible** :
+- **Obliger les modèles à garder une trace** des œuvres qui ont contribué à une réponse.
+- **Afficher ces sources** à l'utilisateur (comme un Wikipedia forcé).
+
+**Exemple** :
+> *Utilisateur* : *"Raconte-moi la chute de Robespierre."*
+> *LLM* : *"D'après 'La Révolution française' de Michelet (1847, p.452) et 'Citoyens' de Simon Schama (1989, p.812), Robespierre..."*
+
+**Problème** : Ça alourdit les modèles et **tue la fluidité** des réponses.
+
+---
+
+## **FAQ**
+
+**[Pourquoi les Gafam ne paient-ils pas simplement les ayants droit ?]**
+Parce que c'est **beaucoup moins cher** de scraper en masse et de négocier des accords a posteriori (ou de payer des amendes). Le coût d'un procès est souvent inférieur à celui de licences pour des millions d'œuvres. Sans compter que beaucoup d'auteurs **ne savent même pas** que leurs livres sont utilisés.
+
+**[Est-ce que les modèles "open source" comme Mistral sont moins concernés ?]**
+Non. Même si le code est open, **les données d'entraînement ne le sont pas**. Mistral, comme les autres, utilise des datasets massifs dont une partie est sous copyright. La différence ? Ils ont **moins de moyens pour négocier des licences** que Google ou Meta.
+
+**[Peut-on techniquement empêcher un LLM d'utiliser des œuvres protégées ?]**
+Oui, mais c'est **extrêmement coûteux**. Il faudrait :
+1. **Filtrer les datasets** avant entraînement (avec des outils comme [dedup](https://github.com/facebookresearch/dedup)).
+2. **Réentraîner les modèles** en excluant les œuvres problématiques.
+3. **Vérifier les sorties** pour éviter la régurgitation.
+Bref, **bonne chance** pour convaincre les investisseurs de financer ça plutôt que des GPU.
+```
