@@ -18,34 +18,35 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: 📦 Install dependencies
+        run: npm ci
+
       - name: 📦 Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: 🔗 Pull Vercel project config
+      - name: 🔗 Link Vercel project
         run: |
-          # Récupère project ID et org ID via l'API Vercel
           PROJECT=$(curl -s "https://api.vercel.com/v9/projects/phare-ai" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}")
           PROJECT_ID=$(echo "$PROJECT" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
           ORG_ID=$(echo "$PROJECT" | python3 -c "import sys,json; print(json.load(sys.stdin)['accountId'])")
-
-          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
-          echo "ORG_ID=$ORG_ID" >> $GITHUB_ENV
-
-          # Crée le fichier .vercel/project.json
           mkdir -p .vercel
           echo "{\"orgId\":\"$ORG_ID\",\"projectId\":\"$PROJECT_ID\"}" > .vercel/project.json
-          echo "✅ Vercel project linked: $PROJECT_ID (org: $ORG_ID)"
+          echo "✅ Linked: $PROJECT_ID"
 
-      - name: 🏗️ Build & Deploy
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: ⬇️ Pull Vercel env vars
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🏗️ Build (local — Next.js avec ISR)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🚀 Deploy prebuilt to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: 🔔 Alerte Telegram si échec
         if: failure()
         run: |
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          MSG="🚨 *Déploiement Vercel échoué*%0ARun : $RUN_URL%0ACommit : ${{ github.event.head_commit.message }}"
+          MSG="🚨 *Déploiement Vercel échoué*%0ARun : $RUN_URL"
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}&text=${MSG}&parse_mode=Markdown" > /dev/null
