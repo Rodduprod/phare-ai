@@ -1,3 +1,4 @@
+// Rust MDX compiler (mdxRs) — build rapide
 import createMDX from "@next/mdx";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
