@@ -11,6 +11,9 @@ interface PageProps {
   params: { tag: string };
 }
 
+// ISR: pages revalidées toutes les 24h (évite le timeout build)
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   const articles = getAllArticles();
   const tags = new Set<string>();
