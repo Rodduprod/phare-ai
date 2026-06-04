@@ -693,9 +693,12 @@ Format strict à respecter (les accolades sont INTERDITES, utiliser uniquement c
  * Fallback sur le pool Unsplash si l'API est indisponible ou quota dépassé.
  */
 const GEMINI_API_KEY = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY || '';
-const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
-// Clé dédiée à la génération d'images (séparée de la clé OpenClaw pour préserver le quota)
-const GEMINI_IMAGE_API_KEY = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY;
+// Cascade de modèles — essayés dans l'ordre jusqu'à quota disponible
+const GEMINI_IMAGE_MODELS = [
+  'gemini-2.0-flash-preview-image-generation',
+  'gemini-2.5-flash-preview-05-20',
+  'gemini-2.5-flash-image',
+];
 
 // Styles visuels variés — Claude en choisit un adapté au sujet
 const IMAGE_STYLES = [
@@ -756,83 +759,56 @@ Réponds UNIQUEMENT avec le prompt, rien d'autre. Pas d'introduction, pas d'expl
   }
 }
 
+async function tryGeminiModel(model, imagePrompt, topicSlug) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: imagePrompt }] }],
+        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+      }),
+    }
+  );
+  if (response.status === 429) return { status: 'quota' };
+  if (!response.ok) return { status: 'error', code: response.status };
+  const data = await response.json();
+  for (const candidate of (data.candidates || [])) {
+    for (const part of (candidate.content?.parts || [])) {
+      if (!part.inlineData) continue;
+      const { mimeType, data: b64 } = part.inlineData;
+      const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+      const buffer = Buffer.from(b64, 'base64');
+      if (buffer.length < 1024) return { status: 'empty' };
+      const isPNG  = buffer[0] === 0x89 && buffer[1] === 0x50;
+      const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8;
+      if (!isPNG && !isJPEG) return { status: 'bad_format' };
+      const filename = `${topicSlug}.${ext}`;
+      fs.writeFileSync(path.join(IMAGES_DIR, filename), buffer);
+      console.log(`  ✅ Image Gemini (${model}) : ${filename} (${Math.round(buffer.length/1024)} KB)`);
+      return { status: 'ok', imagePath: `/images/generated/${filename}` };
+    }
+  }
+  return { status: 'no_image' };
+}
+
 async function generateCoverImage(title, tags, topicSlug) {
-  if (!GEMINI_API_KEY) {
-    console.log('  ⚠️ GEMINI_API_KEY manquante — fallback Unsplash');
-    return null;
-  }
-
-  // Claude génère un prompt image créatif et varié pour chaque article
-  const tagStr = tags.slice(0, 4).join(', ');
-  const imagePrompt = await generateImagePrompt(title, tagStr);
-
-  try {
-    console.log('  🎨 Génération image IA via Gemini...');
-    
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: imagePrompt }] }],
-          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.log(`  ⚠️ Gemini API ${response.status} — fallback Unsplash`);
-      if (err.includes('quota')) console.log('  💡 Quota dépassé — réessayer plus tard');
-      return null;
+  if (!GEMINI_API_KEY) return null;
+  const imagePrompt = await generateImagePrompt(title, tags.slice(0, 4).join(', '));
+  for (const model of GEMINI_IMAGE_MODELS) {
+    console.log(`  🎨 Gemini image via ${model}...`);
+    try {
+      const result = await tryGeminiModel(model, imagePrompt, topicSlug);
+      if (result.status === 'ok') return result.imagePath;
+      if (result.status === 'quota') { console.log(`  ⚠️ ${model}: quota 429 — modèle suivant`); continue; }
+      console.log(`  ⚠️ ${model}: ${result.status} — modèle suivant`);
+    } catch (err) {
+      console.log(`  ⚠️ ${model}: ${err.message} — modèle suivant`);
     }
-
-    const data = await response.json();
-    const candidates = data.candidates || [];
-    
-    for (const candidate of candidates) {
-      const parts = candidate.content?.parts || [];
-      for (const part of parts) {
-        if (part.inlineData) {
-          const { mimeType, data: base64Data } = part.inlineData;
-          const ext = mimeType === 'image/png' ? 'png' : 'jpg';
-          const filename = `${topicSlug}.${ext}`;
-          const filepath = path.join(IMAGES_DIR, filename);
-          
-          // Valider le buffer avant sauvegarde (issue #44)
-          const buffer = Buffer.from(base64Data, 'base64');
-
-          // 1. Buffer non vide
-          if (!buffer || buffer.length < 1024) {
-            console.log(`  ⚠️ Buffer image trop petit (${buffer?.length ?? 0} octets) — fallback Unsplash`);
-            return null;
-          }
-
-          // 2. Magic bytes : PNG (89 50 4E 47) ou JPEG (FF D8 FF)
-          const isPNG  = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
-          const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
-          if (!isPNG && !isJPEG) {
-            console.log(`  ⚠️ Format image non reconnu (magic bytes: ${buffer.slice(0,4).toString('hex')}) — fallback Unsplash`);
-            return null;
-          }
-
-          // Sauvegarder l'image validée
-          fs.writeFileSync(filepath, buffer);
-          const sizeKB = Math.round(fs.statSync(filepath).size / 1024);
-          console.log(`  ✅ Image générée et validée : ${filename} (${sizeKB} KB, ${isPNG ? 'PNG' : 'JPEG'})`);
-          
-          return `/images/generated/${filename}`;
-        }
-      }
-    }
-
-    console.log('  ⚠️ Pas d\'image dans la réponse Gemini — fallback Unsplash');
-    return null;
-  } catch (err) {
-    console.log(`  ⚠️ Erreur génération image: ${err.message} — fallback Unsplash`);
-    return null;
   }
+  console.log('  ⚠️ Tous les modèles Gemini ont échoué — fallback Unsplash');
+  return null;
 }
 
 // Tracking des images générées dans ce run (pour ne pas régénérer pour chaque niveau)
@@ -851,10 +827,29 @@ async function getOrGenerateCoverImage(title, tags, topicSlug) {
     return generatedPath;
   }
 
-  // Fallback Unsplash
-  const unsplashUrl = getCoverImage(tags, topicSlug);
+  // Fallback Unsplash (API dynamique si UNSPLASH_ACCESS_KEY dispo, sinon pool statique)
+  const unsplashUrl = await getUnsplashImage(tags, topicSlug);
   _generatedImages.set(topicSlug, unsplashUrl);
   return unsplashUrl;
+}
+
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || '';
+
+async function getUnsplashImage(tags, slug) {
+  if (!UNSPLASH_ACCESS_KEY) return getCoverImage(tags, slug);
+  const query = tags.slice(0, 3).filter(Boolean).join(' ') || 'artificial intelligence technology';
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${UNSPLASH_ACCESS_KEY}`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const photo = await res.json();
+    console.log(`  📸 Unsplash API: photo ${photo.id} (query: "${query}")`);
+    return `https://images.unsplash.com/photo-${photo.id}?w=1200&q=80&auto=format&fit=crop`;
+  } catch (err) {
+    console.log(`  ⚠️ Unsplash API erreur: ${err.message} — pool statique`);
+    return getCoverImage(tags, slug);
+  }
 }
 
 // ⚠️ Tous les IDs ci-dessous ont été vérifiés HTTP 200 sur images.unsplash.com (fallback)
