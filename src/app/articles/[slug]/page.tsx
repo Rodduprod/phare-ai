@@ -31,12 +31,13 @@ interface PageProps {
   params: { slug: string };
 }
 
-// ISR: pages revalidées toutes les 24h (évite le timeout build)
+// ISR: revalidation 24h, seuls les 30 articles récents sont pré-générés au build
 export const revalidate = 86400;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const articles = getAllArticles();
-  return articles.map((a) => ({ slug: a.slug }));
+  return articles.slice(0, 30).map((a) => ({ slug: a.slug }));
 }
 
 const LEVEL_SECTION: Record<string, string> = {
