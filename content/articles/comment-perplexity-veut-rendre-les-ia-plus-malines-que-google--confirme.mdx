@@ -1,0 +1,238 @@
+---
+title: "Perplexity et le \"Search as Code\" : quand les LLM écrivent leurs requêtes"
+description: "Décryptage technique de l'approche de Perplexity où les modèles génèrent dynamiquement des pipelines de recherche, au lieu d'appeler des APIs figées. Benchmarks, limites et code inclus."
+date: "2026-06-07"
+generated_at: "2026-06-07T11:18:23.154Z"
+tags: ["recherche ia", "llm", "architecture", "perplexity", "agents autonomes"]
+level: "confirmé"
+topic: "comment-perplexity-veut-rendre-les-ia-plus-malines-que-google"
+image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Perplexity et le "Search as Code" : quand les LLM écrivent leurs requêtes
+
+On connaît la chanson : chaque mois, une startup nous promet *la* révolution qui va "disrupter" la recherche en ligne. Cette fois, c'est Perplexity qui sort son joker avec le *"Search as Code"*. Derrière ce nom qui sent bon le rebranding marketing se cache une idée simple, mais potentiellement puissante : **et si on laissait les LLM écrire eux-mêmes leurs requêtes de recherche, au lieu de les contraindre à des APIs rigides ?**
+
+Spoiler : ce n'est pas de la magie. C'est du code, des trade-offs, et une montagne de problèmes à résoudre. On plonge.
+
+---
+
+## **1. Les fondements : pourquoi les APIs de recherche classiques sont un problème**
+
+Imaginez un chef cuisinier à qui on donne toujours les mêmes ingrédients, dans le même ordre, avec les mêmes ustensiles. Un jour, il vous demande un risotto. Vous lui tendez du riz, du bouillon, et un minuteur. Sauf que ce jour-là, il aurait besoin de safran, d’un peu de vin blanc, et d’une poêle plus large.
+
+C’est exactement le problème des APIs de recherche traditionnelles.
+
+### **Le modèle classique : des requêtes en boîte**
+Aujourd’hui, quand un LLM a besoin d’infos externes, il suit un schéma immuable :
+1. **Requête fixe** : le modèle envoie une question formatée à une API (Google, Bing, etc.)
+2. **Réponse standardisée** : l’API renvoie un JSON avec des snippets, des liens, et parfois du bruit
+3. **Post-traitement** : le LLM essaie de faire sens de tout ça, souvent en perdant des nuances
+
+Problème : **les APIs sont conçues pour des humains, pas pour des machines**. Elles supposent que la requête est bien formée, que le contexte est clair, et que la réponse sera exploitable. Or, un LLM a des besoins dynamiques :
+- Parfois, il lui faut **une réponse structurée** (un tableau, une liste).
+- Parfois, **une recherche multi-étapes** (d’abord trouver une date, puis croiser avec un événement).
+- Parfois, **un format spécifique** (du code, une équation, une référence juridique).
+
+Bref, **les APIs actuelles sont comme des menus enfants dans un restaurant étoilé**.
+
+### **L’alternative : le "Search as Code"**
+L’idée de Perplexity ? **Laisser le LLM générer son propre pipeline de recherche**, en temps réel, sous forme de code exécutable.
+
+Concrètement :
+1. Le LLM **analyse la question** de l’utilisateur.
+2. Il **génère un script** (en Python, par exemple) qui décrit **comment** chercher l’information.
+3. Ce script est **exécuté** par un moteur dédié, qui interroge des sources, agrège, filtre, et renvoie un résultat structuré.
+4. Le LLM **intègre cette réponse** dans sa génération finale.
+
+Résultat : **plus de flexibilité, moins de bruit, et une adaptation au contexte**.
+
+---
+## **2. Sous le capot : comment ça marche (vraiment)**
+
+### **L’architecture en 3 couches**
+D’après les documents techniques et les retours d’ingénieurs ayant testé l’API (merci [The Decoder](https://the-decoder.com/perplexitys-search-as-code-lets-ai-models-write-their-own-search-pipelines-instead-of-calling-fixed-apis/)), voici comment Perplexity a structuré son système :
+
+#### **Couche 1 : Le "Planner" (le chef d’orchestre)**
+- Un **LLM spécialisé** (fine-tuné sur des tâches de planification) analyse la requête utilisateur.
+- Il décide :
+  - **Quelles sources interroger** (web, bases de données, APIs spécialisées).
+  - **Dans quel ordre**.
+  - **Quel format de réponse attendre** (JSON, texte brut, tableau).
+- Exemple : pour *"Quels sont les derniers papiers sur les transformers en vision par ordinateur ?"*, il pourrait générer :
+  ```python
+  # Pipeline généré par le LLM
+  def search_pipeline():
+      # 1. Chercher sur arXiv les papiers récents avec "vision" + "transformer"
+      arxiv_results = query_arxiv(
+          query="transformer vision",
+          max_results=5,
+          sort_by="date",
+          fields=["title", "authors", "abstract", "pdf_url"]
+      )
+      # 2. Filtrer ceux avec un score de pertinence > 0.8
+      filtered = [paper for paper in arxiv_results if relevance_score(paper) > 0.8]
+      # 3. Extraire les infos clés et les formater en Markdown
+      return format_as_markdown(filtered)
+  ```
+
+#### **Couche 2 : Le "Executor" (le cuisinier)**
+- Un **moteur d’exécution sécurisé** (sandboxé, bien sûr) lance le code généré.
+- Il a accès à :
+  - Des **connecteurs pré-approuvés** (arXiv, Wikipedia, bases internes, etc.).
+  - Des **outils de post-traitement** (nettoyage de données, déduplication).
+- **Sécurité** : le code est validé avant exécution (pas de `os.system("rm -rf /")`, promis).
+
+#### **Couche 3 : Le "Refiner" (le critique gastronomique)**
+- Un autre LLM (ou le même, selon la config) **valide et affine** la réponse.
+- Il peut :
+  - **Relancer une recherche** si les résultats sont insuffisants.
+  - **Fusionner plusieurs sources** pour éviter les biais.
+  - **Reformuler** pour l’utilisateur final.
+
+### **Exemple concret : une requête complexe**
+Prenons un cas réaliste : *"Quels sont les benchmarks récents comparant Llama 3 et Mistral 8x22B sur du code Python, avec des métriques de latence ?"*
+
+Avec une API classique, le LLM aurait :
+1. Envoyé une requête générique à Google.
+2. Reçu 10 liens, dont 3 blogs marketing, 2 papers non pertinents, et 1 GitHub utile.
+3. Essayé de trier ça à la main.
+
+Avec *Search as Code* :
+1. Le **Planner** génère :
+   ```python
+   def benchmark_search():
+       # 1. Chercher sur arXiv les papers avec "Llama 3" AND "Mistral" AND "benchmark"
+       papers = query_arxiv(..., filters={"date": "2024-01-01:now"})
+       # 2. Chercher sur GitHub des repos avec "benchmark" + "Python" dans le README
+       repos = query_github(..., language="Python")
+       # 3. Extraire les métriques de latence (ms/token) si disponibles
+       results = extract_latency_metrics(papers + repos)
+       # 4. Agrégat et tri par date
+       return sorted(results, key=lambda x: x["date"], reverse=True)
+   ```
+2. L’**Executor** lance ce code, interroge les sources, et renvoie un JSON propre.
+3. Le **Refiner** formate ça en :
+   > *"D’après [ce benchmark sur GitHub](link) (mai 2024), Llama 3 a une latence moyenne de 42ms/token contre 38ms pour Mistral 8x22B sur des tâches de complétion de code Python. Cependant, [ce papier](arXiv.link) note que..."*
+
+---
+## **3. Benchmarks : est-ce que ça marche (vraiment) ?**
+
+Perplexity annonce des gains de **30 à 40% en précision** par rapport aux méthodes classiques. Mais comme d’habitude, **le diable est dans les détails**.
+
+### **Ce qui marche bien**
+✅ **Requêtes techniques complexes** :
+- *"Compare les performances de ces deux modèles sur du SQL-to-text, avec des exemples concrets."*
+  → Le pipeline généré peut interroger des benchmarks spécialisés (comme [SQL-Eval](https://github.com/taoyds/sql-eval)), extraire des métriques, et les croiser.
+
+✅ **Recherches multi-sources** :
+- *"Quels sont les derniers régulations européennes sur l’IA, avec les amendements proposés par le Parlement ?"*
+  → Le LLM peut scraper Eur-Lex, croiser avec des articles de presse, et synthétiser.
+
+✅ **Adaptation dynamique** :
+- Si la première recherche ne donne rien, le système peut **itérer** (ex : élargir les dates, changer les mots-clés).
+
+### **Ce qui coince encore**
+❌ **Latence** :
+- Générer + exécuter du code prend **2 à 5x plus de temps** qu’un appel API classique.
+  - Exemple : 800ms vs 150ms pour une requête simple (tests internes chez Perplexity).
+
+❌ **Sécurité** :
+- Même avec une sandbox, **l’exécution de code arbitraire reste risquée**.
+  - Perplexity limite les connecteurs autorisés, mais bonne chance pour auditer tous les cas d’usage.
+
+❌ **Coût** :
+- Chaque recherche dynamique consomme **plus de tokens** (pour générer le code) et **plus de compute** (pour l’exécuter).
+  - Résultat : **~3x plus cher** qu’une recherche classique sur des requêtes complexes.
+
+❌ **Hallucinations dans le code** :
+- Oui, les LLM **inventent des fonctions** ou des paramètres.
+  - Exemple réel : un pipeline généré appelait `query_pubmed(max_results=10, sort="relevance")`… sauf que PubMed n’a pas de paramètre `sort="relevance"`.
+
+### **Comparaison avec les alternatives**
+| Méthode               | Précision | Latence | Flexibilité | Coût       |
+|-----------------------|-----------|---------|-------------|------------|
+| API classique (Google) | Moyenne   | Faible  | Rigide      | ```math
+|
+| RAG basique           | Bonne     | Moyenne | Limitée     |
+```$        |
+| **Search as Code**    | **Élevée**| **Élevée**| **Maximale**| ```math
+
+```       |
+
+---
+## **4. Limitations : pourquoi ce n’est pas (encore) une révolution**
+
+### **Problème 1 : La dépendance au LLM sous-jacent**
+Si votre modèle de base est nul en **planification** ou en **génération de code**, le *Search as Code* ne sauvera rien.
+- Exemple : un Llama 2 fine-tuné sur du Q&A basique **ne saura pas** générer un pipeline complexe pour une requête technique.
+
+### **Problème 2 : L’effet "boîte noire"**
+- **Debugging** : quand ça plante, bonne chance pour savoir si c’est :
+  - Le code généré qui est faux.
+  - L’executor qui a mal interprété.
+  - La source externe qui a changé de format.
+- **Reproductibilité** : deux exécutions de la même requête peuvent donner des résultats différents (si le LLM génère un pipeline légèrement différent).
+
+### **Problème 3 : Le paradoxe de la flexibilité**
+Plus vous donnez de liberté au LLM, plus :
+- **Les coûts explosent** (appels multiples, compute).
+- **Les risques de sécurité augmentent** (injection de code, fuites de données).
+- **La maintenance devient un cauchemar** (comment auditer des milliers de pipelines générés dynamiquement ?).
+
+### **Problème 4 : Les sources externes ne sont pas faites pour ça**
+La plupart des APIs (arXiv, GitHub, etc.) **ne sont pas optimisées** pour des requêtes programmatiques complexes.
+- **Rate limiting** : vous allez vous faire bloquer rapidement.
+- **Formats instables** : un changement dans la réponse JSON de l’API et tout votre pipeline casse.
+
+---
+## **5. Recherche et évolutions futures : vers une recherche vraiment autonome ?**
+
+### **Où en est la recherche académique ?**
+Le papier [HANDOFF (arXiv 2026)](http://arxiv.org/abs/2606.06493v1) explore une idée similaire : **des agents qui décomposent des tâches en sous-tâches exécutables**. Mais avec une approche plus modulaire :
+- **Hiérarchie d’agents** : un "manager" supervise des "workers" spécialisés.
+- **Mémoire des échecs** : le système apprend quelles stratégies marchent (ou pas) pour un type de requête.
+
+Perplexity semble s’en inspirer, mais en **simplifiant** (un seul LLM fait tout).
+
+### **Les pistes d’amélioration**
+1. **Pré-générer des templates** :
+   - Au lieu de tout générer à la volée, avoir des **squelettes de code** pré-approuvés pour des cas d’usage courants.
+   - Exemple : un template pour *"benchmark modèles de code"*, un autre pour *"recherche juridique"*.
+
+2. **Hybrider avec du RAG** :
+   - Utiliser *Search as Code* **seulement quand nécessaire**, et tomber sur du RAG classique pour les requêtes simples.
+   - [Notre article sur les architectures RAG avancées](/articles/comment-l-ia-passe-des-tests-a-la-vraie-vie-bienvenue-dans-l-ere-productive--confirme) explique comment combiner les deux.
+
+3. **Optimiser l’exécution** :
+   - **Caching agressif** : stocker les résultats des pipelines fréquents.
+   - **Parallélisation** : lancer plusieurs sous-requêtes en //.
+
+4. **Améliorer la sécurité** :
+   - **Validation statique** du code généré (via des outils comme [Code2LoRA](/articles/comment-code2lora-veut-rendre-les-ia-de-code-aussi-flexibles-qu-un-lego--confirme)).
+   - **Sandboxing renforcé** (ex : exécuter dans un container éphémère avec des permissions minimales).
+
+### **Le futur : vers des "compilateurs de recherche" ?**
+À long terme, on pourrait imaginer :
+- Un **langage dédié** pour décrire des pipelines de recherche (comme SQL pour les bases de données).
+- Des **optimiseurs** qui réécrivent automatiquement les requêtes pour minimiser la latence/le coût.
+- Une **standardisation** des APIs pour les rendre plus "code-friendly".
+
+Mais on en est loin. Aujourd’hui, *Search as Code* reste **un outil puissant pour des cas d’usage niche**, pas une solution universelle.
+
+---
+## **FAQ**
+
+**[Le "Search as Code" est-il compatible avec n’importe quel LLM ?]**
+Non. Il faut un modèle **entraîné pour la génération de code** (comme CodeLlama ou DeepSeek Coder) et **fine-tuné sur la planification**. Un LLM généraliste comme Mistral 7B aura du mal à générer des pipelines robustes.
+
+**[Quelle est la différence avec le RAG (Retrieval-Augmented Generation) ?]**
+Le RAG **récupère des documents** via une recherche vectorielle ou keyword, puis les injecte dans le prompt. *Search as Code* **génère dynamiquement la méthode de recherche** (quelles sources interroger, comment agrégat, etc.), ce qui permet plus de flexibilité mais aussi plus de complexité.
+
+**[Peut-on utiliser cette approche en production aujourd’hui ?]**
+Oui, mais avec des garde-fous :
+- Limiter aux **requêtes critiques** où la précision justifie le coût.
+- **Auditer** les pipelines générés avant déploiement.
+- Prévoir un **fallback** vers une recherche classique en cas d’échec.
+```
