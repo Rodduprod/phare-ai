@@ -12,14 +12,9 @@ interface PageProps {
 }
 
 // ISR: pages revalidées toutes les 24h (évite le timeout build)
+export const dynamicParams = true;
 export const revalidate = 86400;
 
-export async function generateStaticParams() {
-  const articles = getAllArticles();
-  const tags = new Set<string>();
-  articles.forEach((a) => a.tags.forEach((t) => tags.add(t.toLowerCase())));
-  return Array.from(tags).map((tag) => ({ tag }));
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const tag = decodeURIComponent(params.tag);
