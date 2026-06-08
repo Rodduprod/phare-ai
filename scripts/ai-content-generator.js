@@ -835,17 +835,39 @@ async function getOrGenerateCoverImage(title, tags, topicSlug) {
 
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || '';
 
+// Traduction rapide des termes FR → EN pour Unsplash (photos en anglais)
+const FR_TO_EN = {
+  'intelligence artificielle': 'artificial intelligence', 'IA': 'AI', 'automatisation': 'automation',
+  'apprentissage': 'machine learning', 'données': 'data', 'robot': 'robot', 'agents': 'AI agents',
+  'outils': 'tools', 'code': 'code', 'santé': 'healthcare', 'éducation': 'education',
+  'entreprise': 'business', 'sécurité': 'security', 'création': 'creation', 'image': 'image',
+  'voix': 'voice', 'langage': 'language', 'modèle': 'AI model', 'formation': 'training',
+  'réglementation': 'regulation', 'régulation': 'regulation', 'europe': 'europe',
+  'chine': 'china', 'google': 'google', 'apple': 'apple', 'microsoft': 'microsoft',
+  'startup': 'startup', 'investissement': 'investment', 'productivité': 'productivity',
+};
+
+function toEnglishQuery(tags) {
+  const translated = tags.slice(0, 3).map(t => {
+    const lower = t.toLowerCase();
+    return FR_TO_EN[lower] || t;
+  });
+  return (translated.join(' ') + ' technology').trim();
+}
+
 async function getUnsplashImage(tags, slug) {
   if (!UNSPLASH_ACCESS_KEY) return getCoverImage(tags, slug);
-  const query = tags.slice(0, 3).filter(Boolean).join(' ') || 'artificial intelligence technology';
+  const query = toEnglishQuery(tags);
   try {
     const res = await fetch(
       `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${UNSPLASH_ACCESS_KEY}`
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const photo = await res.json();
+    if (!photo.id) throw new Error('no photo id in response');
+    const photoUrl = photo.urls?.regular || `https://images.unsplash.com/photo-${photo.id}?w=1200&q=80&auto=format&fit=crop`;
     console.log(`  📸 Unsplash API: photo ${photo.id} (query: "${query}")`);
-    return `https://images.unsplash.com/photo-${photo.id}?w=1200&q=80&auto=format&fit=crop`;
+    return photoUrl + (photoUrl.includes('?') ? '&' : '?') + 'w=1200&q=80&auto=format&fit=crop';
   } catch (err) {
     console.log(`  ⚠️ Unsplash API erreur: ${err.message} — pool statique`);
     return getCoverImage(tags, slug);
