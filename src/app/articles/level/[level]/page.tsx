@@ -54,9 +54,9 @@ interface PageProps {
   params: { level: string };
 }
 
-export async function generateStaticParams() {
-  return Object.values(LEVEL_TO_SLUG).map((slug) => ({ level: slug }));
-}
+
+export const dynamicParams = true;
+export const revalidate = 86400;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const level = SLUG_TO_LEVEL[params.level];
