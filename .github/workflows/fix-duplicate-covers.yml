@@ -1,0 +1,37 @@
+name: 🖼️ Fix Duplicate Covers
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix-covers:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🖼️ Fix duplicate cover images
+        run: node scripts/fix-duplicate-covers.js
+        env:
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+
+      - name: 📝 Commit changes
+        run: |
+          git config user.email "19566325+Rodduprod@users.noreply.github.com"
+          git config user.name "Rodduprod"
+          if [ -n "$(git status --porcelain)" ]; then
+            COUNT=$(git diff --name-only | grep '\.mdx$' | wc -l | tr -d ' ')
+            git add content/articles/
+            git commit -m "fix(images): remplacer $COUNT images dupliquées via Unsplash API"
+            git push
+            echo "✅ $COUNT articles mis à jour"
+          else
+            echo "ℹ️ Aucun doublon trouvé"
+          fi
