@@ -35,10 +35,6 @@ interface PageProps {
 export const revalidate = 86400;
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  const articles = getAllArticles();
-  return articles.slice(0, 30).map((a) => ({ slug: a.slug }));
-}
 
 const LEVEL_SECTION: Record<string, string> = {
   débutant: 'IA pour débutants',
