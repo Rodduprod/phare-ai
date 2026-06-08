@@ -15,11 +15,9 @@ import { LessonMobileNav } from "@/components/formation/LessonMobileNav";
 
 interface Props { params: { module: string; lecon: string } }
 
-export async function generateStaticParams() {
-  return getAllModules().flatMap((m) =>
-    getModuleLessons(m.slug).map((l) => ({ module: m.slug, lecon: l.slug }))
-  );
-}
+
+export const dynamicParams = true;
+export const revalidate = 86400;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const lesson = getLesson(params.module, params.lecon);
