@@ -34,6 +34,14 @@ jobs:
           echo "{\"orgId\":\"$ORG_ID\",\"projectId\":\"$PROJECT_ID\"}" > .vercel/project.json
           echo "✅ Linked: $PROJECT_ID"
 
+      - name: 🔕 Désactiver le build auto Vercel (Git integration)
+        run: |
+          curl -s -X PATCH "https://api.vercel.com/v9/projects/phare-ai" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"commandForIgnoringBuildStep":"exit 1"}' \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('✅ ignoreCommand:', d.get('commandForIgnoringBuildStep','?'))"
+
       - name: ⬇️ Pull Vercel env vars
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
