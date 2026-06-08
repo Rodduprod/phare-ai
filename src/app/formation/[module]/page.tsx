@@ -8,9 +8,9 @@ import { ModuleProgressBar } from "@/components/formation/ModuleProgressBar";
 
 interface Props { params: { module: string } }
 
-export async function generateStaticParams() {
-  return getAllModules().map((m) => ({ module: m.slug }));
-}
+
+export const dynamicParams = true;
+export const revalidate = 86400;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const module = getModule(params.module);
