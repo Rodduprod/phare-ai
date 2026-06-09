@@ -17,7 +17,7 @@ const UNSPLASH_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
 if (!UNSPLASH_KEY) {
   console.error('❌ UNSPLASH_ACCESS_KEY manquante');
-  process.exit(1);
+  process.exit(0); // commit ce qui a été fait avant de quitter
 }
 
 // ── Lecture de tous les articles ──────────────────────────────────────────────
@@ -130,7 +130,7 @@ async function fetchUnsplashPhoto(query, retryQuery = 'artificial intelligence t
       const remaining = res.headers.get('x-ratelimit-remaining');
       if (res.status === 403 || res.status === 429) {
         console.error(`\n❌ Rate limit Unsplash atteint (remaining: ${remaining})`);
-        process.exit(1);
+        process.exit(0); // commit ce qui a été fait avant de quitter
       }
       continue;
     }
