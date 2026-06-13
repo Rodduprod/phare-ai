@@ -1,0 +1,143 @@
+---
+title: "Comment installer un agent de codage IA localement sur Mac sans se prendre la tête"
+description: "Guide pas à pas pour faire tourner un assistant de code IA sur votre Mac, même si vous y connaissez rien en terminal."
+date: "2026-06-13"
+generated_at: "2026-06-13T11:21:22.411Z"
+tags: ["ia", "mac", "codage", "agent", "local"]
+level: "débutant"
+topic: "comment-installer-un-agent-de-codage-ia-localement-sur-mac-sans-se-prendre-la-tete"
+image: "https://images.unsplash.com/photo-1758857087569-83791ac9edd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODEzNDk2ODR8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Comment installer un agent de codage IA localement sur Mac sans se prendre la tête
+
+On ne va pas se mentir : les annonces marketing autour des "agents IA qui codent à votre place" sont aussi excitantes que les promesses de régimes miracles. Sauf que là, au moins, ça marche. Enfin, si vous arrivez à l’installer.
+
+Heureusement, avec un peu de patience et ce guide, vous allez pouvoir faire tourner un vrai assistant de code directement sur votre Mac. Pas besoin d’envoyer vos données à des serveurs lointains, pas besoin de payer des abonnements à prix d’or. Juste vous, votre machine, et une IA qui va (enfin) comprendre vos commentaires du genre *"euh… là, il manque un truc, non ?"*.
+
+## Pourquoi faire ça chez soi ?
+
+Imaginez un mec dans un open-space qui vous explique comment monter une étagère Ikea. Sauf que ce mec, c’est votre Mac. Et l’étagère, c’est votre projet de code.
+
+Aujourd’hui, les outils comme **Gemma 4** ou **Qwen3.6** (dont on parle [ici](/articles/alibaba-et-qwen-le-geant-chinois-qui-ne-lache-rien-sur-l-ia--debutant)) sont assez légers pour tourner localement. Résultat : plus de latence, plus de fuites de données, et surtout, le plaisir de dire *"c’est MOI qui ai fait ça"* en pointant votre écran.
+
+Et puis franchement, après avoir vu [comment Airbus protège ses plans d’avion comme une grand-mère son livre de recettes](/articles/comment-airbus-utilise-l-ia-pour-proteger-ses-plans-d-avion-comme-une-grand-mere-son-livre-de-recettes--debutant), on se dit que garder son code en local, c’est pas une mauvaise idée.
+
+## Les ingrédients de base
+
+Pour ce tutoriel, on va utiliser :
+- **llama.cpp** : un truc qui fait tourner les modèles IA sur votre machine, comme si c’était un jeu vidéo des années 90.
+- **Un modèle compatible** : genre Gemma 4 26B ou Qwen3.6 35B. Oui, les noms sonnent comme des références de lave-linge, mais c’est normal.
+- **Un terminal** : cette fenêtre noire qui fait peur à 90% des gens. Spoiler : on va juste copier-coller des commandes.
+
+## Étape 1 : Préparer son Mac
+
+D’abord, assurez-vous que votre Mac a assez de RAM. 16 Go, c’est le strict minimum pour ne pas finir en mode *"mon ventilateur fait décoller mon chat"*. 32 Go, c’est l’idéal.
+
+Ensuite, installez **Homebrew** si ce n’est pas déjà fait. C’est comme l’App Store, mais pour les gens qui aiment taper des commandes. Ouvrez le terminal et collez :
+
+```bash
+/bin/bash -c "(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Puis installez les dépendances :
+
+```bash
+brew install cmake git
+```
+
+## Étape 2 : Installer llama.cpp
+
+llama.cpp, c’est le couteau suisse pour faire tourner les modèles IA localement. On va le cloner depuis GitHub (ne paniquez pas, c’est juste un téléchargement) :
+
+```bash
+git clone https://github.com/ggerganov/llama.cpp.git
+cd llama.cpp
+```
+
+Ensuite, on compile le tout. C’est comme faire cuire un gâteau, sauf qu’ici, c’est votre processeur qui chauffe :
+
+```bash
+make -j(sysctl -n hw.ncpu)
+```
+
+Si votre Mac a un processeur Apple Silicon (M1, M2, etc.), ajoutez `LLAMA_METAL=1` avant la commande `make` pour activer l’accélération matérielle. Ça va plus vite, et votre ventilateur vous remerciera.
+
+## Étape 3 : Télécharger un modèle
+
+Là, c’est le moment de choisir votre "cerveau" IA. On va prendre **Gemma 4 26B** pour l’exemple, mais vous pouvez opter pour Qwen3.6 si vous préférez (les deux sont compatibles).
+
+Rendez-vous sur [Hugging Face](https://huggingface.co/) (le GitHub des modèles IA), cherchez "Gemma 4 26B" et téléchargez le fichier `.gguf`. Oui, l’extension fait bizarre, mais c’est normal.
+
+Placez le fichier dans le dossier `llama.cpp` que vous avez créé plus tôt.
+
+## Étape 4 : Lancer l’agent
+
+Maintenant, on va demander à llama.cpp de charger le modèle. Dans le terminal, toujours dans le dossier `llama.cpp` :
+
+```bash
+./llama-cli -m gemma-4-26b.gguf -n 512 --color -i
+```
+
+- `-m` : c’est le nom de votre fichier modèle.
+- `-n 512` : c’est le nombre de tokens (mots, en gros) que l’IA va générer.
+- `--color` : pour que ce soit joli.
+- `-i` : pour le mode interactif (vous tapez, l’IA répond).
+
+Si tout se passe bien, vous devriez voir un truc du genre :
+
+```
+llama model loader: loaded meta tensor  205/205 and 16384 model tensors
+...
+Type a prompt and press Enter to begin (or 'exit' to quit):
+```
+
+Félicitations, votre agent IA est prêt à coder !
+
+## Étape 5 : Le faire coder (enfin)
+
+Maintenant, c’est le moment de vérité. Tapez quelque chose comme :
+
+```
+Écris une fonction Python qui tri un tableau de nombres.
+```
+
+Et là, magie : l’IA va vous pondre du code. Pas toujours parfait, mais souvent utile. Vous pouvez aussi lui demander d’expliquer du code existant, de déboguer, ou même de générer des tests.
+
+Petit conseil : si vous voulez un agent plus spécialisé, regardez du côté des outils comme **OpenCode** (dont on parle [ici](/articles/opencode-open-source-ai-coding-agent--debutant)). C’est un peu plus technique, mais ça peut valoir le coup.
+
+## Les pièges à éviter
+
+- **Le modèle trop gros** : Si vous essayez de faire tourner un modèle de 70 milliards de paramètres sur un MacBook Air, bonne chance. Votre machine va ressembler à un réacteur d’avion.
+- **Les dépendances manquantes** : Si `make` vous sort des erreurs, c’est probablement que vous avez oublié d’installer un truc. Relisez l’étape 1.
+- **Le fichier modèle corrompu** : Si le téléchargement a planté, le modèle ne chargera pas. Vérifiez la taille du fichier (elle doit correspondre à ce qui est indiqué sur Hugging Face).
+
+## Impact quotidien : à quoi ça sert, concrètement ?
+
+- **Plus de copier-coller de Stack Overflow** : L’IA peut vous expliquer pourquoi votre code ne marche pas, au lieu de vous donner une réponse générique qui ne correspond jamais à votre problème.
+- **Apprendre en faisant** : Vous pouvez demander à l’IA de vous expliquer chaque ligne de code qu’elle génère. C’est comme avoir un prof particulier 24h/24.
+- **Prototyper vite** : Besoin d’un script pour automatiser une tâche chiant ? L’IA peut vous donner un point de départ en 2 minutes.
+
+Et surtout, vous gardez le contrôle. Pas de cloud, pas de fuites de données, pas de *"désolé, ce modèle est réservé aux entreprises avec un abonnement à 500 balles par mois"*.
+
+## Conclusion : et maintenant ?
+
+Vous avez maintenant un agent de codage IA qui tourne sur votre Mac. C’est pas parfait, c’est pas toujours rapide, mais c’est **vôtre**.
+
+Et si un jour vous vous dites *"bon, et si je passais à l’étape supérieure ?"*, sachez que des outils comme **Cursor** ou **GitHub Copilot** existent. Mais là, on sort du cadre local, et on entre dans le monde des abonnements et des serveurs distants. À vous de voir.
+
+En attendant, amusez-vous bien. Et surtout, ne dites pas à votre boss que vous avez un assistant IA qui code à votre place. Sinon, il va vouloir l’utiliser aussi.
+
+---
+
+## FAQ
+
+**[Est-ce que mon Mac peut faire tourner ces modèles ?]**
+Oui, si vous avez au moins 16 Go de RAM et un processeur récent (M1 ou supérieur). Pour les modèles plus gros (70B+), il faudra 32 Go minimum et un bon refroidissement.
+
+**[Combien ça coûte ?]**
+Rien, ou presque. Les modèles sont gratuits, et vous utilisez votre propre matériel. Le seul coût, c’est l’électricité et l’usure de votre ventilateur.
+
+**[Est-ce que c’est légal ?]**
+Oui, tant que vous utilisez des modèles open source et que vous respectez leurs licences. Évitez de télécharger des modèles piratés ou protégés par des droits d’auteur.
