@@ -1,0 +1,112 @@
+---
+title: "Comprendre le monde physique : le défi IA que même Yann Le Cun trouve coriace"
+description: "Deep dive technique sur les architectures et benchmarks pour doter l'IA d'une compréhension du monde réel, au-delà des mots."
+date: "2026-06-17"
+generated_at: "2026-06-17T12:55:44.619Z"
+tags: ["ia physique", "yann le cun", "modèles multimodaux", "benchmarks", "compréhension du monde"]
+level: "confirmé"
+topic: "pourquoi-l-ia-doit-encore-apprendre-a-comprendre-le-monde-comme-un-enfant"
+image: "https://images.unsplash.com/photo-1545579833-2e9aadf84e75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODE3MDA4ODF8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Comprendre le monde physique : le défi IA que même Yann Le Cun trouve coriace
+
+Yann Le Cun a raison sur un point : aujourd’hui, l’IA excelle pour aligner des mots, moins pour comprendre ce qu’ils désignent. Les LLMs savent décrire une pomme, mais bonne chance pour leur faire distinguer une Golden d’une Granny Smith dans la vraie vie. Le vrai défi ? Passer du texte au concret, du langage à la physique.
+
+## Fondements techniques : pourquoi c’est si dur
+
+Le problème est simple : les modèles actuels sont des machines à prédire des tokens, pas à modéliser des lois physiques. Un LLM peut générer une recette de cuisine, mais il ne sait pas que la farine ne se mélange pas à l’eau comme du sucre dans du café. **La compréhension du monde physique nécessite une représentation interne des objets, de leurs propriétés et de leurs interactions** — ce que les architectures actuelles ne font pas.
+
+Les approches classiques :
+- **Modèles de langage multimodaux** (CLIP, Flamingo) : ils alignent texte et images, mais sans comprendre la causalité. Une image de verre brisé ? Le modèle saura dire "verre cassé", mais pas pourquoi il est cassé.
+- **Neural Radiance Fields (NeRF)** : super pour reconstruire des scènes 3D, mais statique. Pas de compréhension des forces, des matériaux, ou du temps.
+- **Simulateurs physiques** (MuJoCo, PyBullet) : utiles pour l’apprentissage par renforcement, mais limités à des environnements contrôlés. Essayez de modéliser un supermarché un samedi après-midi.
+
+Le Cun propose une piste : **les modèles de monde (world models)**. L’idée ? Apprendre une représentation interne des lois physiques, comme un enfant qui comprend que les objets tombent quand on les lâche. En pratique, cela implique des architectures hybrides, combinant perception (vision, toucher), raisonnement (LLMs) et simulation (physique).
+
+## Implémentation : comment on s’y prend (ou pas)
+
+### Architectures hybrides
+Les premières tentatives combinent vision et langage avec des **modèles de diffusion conditionnels**. Par exemple, **Stable Diffusion + ControlNet** permet de générer des images à partir de descriptions textuelles *et* de contraintes physiques (comme la gravité). Mais c’est du bricolage : le modèle ne *comprend* pas la physique, il la simule grossièrement.
+
+```python
+# Exemple simplifié avec ControlNet pour imposer une contrainte de gravité
+from diffusers import StableDiffusionControlNetPipeline, ControlNetModel
+import torch
+
+controlnet = ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny")
+pipe = StableDiffusionControlNetPipeline.from_pretrained(
+    "runwayml/stable-diffusion-v1-5", controlnet=controlnet
+).to("cuda")
+
+# Ici, on pourrait ajouter une contrainte de "direction vers le bas" pour simuler la gravité
+# Mais le modèle ne SAIT pas que c'est de la gravité, il suit juste une règle
+```
+
+Pour aller plus loin, des labos comme **DeepMind** ou **FAIR** explorent des architectures avec :
+- **Des modules de mémoire** pour stocker des états physiques (position, vitesse, masse).
+- **Des réseaux de neurones différentiables** pour modéliser des équations physiques (comme dans [les travaux sur les Neural ODEs](https://arxiv.org/abs/1806.07572)).
+- **De l’apprentissage auto-supervisé** sur des vidéos pour inférer des lois physiques (ex : [PhyDNet](https://arxiv.org/abs/2003.04197)).
+
+### Benchmarks : évaluer la compréhension physique
+Comment mesurer si un modèle comprend la physique ? Les benchmarks classiques (GLUE, SuperGLUE) ne suffisent pas. Il faut des tests spécifiques :
+- **PHYRE** (Physical Reasoning) : des puzzles 2D où il faut prédire le mouvement d’objets.
+- **CLEVRER** : des questions sur des scènes 3D avec des interactions physiques.
+- **IntPhys** : des vidéos d’objets en collision, avec des questions sur les causes et effets.
+
+Exemple de tâche dans **CLEVRER** :
+> *Un cube rouge pousse un cube bleu. Que se passe-t-il si on retire le cube rouge ?*
+Un modèle qui comprend la physique répondra : *Le cube bleu reste immobile*. Un LLM classique ? Il inventera une réponse plausible mais fausse.
+
+D’après les résultats récents, même les meilleurs modèles (comme **GPT-4V** ou **Gemini 1.5**) échouent sur 30 à 40% des cas. **On est loin du compte.**
+
+### Optimisations et astuces
+Quelques pistes pour améliorer les performances :
+- **Prétraînement sur des données physiques** : utiliser des simulateurs (comme [Isaac Gym](https://developer.nvidia.com/isaac-gym)) pour générer des données labellisées avec des lois physiques.
+- **Fine-tuning avec feedback humain** : comme dans [RLHF](https://arxiv.org/abs/2203.02155), mais appliqué à des tâches physiques (ex : *Corrige ce modèle qui ne comprend pas que l’eau coule vers le bas*).
+- **Hybridation avec des moteurs physiques** : intégrer des solveurs comme [PyBullet](https://pybullet.org/) dans le pipeline d’inférence pour valider les prédictions du modèle.
+
+## Limitations : pourquoi on est encore dans le flou
+
+### 1. Le problème des données
+Les données pour entraîner des modèles physiques sont **rares et chères**. Contrairement au texte (abondant sur le web), les données 3D avec annotations physiques (forces, matériaux, etc.) nécessitent des capteurs coûteux ou des simulations lourdes.
+
+### 2. La généralisation
+Un modèle entraîné sur des cubes en 2D ne comprendra pas forcément la physique d’un fluide en 3D. **La généralisation à de nouveaux objets ou environnements reste un problème ouvert.**
+
+### 3. Le coût computationnel
+Simuler la physique en temps réel avec des réseaux de neurones est **énergivore**. Les architectures comme les **Transformers 3D** (ex : [MViTv2](https://arxiv.org/abs/2112.01526)) explosent les budgets GPU.
+
+### 4. L’interprétabilité
+Comment savoir si un modèle *comprend* vraiment la physique ou s’il fait du pattern matching avancé ? **Personne ne le sait.** Les techniques comme [l’analyse de circuits](https://arxiv.org/abs/2004.07159) (circuit probing) commencent à émerger, mais c’est encore expérimental.
+
+## Recherche et évolutions futures
+
+### Les pistes prometteuses
+- **Modèles neuro-symboliques** : combiner des réseaux de neurones avec des règles physiques explicites (ex : [Neuro-Symbolic Concept Learner](https://arxiv.org/abs/1905.13214)).
+- **Apprentissage par imitation** : faire apprendre à des agents IA en observant des humains ou des robots interagir avec le monde (comme dans [les travaux de RoboVQA](https://arxiv.org/abs/2104.00799)).
+- **Représentations causales** : forcer les modèles à apprendre des relations de cause à effet, pas juste des corrélations (ex : [Causal Transformers](https://arxiv.org/abs/2106.02631)).
+
+### Ce que les pros doivent surveiller
+- **Les avancées en robotique** : des labos comme **Tesla Bot** ou **Figure AI** poussent les modèles à interagir avec le monde réel. Leurs progrès en manipulation d’objets seront cruciaux.
+- **Les benchmarks physiques** : des initiatives comme [AI2-THOR](https://ai2thor.allenai.org/) ou [iGibson](https://svl.stanford.edu/igibson/) permettent de tester les modèles dans des environnements 3D réalistes.
+- **Les collaborations interdisciplinaires** : la physique, la robotique et le ML commencent à fusionner. Exemple : [le projet "AI for Science" de Microsoft](https://www.microsoft.com/en-us/research/lab/ai-for-science/).
+
+### Et Yann Le Cun dans tout ça ?
+Son approche chez Meta avec **I-JEPA** (Image Joint Embedding Predictive Architecture) vise à apprendre des représentations prédictives du monde. L’idée : **prédire les parties manquantes d’une scène** (comme un puzzle) pour forcer le modèle à comprendre les relations spatiales et physiques. C’est une piste sérieuse, mais **les résultats sont encore limités à des cas simples**.
+
+Pour aller plus loin, on peut aussi regarder du côté des [agents IA autonomes](https://lelabo.ai/articles/agents-ia-2026-etat-des-lieux), qui doivent justement interagir avec un environnement physique — même si aujourd’hui, la plupart se contentent de cliquer sur des boutons dans une interface.
+
+---
+
+## FAQ
+
+**[Pourquoi les LLMs ne comprennent-ils pas la physique ?]**
+Les LLMs sont optimisés pour prédire des mots, pas pour modéliser des lois physiques. Ils n’ont pas de représentation interne des objets, de leurs propriétés ou de leurs interactions. C’est comme demander à un dictionnaire de résoudre une équation de mécanique quantique.
+
+**[Quels sont les meilleurs benchmarks pour évaluer la compréhension physique ?]**
+PHYRE, CLEVRER et IntPhys sont les références. Ils testent la capacité des modèles à prédire des interactions physiques dans des environnements contrôlés. Les modèles actuels échouent encore sur 30 à 40% des cas.
+
+**[Quelles architectures pourraient résoudre ce problème ?]**
+Les modèles hybrides combinant vision, langage et simulation physique (comme les world models) sont les plus prometteurs. Des approches comme I-JEPA de Meta ou les réseaux neuro-symboliques pourraient aussi percer, mais c’est encore expérimental.
