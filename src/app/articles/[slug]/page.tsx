@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getAllArticles, getArticleBySlug, getArticleSiblings, getRelatedArticles, getCanonicalSlug } from "@/lib/articles";
 import { levelConfig } from "@/lib/articles-types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, slugifyTag } from "@/lib/utils";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -198,7 +198,7 @@ export default function ArticlePage({ params }: PageProps) {
                 {article.tags.slice(0, 3).map((tag) => (
                   <Link
                     key={tag}
-                    href={`/articles/tag/${tag.toLowerCase()}`}
+                    href={`/articles/tag/${slugifyTag(tag)}`}
                     className="tag-pill tag-pill-default hover:text-primary transition-colors"
                   >
                     {tag}

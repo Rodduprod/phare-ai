@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArticleGroup, levelConfig } from '@/lib/articles-types';
-import { formatDate } from '@/lib/utils';
+import { formatDate, slugifyTag } from '@/lib/utils';
 import { OptimizedImage } from './OptimizedImage';
 
 interface ArticleGroupCardProps {
@@ -40,7 +40,7 @@ export function ArticleGroupCard({ group, priority = false }: ArticleGroupCardPr
           {canonical.tags.slice(0, 2).map((tag) => (
             <Link
               key={tag}
-              href={`/articles/tag/${tag.toLowerCase()}`}
+              href={`/articles/tag/${slugifyTag(tag)}`}
               className="tag-pill tag-pill-default hover:text-primary hover:border-primary/40 transition-colors"
             >
               {tag}

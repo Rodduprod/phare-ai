@@ -1,5 +1,6 @@
 import { getAllArticles } from "@/lib/articles";
 import { siteConfig } from "@/lib/config";
+import { slugifyTag } from "@/lib/utils";
 
 // Calcule la changefreq selon l'âge de l'article
 function changefreq(dateStr: string): string {
@@ -28,7 +29,7 @@ export async function GET() {
   const articles = getAllArticles().filter((a) => a.published);
 
   // Tags uniques
-  const tags = Array.from(new Set(articles.flatMap((a) => a.tags.map((t) => t.toLowerCase()))));
+  const tags = Array.from(new Set(articles.flatMap((a) => a.tags.map(slugifyTag))));
 
   const staticPages = [
     { url: siteConfig.url,             priority: '1.0',  changefreq: 'daily',   lastmod: new Date().toISOString() },

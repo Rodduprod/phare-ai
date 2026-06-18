@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
 import { Article, ArticleMeta, ArticleLevel, ArticleGroup } from './articles-types';
+import { slugifyTag } from './utils';
 
 const CONTENT_DIR = path.join(process.cwd(), "content/articles");
 
@@ -148,6 +149,23 @@ export function getArticlesByTag(tag: string): ArticleMeta[] {
   return getAllArticles().filter((article) =>
     article.tags.map((t) => t.toLowerCase()).includes(tag.toLowerCase())
   );
+}
+
+// Variante slug-based : matche un slug d'URL propre (ex "ia-embarquee") aux tags des articles.
+// Tolère aussi les anciennes URLs encodées (%20) car le slug est recalculé en amont.
+export function getArticlesByTagSlug(slug: string): ArticleMeta[] {
+  return getAllArticles().filter((article) =>
+    article.tags.some((t) => slugifyTag(t) === slug)
+  );
+}
+
+// Retrouve le tag "brut" (avec accents/casse d'origine) correspondant à un slug d'URL.
+export function resolveTagFromSlug(slug: string): string | null {
+  for (const article of getAllArticles()) {
+    const match = article.tags.find((t) => slugifyTag(t) === slug);
+    if (match) return match;
+  }
+  return null;
 }
 
 export function getRelatedArticles(currentSlug: string, limit = 3): ArticleMeta[] {

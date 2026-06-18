@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getAllArticles, getArticlesByTag, getArticleGroups } from "@/lib/articles";
+import { getArticlesByTagSlug, resolveTagFromSlug, getArticleGroups } from "@/lib/articles";
 import { siteConfig } from "@/lib/config";
+import { slugifyTag } from "@/lib/utils";
 import { ArticleGroupCard } from "@/components/ArticleGroupCard";
 import { WebsiteSchema } from "@/components/WebsiteSchema";
 import { tagDescriptions } from "@/lib/tag-descriptions";
@@ -17,9 +18,11 @@ export const revalidate = 86400;
 
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const tag = decodeURIComponent(params.tag);
-  const articles = getArticlesByTag(tag);
+  const slug = slugifyTag(decodeURIComponent(params.tag));
+  const articles = getArticlesByTagSlug(slug);
   if (articles.length === 0) return {};
+
+  const tag = resolveTagFromSlug(slug) ?? decodeURIComponent(params.tag);
 
   // Niveaux disponibles pour ce tag
   const levels = Array.from(new Set(articles.map((a) => a.level)));
@@ -36,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = tagMeta?.description
     ? tagMeta.description.slice(0, 160)
     : `${articles.length} article${articles.length > 1 ? 's' : ''} sur "${tag}" en français — niveaux ${levelsLabel}. Comprendre l'IA facilement, quel que soit votre profil.`;
-  const canonicalUrl = `${siteConfig.url}/articles/tag/${tag}`;
+  const canonicalUrl = `${siteConfig.url}/articles/tag/${slug}`;
 
   return {
     title,
@@ -67,18 +70,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default function TagPage({ params }: PageProps) {
-  const tag = decodeURIComponent(params.tag);
-  const articlesForTag = getArticlesByTag(tag);
+  const slug = slugifyTag(decodeURIComponent(params.tag));
+  const articlesForTag = getArticlesByTagSlug(slug);
 
   if (articlesForTag.length === 0) notFound();
+
+  const tag = resolveTagFromSlug(slug) ?? decodeURIComponent(params.tag);
 
   // Récupère les groupes filtrés par ce tag
   const allGroups = getArticleGroups();
   const groups = allGroups.filter((g) =>
-    g.tags.map((t) => t.toLowerCase()).includes(tag.toLowerCase())
+    g.tags.some((t) => slugifyTag(t) === slug)
   );
 
-  const canonicalUrl = `${siteConfig.url}/articles/tag/${tag}`;
+  const canonicalUrl = `${siteConfig.url}/articles/tag/${slug}`;
 
   // Niveaux disponibles (pour affichage + schema)
   const levels = Array.from(new Set(articlesForTag.map((a) => a.level)));

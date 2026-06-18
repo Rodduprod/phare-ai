@@ -1,7 +1,19 @@
+import type { Metadata } from "next";
 import { getArticleGroups } from "@/lib/articles-server";
 import { getAllModules } from "@/lib/formation";
 import { WebsiteSchema } from "@/components/WebsiteSchema";
 import { ClientHomePage } from "@/components/ClientHomePage";
+import { siteConfig } from "@/lib/config";
+
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Le Labo AI — l'actualité de l'intelligence artificielle (IA) en français",
+  },
+  description:
+    "Le Labo AI (alias « Le Labo IA ») : veille, analyses et décryptages de l'IA en français, sans jargon. Actu IA quotidienne et formations gratuites, du débutant à l'expert.",
+  alternates: { canonical: siteConfig.url },
+};
 
 export default function HomePage() {
   const groups = getArticleGroups();

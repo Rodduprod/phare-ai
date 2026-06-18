@@ -5,6 +5,7 @@ export function WebsiteSchema() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: siteConfig.name,
+    alternateName: siteConfig.alternateNames,
     description: siteConfig.description,
     url: siteConfig.url,
     inLanguage: "fr-FR",
@@ -22,6 +23,7 @@ export function WebsiteSchema() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteConfig.name,
+    alternateName: siteConfig.alternateNames,
     url: siteConfig.url,
     description: siteConfig.description,
     logo: {
