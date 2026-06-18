@@ -3,6 +3,8 @@ node_modules/
 out/
 .env
 .env.local
+.env*.local
+secrets/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts

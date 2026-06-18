@@ -58,6 +58,9 @@ export const metadata: Metadata = {
     },
   },
   manifest: "/manifest.json",
+  verification: {
+    google: "PVw8FeWG7pRNf16Z6OkIvMqMPFvf4Ru5JgaJxr2ZNpM",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
