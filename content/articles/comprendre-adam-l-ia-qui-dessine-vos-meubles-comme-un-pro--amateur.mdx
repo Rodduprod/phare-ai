@@ -1,0 +1,122 @@
+---
+title: "Comprendre Adam, l’IA open source qui dessine vos plans comme un pro"
+description: "Adam transforme des prompts en modèles 3D exploitables. Décryptage technique et business de ce CAD génératif open source."
+date: "2026-06-18"
+generated_at: "2026-06-18T12:33:02.114Z"
+tags: ["cad", "ia générative", "open source", "conception 3d", "y combinator"]
+level: "amateur"
+topic: "comprendre-adam-l-ia-qui-dessine-vos-meubles-comme-un-pro"
+image: "https://images.unsplash.com/photo-1687154354341-bc7b28f70ec6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODE3ODU5MzB8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+Adam n’est pas le premier outil à promettre de révolutionner la CAO avec l’IA. Mais c’est peut-être le premier à le faire sans vous prendre pour un pigeon.
+
+Ces dernières années, les annonces de "CAD génératif" se multiplient comme des champignons après la pluie. Entre les démos tape-à-l’œil et les promesses marketing, difficile de faire la différence entre un vrai outil et un PowerPoint bien habillé. **Adam**, lui, a au moins deux atouts : il est open source, et il fonctionne. Développé par une équipe issue de Y Combinator, ce projet mise sur une approche pragmatique : prendre un prompt texte, le transformer en géométrie 3D exploitable, et le faire tourner dans le navigateur. Pas de cloud propriétaire, pas de licence à 10 000 balles par an.
+
+Et ça, pour les pros qui en ont marre des solutions fermées comme Fusion 360 ou SolidWorks, c’est une bouffée d’oxygène. Surtout quand on voit comment [Airbus utilise déjà l’IA pour concevoir des pièces comme un Lego](articles/comment-airbus-utilise-l-ia-pour-concevoir-des-avions-comme-un-lego--debutant), mais avec des outils internes ultra-spécialisés.
+
+---
+
+## Contexte : pourquoi la CAO a besoin d’IA (et pourquoi c’est compliqué)
+
+La conception assistée par ordinateur, c’est un peu comme le code : tout le monde veut aller plus vite, mais personne ne veut sacrifier la précision. Aujourd’hui, un ingénieur passe 80% de son temps à ajuster des paramètres, à corriger des contraintes, à exporter/importer entre logiciels. L’IA, en théorie, devrait automatiser les tâches répétitives.
+
+Sauf que la CAO, ce n’est pas du texte. C’est de la géométrie, des contraintes physiques, des normes industrielles. Un LLM classique ne sait pas faire la différence entre un trou de 10 mm et un trou de 10 cm. Et même si des outils comme **nTopology** ou **Onshape** intègrent déjà des fonctionnalités génératives, ils restent souvent limités à des cas d’usage très spécifiques.
+
+Adam, lui, mise sur une approche hybride : du texte vers la 3D, avec une couche de compréhension sémantique pour interpréter les intentions. Pas de magie, mais une pile technique qui combine :
+- Un modèle de langage finetuné sur des datasets de CAO
+- Un moteur de géométrie paramétrique (comme OpenSCAD, mais en plus malin)
+- Une interface web qui permet de voir le résultat en temps réel
+
+Résultat : vous décrivez une pièce en langage naturel, Adam génère un modèle 3D modifiable. Et surtout, **vous gardez la main** sur le code source.
+
+---
+
+## Sous le capot : comment Adam transforme du texte en pièces mécaniques
+
+L’architecture d’Adam repose sur trois piliers :
+
+**1. Le modèle de langage**
+Pas de LLM géant ici, mais un modèle spécialisé, entraîné sur des corpus techniques (manuels de CAO, forums d’ingénierie, etc.). L’idée ? Comprendre des phrases comme *"une bride en aluminium avec un trou de 8 mm à 20 mm du bord"* sans se tromper sur les unités ou les positions.
+
+**2. Le générateur de géométrie**
+C’est là que ça devient intéressant. Adam utilise une représentation intermédiaire en **OpenSCAD** (un langage de modélisation 3D open source), qu’il convertit ensuite en formats exploitables (STEP, STL, etc.). L’avantage : OpenSCAD est déterministe. Si vous générez la même pièce deux fois avec le même prompt, vous obtiendrez le même résultat. Pas de surprise.
+
+**3. L’interface utilisateur**
+Tout se passe dans le navigateur, avec une prévisualisation 3D en WebGL. Vous pouvez :
+- Modifier le prompt et voir les changements en direct
+- Exporter le modèle dans votre logiciel de CAO préféré
+- Récupérer le code OpenSCAD pour le retravailler
+
+Et surtout, **pas de lock-in**. Vous n’êtes pas obligé de rester dans l’écosystème Adam pour utiliser vos créations.
+
+---
+## Cas d’usage business : où Adam peut (vraiment) faire la différence
+
+On ne va pas se mentir : Adam ne va pas remplacer SolidWorks demain. Mais il a des atouts là où les outils traditionnels sont lourds.
+
+**Prototypage rapide**
+Un client vous demande une modification sur un design ? Au lieu de passer 2 heures à ajuster des esquisses, vous décrivez la modif en texte, Adam génère une première version, et vous affinez. Gain de temps : **30 à 50%** sur les itérations simples.
+
+**Éducation et formation**
+Les écoles d’ingénierie adorent. Adam permet aux étudiants de se concentrer sur la **conception** plutôt que sur la maîtrise des outils. Un cours de mécanique ? Donnez-leur un prompt, faites-les itérer, et discutez des contraintes techniques. Bien plus efficace que de leur faire apprendre par cœur les raccourcis clavier de CATIA.
+
+**Personnalisation de masse**
+Vous vendez des pièces sur mesure ? Adam peut générer des variantes à la volée. Un client veut un support de fixation avec des dimensions spécifiques ? Un prompt, un clic, et hop. **Moins de temps passé en SAV**, plus de temps à développer de nouveaux produits.
+
+Et pour les entreprises qui veulent aller plus loin, [les agents IA autonomes comme ceux d’Accor](articles/comment-un-agent-ia-autonome-gere-les-finances-d-accor-sans-cafe--amateur) montrent que l’automatisation des tâches répétitives est déjà une réalité. Adam pourrait être le prochain maillon de cette chaîne.
+
+---
+## APIs et intégrations : comment l’utiliser dans votre stack
+
+Adam est open source, donc vous pouvez l’auto-héberger ou contribuer au projet. Mais pour les pros pressés, voici ce qui est disponible aujourd’hui :
+
+**L’API REST**
+Envoyez un prompt, récupérez un fichier 3D. Simple, efficace. Parfait pour intégrer Adam dans un pipeline de conception existant.
+
+```python
+import requests
+
+response = requests.post(
+    "https://api.adamcad.com/generate",
+    json={"prompt": "une pièce en L de 100x50x10 mm avec un trou de 6 mm au centre"},
+    headers={"Authorization": "Bearer VOTRE_CLE"}
+)
+with open("piece.stl", "wb") as f:
+    f.write(response.content)
+```
+
+**Le SDK Python**
+Pour ceux qui veulent plus de contrôle, le SDK permet de :
+- Générer des modèles par lots
+- Appliquer des contraintes supplémentaires (matériaux, tolérances, etc.)
+- Intégrer Adam dans des scripts de conception paramétrique
+
+**Les webhooks**
+Vous voulez déclencher une génération à chaque fois qu’un client remplit un formulaire ? Les webhooks d’Adam s’intègrent avec Zapier, Make, ou n’importe quel outil d’automatisation.
+
+---
+## ROI et impact sur les équipes : ce qui change (et ce qui ne change pas)
+
+**Ce qui change :**
+- **Réduction des coûts de prototypage** : Moins de temps passé sur les modifications mineures = moins d’heures facturables gaspillées.
+- **Accessibilité** : Un stagiaire peut générer une première ébauche sans connaître SolidWorks. La courbe d’apprentissage est divisée par 10.
+- **Collaboration** : Plus besoin d’exporter/importer des fichiers entre équipes. Tout le monde travaille sur la même base textuelle.
+
+**Ce qui ne change pas (et c’est normal) :**
+- **La validation technique** : Adam ne remplace pas un ingénieur. Il accélère la phase de conception, mais la vérification des contraintes mécaniques, thermiques ou électriques reste humaine.
+- **Les normes industrielles** : Si votre secteur impose des certifications strictes (aéronautique, médical), Adam peut aider à générer des idées, mais pas à produire des pièces finales sans relecture.
+- **La créativité** : L’IA est excellente pour l’itération, moins pour l’innovation radicale. Pour l’instant.
+
+---
+## FAQ
+
+**[Adam peut-il remplacer mon logiciel de CAO actuel ?]**
+Non, et ce n’est pas son objectif. Adam est un outil complémentaire, idéal pour le prototypage rapide et les modifications simples. Pour la production industrielle, les outils comme SolidWorks ou CATIA restent indispensables.
+
+**[Est-ce que les modèles générés par Adam sont exploitables en production ?]**
+Oui, mais avec des limites. Les fichiers exportés (STEP, STL) sont compatibles avec la plupart des logiciels de CAO et des imprimantes 3D. En revanche, pour des pièces critiques, une vérification manuelle est recommandée.
+
+**[Adam est-il gratuit ?]**
+Le code est open source, donc vous pouvez l’utiliser gratuitement en auto-hébergeant. Une version cloud avec des fonctionnalités avancées (API, collaboration) devrait être proposée en freemium, mais les tarifs ne sont pas encore annoncés.
