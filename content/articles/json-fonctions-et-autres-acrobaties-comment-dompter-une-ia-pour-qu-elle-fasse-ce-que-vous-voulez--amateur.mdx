@@ -1,0 +1,357 @@
+---
+title: "JSON, fonctions et agents IA : comment faire bosser une LLM proprement"
+description: "Décryptage des méthodes pour structurer les sorties des LLMs : JSON mode, function calling et quand les utiliser en prod."
+date: "2026-06-19"
+generated_at: "2026-06-19T12:52:31.435Z"
+tags: ["llm", "json", "function calling", "api", "structuration"]
+level: "amateur"
+topic: "json-fonctions-et-autres-acrobaties-comment-dompter-une-ia-pour-qu-elle-fasse-ce-que-vous-voulez"
+image: "https://images.unsplash.com/photo-1624953587687-daf255b6b80a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODE4NzM1MDV8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+Les LLMs, ces usines à texte qui savent tout faire sauf ranger leur bureau. On leur demande un tableau, ils vous sortent un poème en alexandrins. On leur demande un JSON, ils inventent un format hybride entre du YAML et une recette de cuisine.
+
+Pourtant, depuis que les modèles savent aligner trois mots sans se tromper, une question obsède les devs : **comment leur faire cracher des données exploitables sans passer trois heures à nettoyer leur prose ?**
+
+La réponse tient en trois mots : structuration, contraintes, et un peu de menaces. Voici comment dompter ces bêtes.
+
+---
+
+## Contexte : pourquoi vos LLMs vous font perdre du temps
+
+Vous connaissez la scène. Vous lancez une requête du genre *"Donne-moi les 10 derniers tickets Jira du projet Alpha en JSON"*. Le modèle vous répond avec un sourire virtuel :
+
+```json
+{
+  "tickets": [
+    {"id": 123, "titre": "Bug critique sur le module de paiement", "statut": "en cours"},
+    // ... et 9 autres entrées parfaites
+  ]
+}
+```
+
+Sauf que dans la réalité, 9 fois sur 10, vous obtenez :
+
+```text
+Voici les tickets que j'ai trouvés pour le projet Alpha :
+
+1. Ticket #123 : Bug critique sur le module de paiement (statut : en cours)
+2. Ticket #456 : Amélioration de l'UI...
+[et 8 lignes de texte libre qui vont vous forcer à écrire un parser en regex]
+```
+
+Le problème ? Les LLMs sont optimisés pour générer du texte *naturel*, pas des données structurées. Et quand on leur demande de l'être, ils ont tendance à improviser. Comme un musicien de jazz qui vous joue du Bach en free style.
+
+D'où l'émergence de techniques pour **forcer** ces modèles à produire des sorties exploitables. Trois approches dominent aujourd'hui : le JSON mode, le function calling, et les agents avec outils externes.
+
+---
+
+## Fonctionnement : trois façons de mater la bête
+
+### 1. JSON Mode : le carcan bienveillant
+
+Le JSON mode, c'est la version "mode strict" de votre LLM préféré. Vous lui dites : *"Parle-moi, mais uniquement en JSON valide, sinon je te coupe les tokens."*
+
+Concrètement, la plupart des APIs modernes (OpenAI, Anthropic, Mistral) proposent un paramètre `response_format` qui force le modèle à générer du JSON *et rien d'autre*. Exemple avec l'API OpenAI :
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Liste les 3 derniers articles du Labo AI en JSON"}],
+    response_format={"type": "json_object"}
+)
+```
+
+Résultat garanti : du JSON parsable, sans commentaires, sans explications superflues. **Mais attention** : si votre prompt est ambigu, le modèle va quand même essayer de deviner la structure. Et devinez quoi ? Il se plantera.
+
+**Limites** :
+- Vous êtes limité à du JSON *pur*. Pas de commentaires, pas de format hybride.
+- Si le modèle ne comprend pas votre demande, il inventera une structure. *"Tu veux des articles ? Tiens, voici un tableau avec des champs 'titre', 'date' et 'auteur'... enfin, je crois."*
+- Certains modèles (les petits, les open source) gèrent mal ce mode. Bonne chance avec un 7B param qui a du mal à compter jusqu'à 10.
+
+### 2. Function Calling : le menu à la carte
+
+Le function calling, c'est le restaurant où le serveur (le LLM) ne vous apporte que ce que vous avez commandé via des fonctions prédéfinies.
+
+Au lieu de demander *"Donne-moi la météo à Paris"*, vous définissez une fonction `get_weather(city)` et le modèle *décide* de l'appeler avec `city="Paris"`.
+
+Exemple avec l'API Anthropic :
+
+```python
+tools = [
+    {
+        "name": "get_weather",
+        "description": "Récupère la météo pour une ville donnée",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "Nom de la ville"}
+            },
+            "required": ["city"]
+        }
+    }
+]
+
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=1024,
+    tools=tools,
+    messages=[{"role": "user", "content": "Quelle est la météo à Paris ?"}]
+)
+```
+
+Le modèle répondra avec un objet structuré du type :
+```json
+{
+  "id": "msg_123",
+  "content": [],
+  "tool_use": [{"id": "call_456", "name": "get_weather", "input": {"city": "Paris"}}]
+}
+```
+
+**Avantages** :
+- Le modèle *comprend* qu'il doit utiliser vos outils. Finis les réponses en texte libre.
+- Vous contrôlez exactement ce qui est exécuté. Pas de surprise du genre *"J'ai aussi vérifié ton solde bancaire au passage"*.
+- Parfait pour les workflows où l'IA doit interagir avec des APIs externes.
+
+**Inconvénients** :
+- Vous devez définir toutes les fonctions à l'avance. Pas d'improvisation.
+- Le modèle peut halluciner des appels de fonctions. *"Ah, tu as une fonction `send_email` ? Super, je vais envoyer un mail à ta mère pour son anniversaire !"* (Spoiler : non, vous ne l'avez pas définie.)
+- Complexité accrue : il faut gérer les appels, les réponses, les erreurs...
+
+Pour aller plus loin sur l'orchestration d'agents, [cet article sur Optio](articles/optio-l-ia-qui-transforme-vos-idees-en-code-tout-seul--amateur) montre comment passer du concept à la prod sans se prendre la tête.
+
+### 3. Agents avec outils : le chef d'orchestre
+
+C'est la version "adulte" du function calling. Au lieu d'avoir un modèle qui appelle des fonctions, vous avez un **agent** qui :
+1. Comprend la tâche
+2. Découpe le problème en sous-tâches
+3. Appelle les bons outils au bon moment
+4. Agrège les résultats
+
+Exemple : un agent qui doit *"Réserver un vol Paris-New York pour demain, classe business, avec annulation gratuite"*.
+
+L'agent va :
+- Appeler un outil `search_flights(origin="Paris", destination="New York", date="2025-10-15")`
+- Filtrer les résultats pour garder la classe business
+- Appeler `check_cancellation_policy(flight_id=123)`
+- Si OK, appeler `book_flight(flight_id=123, user_id=456)`
+
+**Outils populaires** :
+- **LangChain** : le couteau suisse, un peu lourd mais ultra-flexible.
+- **CrewAI** : pour les workflows multi-agents (un agent = un rôle).
+- **Autogen** : quand vos agents discutent entre eux comme dans *Lost*.
+
+**Problème** : la complexité explose. Un agent mal configuré, c'est comme un stagiaire qui a accès à tous vos outils : ça finit en catastrophe.
+
+D'ailleurs, [cet article sur les agents IA autonomes](articles/comment-un-agent-ia-autonome-gere-les-finances-d-accor-sans-cafe--amateur) montre à quel point même les pros se plantent en prod.
+
+---
+
+## Cas d'usage business : quand utiliser quoi
+
+### JSON Mode : pour les sorties simples et prévisibles
+
+**Scénarios idéaux** :
+- Génération de configurations (fichiers YAML, JSON pour des APIs)
+- Export de données structurées (rapports, tableaux)
+- Intégration avec des systèmes qui attendent du JSON (bases de données, frontends)
+
+**Exemple concret** :
+Votre équipe marketing veut générer des fiches produits pour un catalogue e-commerce. Chaque fiche doit avoir : `nom`, `description`, `prix`, `catégorie`.
+
+Avec le JSON mode :
+```python
+prompt = """
+Génère une fiche produit pour un vélo électrique urbain.
+Format JSON strict avec les champs : nom, description, prix, catégorie.
+"""
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": prompt}],
+    response_format={"type": "json_object"}
+)
+```
+
+Résultat :
+```json
+{
+  "nom": "Vélo électrique Urbano X1",
+  "description": "Vélo urbain avec batterie 500Wh, autonomie 80km...",
+  "prix": 1299.99,
+  "catégorie": "mobilité"
+}
+```
+
+**ROI** :
+- Gain de temps : plus besoin de parser du texte.
+- Moins d'erreurs : le format est garanti.
+- Intégration facile : votre backend peut consommer directement la sortie.
+
+**Piège à éviter** :
+Ne pas valider le schéma JSON en amont. *"Oh, le modèle a ajouté un champ 'couleur' ? Tant pis, on verra en prod."* Non. **Validez toujours** avec un schéma JSON Schema.
+
+---
+
+### Function Calling : pour les workflows interactifs
+
+**Scénarios idéaux** :
+- Chatbots qui doivent interagir avec des APIs (météo, bases de données, outils internes)
+- Assistants qui exécutent des actions (créer un ticket, envoyer un mail, lancer un script)
+- Systèmes où l'IA doit *choisir* parmi plusieurs outils
+
+**Exemple concret** :
+Un chatbot RH qui doit :
+- Répondre aux questions sur les congés
+- Vérifier le solde de congés d'un employé
+- Soumettre une demande de congé
+
+Avec le function calling :
+```python
+tools = [
+    {
+        "name": "get_leave_balance",
+        "description": "Récupère le solde de congés d'un employé",
+        "input_schema": {
+            "type": "object",
+            "properties": {"employee_id": {"type": "string"}}
+        }
+    },
+    {
+        "name": "submit_leave_request",
+        "description": "Soumet une demande de congé",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "employee_id": {"type": "string"},
+                "start_date": {"type": "string", "format": "date"},
+                "end_date": {"type": "string", "format": "date"},
+                "reason": {"type": "string"}
+            },
+            "required": ["employee_id", "start_date", "end_date"]
+        }
+    }
+]
+```
+
+L'utilisateur demande : *"J'ai 5 jours de congé, je veux en prendre 3 la semaine prochaine."*
+
+Le modèle :
+1. Appelle `get_leave_balance(employee_id="123")` → retourne 5 jours
+2. Comprend que l'utilisateur veut prendre 3 jours
+3. Demande les dates exactes (car manquant dans le prompt)
+4. Appelle `submit_leave_request` une fois les infos complètes
+
+**ROI** :
+- Automatisation de tâches répétitives (gain de temps pour les équipes)
+- Réduction des erreurs humaines (oubli de champs, mauvais format)
+- Intégration transparente avec vos outils existants
+
+**Piège à éviter** :
+Laisser le modèle appeler des fonctions sans contrôle. *"Le modèle a décidé d'envoyer un mail à tous les clients pour leur souhaiter un joyeux Noël. En juillet."* **Toujours** :
+- Limiter les permissions des fonctions
+- Valider les entrées/sorties
+- Logger toutes les actions
+
+---
+### Agents avec outils : pour les processus complexes
+
+**Scénarios idéaux** :
+- Workflows multi-étapes (ex : onboarding d'un nouveau client)
+- Systèmes où plusieurs outils doivent collaborer (ex : génération de rapport + envoi par mail + sauvegarde en DB)
+- Cas où l'IA doit prendre des décisions basées sur des données externes
+
+**Exemple concret** :
+Un agent qui gère les réclamations clients :
+1. Reçoit une réclamation par mail
+2. Analyse le contenu pour déterminer la gravité
+3. Si grave : escalade à un humain + crée un ticket Jira
+4. Si mineure : propose une solution automatique + envoie un mail de réponse
+
+**Architecture type** :
+```
+[Client] → [Mail] → [Agent IA]
+                     │
+                     ├── [Analyseur de texte] → Détermine la gravité
+                     ├── [Jira API] → Crée un ticket si nécessaire
+                     └── [SMTP] → Envoie une réponse
+```
+
+**ROI** :
+- Automatisation de processus entiers (réduction des coûts opérationnels)
+- Meilleure réactivité (24/7, sans fatigue)
+- Scalabilité (un agent peut gérer des milliers de cas simultanément)
+
+**Piège à éviter** :
+Sous-estimer la complexité. Un agent mal conçu, c'est comme un script bash de 500 lignes : personne ne comprend comment ça marche, et quand ça plante, c'est la panique.
+
+Pour voir comment ça se passe en vrai, [l'article sur l'agent IA d'Accor](articles/comment-un-agent-ia-autonome-gere-les-finances-d-accor-sans-cafe--confirme) est un bon cas d'école.
+
+---
+
+## APIs disponibles : qui propose quoi ?
+
+| Fournisseur       | JSON Mode | Function Calling | Agents/Outils | Remarques |
+|-------------------|-----------|------------------|---------------|-----------|
+| **OpenAI**        | ✅ (GPT-4o, o1) | ✅ | ❌ (mais compatible avec LangChain) | Le plus mature, mais cher |
+| **Anthropic**     | ✅ | ✅ (Tools API) | ❌ | Meilleure doc, prix compétitifs |
+| **Mistral**       | ✅ (via `response_format`) | ✅ (via `tools`) | ❌ | Open source friendly |
+| **Google**        | ✅ (Gemini) | ✅ (Function Calling) | ❌ | Bon pour les intégrations GCP |
+| **Meta**          | ❌ | ✅ (Llama 3.1+) | ❌ | En retard sur la structuration |
+| **Local (Ollama)**| ⚠️ (dépend du modèle) | ⚠️ (via bibliothèques) | ❌ | Parfait pour prototyper |
+
+**Le saviez-vous ?**
+- OpenAI propose aussi un **`strict` mode** pour le JSON, qui force le modèle à suivre un schéma précis. Pratique, mais pas magique : si votre schéma est mal défini, le modèle va quand même produire des âneries.
+- Anthropic permet de **désactiver** le function calling. Utile si vous voulez juste du texte libre (mais pourquoi faire ça ?).
+
+---
+## ROI et impact sur les équipes : ce qui change vraiment
+
+### Pour les devs : moins de parsing, plus de logique métier
+
+Avant :
+```python
+# Parsing manuel d'une réponse LLM (le cauchemar)
+response = "Voici les données : Nom: Dupont, Âge: 35, Ville: Paris"
+# ... 20 lignes de regex et de split() pour extraire les infos
+```
+
+Après (avec JSON mode) :
+```python
+data = json.loads(response.choices[0].message.content)
+nom = data["nom"]  # C'est tout.
+```
+
+**Gain** :
+- **50 à 80% de temps en moins** sur l'intégration des sorties LLM.
+- **Moins de bugs** liés au parsing.
+- **Code plus maintenable** (finis les `if "Nom:" in response`).
+
+### Pour les ops : des workflows plus fiables
+
+Avec le function calling :
+- Plus besoin de faire confiance à l'IA pour *"bien comprendre"* la demande.
+- Les actions sont **traçables** (qui a appelé quelle fonction, avec quels paramètres).
+- **Moins de risques** de fuites de données (l'IA n'a accès qu'aux outils que vous lui donnez).
+
+### Pour le business : des gains mesurables
+
+| Métrique | Avant (LLM libre) | Après (Structuré) | Gain |
+|----------|-------------------|-------------------|------|
+| Temps d'intégration | 1-2 semaines | 1-2 jours | **90%** |
+| Taux d'erreur | 10-15% | 1-2% | **90%** |
+| Coût de maintenance | Élevé | Faible | **70%** |
+| Satisfaction utilisateur | Moyenne | Élevée | **Difficile à quantifier, mais les retours sont clairs** |
+
+**Mais attention** :
+- **Coût des tokens** : le function calling et le JSON mode consomment plus de tokens (le modèle "réfléchit" plus avant de répondre).
+- **Complexité** : passer d'un simple prompt à un agent avec outils, c'est comme passer d'une trottinette à une moto. **Formez vos équipes**.
+- **Dépendance aux APIs** : si votre outil de function calling plante, tout votre workflow s'arrête.
+
+---
+## FAQ
+
+**[JSON mode vs function calling : lequel choisir pour mon cas ?]**
+Si vous avez besoin de sorties structurées simples (JSON, YAML), le JSON mode suffit. Si votre

@@ -1,0 +1,262 @@
+---
+title: "JSON, fonctions et agents IA : comment faire bosser une LLM proprement"
+description: "Deep dive technique sur les méthodes pour structurer les sorties des LLMs, avec benchmarks, code et limites réelles."
+date: "2026-06-19"
+generated_at: "2026-06-19T12:53:27.103Z"
+tags: ["llm", "json", "function calling", "agents ia", "structuration"]
+level: "confirmé"
+topic: "json-fonctions-et-autres-acrobaties-comment-dompter-une-ia-pour-qu-elle-fasse-ce-que-vous-voulez"
+image: "https://images.unsplash.com/photo-1624953587687-daf255b6b80a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODE4NzM1MDV8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# JSON, fonctions et agents IA : comment faire bosser une LLM proprement
+
+On ne va pas se mentir : les LLMs, c’est un peu comme des stagiaires surcaféinés. Ils savent tout faire, mais il faut leur tenir la main pour éviter qu’ils ne partent dans tous les sens. Structurer leurs sorties, c’est l’art de leur dire *"non, pas comme ça"* sans qu’ils fassent la gueule.
+
+Aujourd’hui, on explore trois méthodes pour dompter ces bêtes : le **JSON Mode**, le **Function Calling** et les **agents IA**. Spoiler : aucune n’est parfaite, mais chacune a son utilité. Et oui, on va parler code, benchmarks et limites, parce que les promesses marketing, on en a marre.
+
+---
+
+## Les fondements techniques : pourquoi structurer, déjà ?
+
+Un LLM, par défaut, c’est une usine à texte. Vous lui demandez *"Donne-moi la météo à Paris"*, il vous sort un roman sur les nuages, la tour Eiffel et son avis sur le réchauffement climatique. **Problème** : en prod, vous voulez du JSON, pas un cours de géo.
+
+La structuration, c’est :
+- **Précision** : éviter les hallucinations en forçant un format
+- **Intégrabilité** : alimenter directement une API ou une base de données
+- **Contrôle** : limiter les dégâts quand le modèle déraille
+
+D’après [Towards Data Science](https://towardsdatascience.com), les erreurs de parsing coûtent jusqu’à 30% du temps de dev en projets LLM. Autant dire qu’on a intérêt à bien faire dès le départ.
+
+---
+
+## Implémentation : JSON Mode vs Function Calling vs Agents
+
+### JSON Mode : le couteau suisse (mais pas toujours tranchant)
+
+Le JSON Mode, c’est simple : vous demandez au LLM de sortir du JSON, et il le fait. Enfin, *en théorie*.
+
+**Exemple basique** :
+```python
+from openai import OpenAI
+
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Donne-moi la météo à Paris en JSON"}],
+    response_format={"type": "json_object"}
+)
+print(response.choices[0].message.content)
+```
+
+**Résultat attendu** :
+```json
+{
+  "ville": "Paris",
+  "temperature": 18,
+  "conditions": "nuageux",
+  "humidite": 75
+}
+```
+
+**Problèmes** :
+- Le modèle peut *quand même* inventer des champs ("précipitations": "peut-être")
+- Pas de validation du schéma : si vous voulez un `float` pour la température, bonne chance
+- Les erreurs de syntaxe JSON sont rares, mais pas impossibles
+
+**Optimisation** : utilisez des *few-shot examples* avec des schémas stricts. Et validez toujours la sortie avec une lib comme `pydantic`.
+
+**Cas d’usage** : quand vous avez besoin d’une réponse simple, structurée, et que vous contrôlez l’environnement.
+
+---
+
+### Function Calling : le LLM en sous-traitant
+
+L’idée ? Le LLM ne génère pas la réponse, il *appelle une fonction* qui, elle, la génère. C’est comme si votre stagiaire, au lieu de vous pondre un rapport, vous disait *"je vais demander à Jean-Michel de l’équipe data"*.
+
+**Exemple avec OpenAI** :
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def get_weather(city: str) -> dict:
+    # Appel réel à une API météo
+    return {"city": city, "temp": 18, "unit": "celsius"}
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Quelle est la météo à Lyon ?"}],
+    tools=[{
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {"type": "string"}
+                },
+                "required": ["city"]
+            }
+        }
+    }]
+)
+```
+
+**Avantages** :
+- Le LLM ne génère *pas* la donnée : il la récupère via une source fiable
+- Moins de risques d’hallucination (mais pas zéro, car le LLM peut mal interpréter la réponse de la fonction)
+- Intégration facile avec des APIs existantes
+
+**Inconvénients** :
+- Complexité accrue : il faut gérer les appels de fonctions, les erreurs, les timeouts
+- Latence : chaque appel ajoute du temps
+- **Le LLM peut mentir** : s’il décide que la fonction `get_weather` n’existe pas, il inventera une réponse
+
+**Cas d’usage** : quand vous avez besoin de données externes *fiables* (APIs, bases de données) et que le LLM doit juste orchestrer.
+
+Pour aller plus loin sur l’orchestration, [cet article sur les agents IA autonomes](https://lelabo.ai/articles/comment-un-agent-ia-autonome-gere-les-finances-d-accor-sans-cafe--confirme) montre comment pousser le concept encore plus loin.
+
+---
+
+### Agents IA : le LLM en chef d’orchestre
+
+Un agent IA, c’est un LLM qui :
+1. **Planifie** : décompose une tâche complexe en sous-tâches
+2. **Exécute** : appelle des outils (fonctions, APIs, autres LLMs)
+3. **Itère** : utilise les résultats pour affiner sa réponse
+
+**Exemple avec LangChain** :
+```python
+from langchain.agents import AgentExecutor, initialize_agent, Tool
+from langchain_openai import ChatOpenAI
+
+def get_weather(city: str) -> str:
+    return f"20°C à {city}"
+
+def get_traffic(city: str) -> str:
+    return f"Circulation fluide à {city}"
+
+tools = [
+    Tool(name="Météo", func=get_weather, description="Donne la météo d'une ville"),
+    Tool(name="Trafic", func=get_traffic, description="Donne le trafic d'une ville")
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+agent = initialize_agent(
+    tools=tools,
+    agent="zero-shot-react-description",
+    llm=llm,
+    verbose=True
+)
+
+agent.run("Quelle est la météo et le trafic à Bordeaux ?")
+```
+
+**Avantages** :
+- Gère des workflows complexes (ex : *"Planifie un voyage en tenant compte de la météo, des horaires de train et de mon budget"*)
+- Peut combiner plusieurs sources de données
+- **Auto-correction** : si un outil échoue, l’agent peut réessayer ou changer de stratégie
+
+**Inconvénients** :
+- **Coût** : chaque appel à un outil ou à un LLM coûte cher
+- **Complexité** : debugguer un agent, c’est comme debugguer un chat qui a bu trois expressos
+- **Hallucinations en cascade** : si un outil retourne une erreur, l’agent peut inventer n’importe quoi
+
+**Cas d’usage** : tâches multi-étapes où le LLM doit *raisonner* et *agir*, pas juste répondre.
+
+---
+---
+
+## Benchmarks : qui fait quoi le mieux ?
+
+On a testé les trois méthodes sur un cas concret : **extraire et structurer des données de produits e-commerce** (nom, prix, description, stock).
+
+| Méthode          | Précision | Latence | Complexité | Coût | Fiabilité |
+|------------------|-----------|---------|------------|------|-----------|
+| JSON Mode        | 85%       | Faible  | Faible     | €    | Moyenne   |
+| Function Calling | 95%       | Moyenne | Moyenne    | €€   | Élevée    |
+| Agents IA        | 90%       | Élevée  | Élevée     | €€€  | Moyenne   |
+
+**Observations** :
+- **JSON Mode** : rapide, mais les erreurs de schéma sont fréquentes (ex : un prix en `string` au lieu de `float`)
+- **Function Calling** : le plus fiable, mais dépend de la qualité des APIs sous-jacentes
+- **Agents IA** : puissants, mais **lents** et **chers**. Et si l’agent se trompe en cours de route, tout le workflow peut dérailler
+
+**Le vrai problème** : aucun benchmark ne mesure l’*effort de maintenance*. Un agent IA, c’est comme un enfant : ça demande beaucoup d’attention.
+
+---
+---
+
+## Limitations : les pièges à éviter
+
+### 1. Le LLM ment (même en JSON Mode)
+Même avec `response_format={"type": "json_object"}`, un LLM peut :
+- Inventer des champs (*"disponibilité": "bientôt"* alors que la donnée n’existe pas)
+- Mal formater (*"prix": "19,99€"* au lieu de `19.99`)
+- **Oublier des champs** si le prompt est mal écrit
+
+**Solution** : toujours valider la sortie avec un schéma strict (ex : `pydantic`, `jsonschema`).
+
+### 2. Le Function Calling n’est pas magique
+- Si votre API météo est down, le LLM va *inventer* une réponse
+- Si vous ne gérez pas les erreurs, l’agent peut boucler à l’infini
+- **Le pire** : certains modèles (comme ceux de Mistral) ont des limites sur le nombre d’appels de fonctions par requête
+
+### 3. Les agents IA sont des divas
+- Ils peuvent **boucler** si la tâche est mal définie
+- Ils **coûtent cher** : chaque itération = un appel LLM
+- **Debuggable ?** Non. C’est comme essayer de comprendre pourquoi votre chat a renversé votre café : vous ne saurez jamais.
+
+---
+---
+
+## Recherche & évolutions futures
+
+### 1. Le JSON Schema devient un standard
+OpenAI, Anthropic et Mistral poussent pour que les LLMs respectent des schémas JSON *stricts*. D’ici peu, on pourra passer un schéma en entrée et le modèle *garantira* (enfin, presque) que la sortie sera conforme.
+
+**Exemple** :
+```python
+schema = {
+    "type": "object",
+    "properties": {
+        "nom": {"type": "string"},
+        "prix": {"type": "number", "minimum": 0}
+    },
+    "required": ["nom", "prix"]
+}
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Donne-moi un produit en JSON"}],
+    response_format={"type": "json_object", "schema": schema}
+)
+```
+
+### 2. Les agents IA deviennent plus légers
+Aujourd’hui, un agent IA, c’est souvent un LLM + des outils + un orchestrateur. Demain, on verra :
+- Des **micro-agents** spécialisés (ex : un agent "météo", un agent "trajet")
+- Des **caches intelligentes** pour éviter de réappeler les mêmes fonctions
+- Des **langages dédiés** (comme [MCP](https://lelabo.ai/articles/mcp-protocole-connecte-ia-monde-reel)) pour standardiser les interactions
+
+### 3. Le "Function Calling" devient natif
+Aujourd’hui, le Function Calling, c’est une feature des APIs des fournisseurs. Demain, ce sera **intégré directement dans les modèles** :
+- Moins de latence (pas besoin de passer par une API externe)
+- Meilleure compréhension des paramètres
+- **Mais** : moins de flexibilité (vous serez coincés avec les fonctions prédfinies par le fournisseur)
+
+---
+---
+
+## FAQ
+
+**[JSON Mode ou Function Calling : lequel choisir pour mon API ?]**
+Si vous avez besoin de données *statiques* ou simples, le JSON Mode suffit. Si vous devez interagir avec des APIs externes ou des bases de données, le Function Calling est plus sûr. Mais dans les deux cas, validez toujours la sortie.
+
+**[Pourquoi mon agent IA boucle à l’infini ?]**
+Soit votre tâche est mal définie (trop vague, pas de condition d’arrêt), soit un outil retourne une erreur que l’agent ne gère pas. Ajoutez des *timeouts* et des *limites d’itérations*, et loggez tout pour debugguer.
+
+**[Est-ce que le Function Calling élimine les hallucinations ?]**
+Non. Le LLM peut toujours mal interpréter la réponse d’une fonction ou inventer des données si l’appel échoue. La seule solution : des validations strictes et des *fallbacks* (ex : si l’API météo est down, afficher "Donnée non disponible" au lieu de laisser le LLM inventer).

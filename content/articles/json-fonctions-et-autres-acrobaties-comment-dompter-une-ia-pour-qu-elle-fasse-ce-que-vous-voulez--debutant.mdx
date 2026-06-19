@@ -1,0 +1,133 @@
+---
+title: "JSON, fonctions et autres acrobaties : comment dompter une IA pour qu’elle fasse ce que vous voulez"
+description: "Découvrez comment obtenir des réponses structurées et précises des IA, sans vous prendre la tête avec des prompts interminables."
+date: "2026-06-19"
+generated_at: "2026-06-19T12:51:41.901Z"
+tags: ["ia", "json", "fonction calling", "llm", "prompts"]
+level: "débutant"
+topic: "json-fonctions-et-autres-acrobaties-comment-dompter-une-ia-pour-qu-elle-fasse-ce-que-vous-voulez"
+image: "https://images.unsplash.com/photo-1624953587687-daf255b6b80a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODE4NzM1MDV8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# JSON, fonctions et autres acrobaties : comment dompter une IA pour qu’elle fasse ce que vous voulez
+
+Vous avez déjà essayé de demander à une IA de vous donner une liste de courses, et elle vous a sorti un roman philosophique sur l’équilibre nutritionnel ? Ou pire, elle a mélangé les ingrédients, les quantités et les recettes dans un joyeux bordel textuel ? Bienvenue dans le monde merveilleux des réponses d’IA *trop créatives*.
+
+Heureusement, il existe des astuces pour que votre assistant numérique se comporte comme un adulte responsable. Et non, ce n’est pas en lui criant dessus. On va parler **JSON**, **appels de fonctions** et autres techniques pour obtenir des réponses *propres, structurées et exploitables*. Sans jargon, promis.
+
+---
+
+## Le problème : l’IA, ce moulin à paroles désorganisé
+
+Les grands modèles de langage (LLM) comme ceux derrière ChatGPT ou Claude sont formidables pour générer du texte. Trop formidables, parfois. Demandez-leur de vous donner les horaires d’ouverture d’un magasin, et vous risquez de vous retrouver avec une dissertation sur l’histoire du commerce de détail en France, agrémentée d’une analyse sociologique des habitudes d’achat des Millennials.
+
+Pourquoi ? Parce que ces modèles sont optimisés pour *produire du texte plausible*, pas pour *répondre précisément à une demande structurée*. C’est un peu comme demander à un poète de vous faire une liste de courses : il va vous sortir des vers sur la beauté des tomates, mais pas la quantité exacte dont vous avez besoin pour votre ratatouille.
+
+D’après *Towards Data Science*, les développeurs ont donc inventé des parades pour forcer ces IA à se comporter comme des outils, et pas comme des artistes en liberté.
+
+---
+
+## Solution 1 : le mode JSON, ou comment parler la langue des machines
+
+Imaginez que vous demandez à un ami de vous envoyer une liste de ses films préférés. Si vous lui dites simplement *"Dis-moi tes 3 films préférés"*, il pourrait vous répondre :
+*"Oh, c’est dur de choisir, mais j’adore Inception, c’est un chef-d’œuvre de Nolan, et puis il y a Le Parrain, un classique intemporel, et aussi Pulp Fiction, parce que Tarantino c’est le roi du dialogue…"*
+
+Maintenant, si vous lui dites *"Envoie-moi tes 3 films préférés sous forme de liste, avec le titre et l’année, comme ça : [&#123;"titre": "Inception", "année": 2010&#125;, ...]"*, il va (enfin) vous donner quelque chose d’exploitable.
+
+C’est exactement ce que fait le **mode JSON** avec une IA. Vous lui demandez de formater sa réponse comme un objet JSON, et hop, elle vous sort des données structurées, prêtes à être utilisées par un programme.
+
+Exemple concret :
+**Vous** : *"Donne-moi les 3 plus grandes villes de France avec leur population, en JSON."*
+**IA (en mode JSON)** :
+```json
+[
+  {"ville": "Paris", "population": 2148000},
+  {"ville": "Marseille", "population": 870000},
+  {"ville": "Lyon", "population": 522000}
+]
+```
+
+Pourquoi c’est utile ? Parce que ce format est *universel*. Un développeur peut le lire, un tableur peut l’importer, une base de données peut le stocker. Bref, c’est le langage commun entre humains et machines.
+
+Et bonne nouvelle : de plus en plus de plateformes IA (comme [Claude 4](https://www.anthropic.com/) ou les modèles récents de Mistral) proposent un **mode JSON natif**. Plus besoin de supplier l’IA de bien se tenir, elle le fait toute seule.
+
+---
+## Solution 2 : les appels de fonctions, ou comment faire de l’IA un assistant proactif
+
+Le mode JSON, c’est bien, mais ça reste passif : vous posez une question, l’IA répond. Et si vous vouliez qu’elle *agisse* pour vous ? C’est là que les **appels de fonctions** (ou *function calling*) entrent en jeu.
+
+Prenons un exemple. Vous voulez que votre IA :
+1. Cherche la météo à Paris.
+2. Si il pleut, elle vous propose des activités en intérieur.
+3. Si il fait beau, elle vous suggère des parcs.
+
+Avec un appel de fonction, l’IA peut *exécuter des actions* en fonction de votre demande. Concrètement, elle va :
+- Appeler une fonction `get_weather("Paris")` pour récupérer la météo.
+- Analyser le résultat.
+- Appeler une fonction `suggest_indoor_activities()` ou `suggest_outdoor_activities()` en conséquence.
+
+C’est comme si vous aviez un assistant qui, au lieu de vous dire *"Il pleut, désolé"*, vous répondait *"Il pleut, mais le Musée d’Orsay est ouvert jusqu’à 18h, et il y a une expo sur Van Gogh. Tu veux que je réserve des billets ?"*.
+
+Des outils comme [les agents IA d’Apple](https://lelabo.ai/articles/apple-et-l-ia-ce-que-votre-iphone-va-vraiment-faire-spoiler-pas-la-vaisselle--debutant) ou les intégrations avec des APIs (comme celles de [France Travail](https://lelabo.ai/articles/comment-france-travail-utilise-l-ia-pour-matcher-cv-et-offres-d-emploi--debutant)) utilisent déjà cette technique pour automatiser des tâches complexes.
+
+---
+## Quand utiliser l’un ou l’autre ?
+
+| **Besoin**               | **Mode JSON** | **Appels de fonctions** |
+|--------------------------|--------------|------------------------|
+| Obtenir des données structurées | ✅ Parfait | ❌ Pas nécessaire |
+| Automatiser des actions (réserver, chercher, calculer) | ❌ Non | ✅ Idéal |
+| Intégrer l’IA dans un workflow existant | ✅ Oui | ✅ Oui |
+| Simple à mettre en place | ✅ Très simple | ⚠️ Un peu plus technique |
+
+- **Le mode JSON** est votre allié si vous voulez *récupérer des données* pour les traiter ailleurs. C’est la solution la plus simple et la plus répandue aujourd’hui.
+- **Les appels de fonctions** sont indispensables si vous voulez que l’IA *interagisse avec d’autres outils* (bases de données, APIs, etc.). C’est plus puissant, mais ça demande un peu plus de travail en amont.
+
+---
+## Et dans la vraie vie, ça change quoi ?
+
+Concrètement, ces techniques permettent à l’IA de sortir du cadre *"chatbot qui répond à des questions"* pour entrer dans celui de *"collaborateur numérique"*.
+
+Quelques exemples :
+- **Un assistant shopping** qui ne se contente pas de vous dire *"Ce pull est beau"*, mais qui *compare les prix sur 10 sites* et vous propose le meilleur deal. [On en parle ici](https://lelabo.ai/articles/comment-un-assistant-shopping-ia-fonctionne-vraiment-sans-bullshit-marketing--debutant).
+- **Un outil de gestion de projet** qui, au lieu de vous lister des tâches, *les trie par priorité* et *les assigne automatiquement* à votre équipe.
+- **Un chatbot client** qui, au lieu de vous rediriger vers un FAQ, *vérifie en temps réel* si votre commande est en stock et *lance une réexpédition* si nécessaire.
+
+Bref, on passe de l’IA *"qui parle bien"* à l’IA *"qui agit bien"*.
+
+---
+## Les limites : parce que oui, il y en a
+
+On ne va pas se mentir : ces techniques ne transforment pas une IA en super-héros. Quelques réalités à garder en tête :
+
+- **Le mode JSON** : toutes les IA ne le gèrent pas parfaitement. Certaines vont quand même ajouter des commentaires du style *"Voici les données que vous avez demandées :"* avant le JSON, ce qui casse tout. Il faut parfois *nettoyer* la réponse.
+- **Les appels de fonctions** : ça demande de *définir à l’avance* quelles fonctions l’IA peut appeler. Si vous voulez qu’elle fasse quelque chose de nouveau, il faudra coder cette fonction. Pas de magie.
+- **La précision** : même avec ces outils, une IA peut se tromper. Si elle appelle une fonction `get_weather()` et que l’API météo est en panne, elle va peut-être inventer un résultat. [On a déjà vu ça avec KPMG](https://lelabo.ai/articles/pourquoi-kpmg-a-retire-son-rapport-sur-l-ia-apres-des-erreurs-grossieres--debutant), alors méfiance.
+
+---
+## Conclusion : l’IA, un outil, pas un miracle
+
+Le mode JSON et les appels de fonctions, c’est un peu comme apprendre à un enfant surdoué à *ranger sa chambre* : ça ne le rend pas moins intelligent, mais ça le rend *beaucoup plus utile*.
+
+Ces techniques ne sont pas réservées aux développeurs. Avec un peu de pratique, même un néophyte peut les utiliser pour :
+- **Automatiser des tâches répétitives** (extraire des données, remplir des tableaux…).
+- **Créer des workflows intelligents** (ex : *"Si mon vol est retardé, préviens mon hôtel et décale ma réservation de restaurant"*).
+- **Rendre les réponses de l’IA exploitables** par d’autres outils.
+
+Alors oui, les IA sont encore loin d’être parfaites. Mais avec ces astuces, on peut enfin commencer à les *dompter* au lieu de les subir.
+
+Et qui sait ? Peut-être qu’un jour, elles sauront même *faire la vaisselle*.
+
+---
+
+## FAQ
+
+**[C’est quoi le JSON, et pourquoi tout le monde en parle ?]**
+Le JSON est un format de données simple et universel, comme une liste ou un tableau, mais en plus structuré. Il permet aux machines (et aux humains) de comprendre facilement des informations organisées, comme une liste de produits avec leurs prix et leurs descriptions.
+
+**[Est-ce que je peux utiliser le mode JSON avec n’importe quelle IA ?]**
+Non, toutes les IA ne gèrent pas le mode JSON. Les modèles récents (comme ceux de Mistral, Anthropic ou OpenAI) le proposent souvent, mais il faut vérifier. Sinon, vous pouvez toujours demander à l’IA de formater sa réponse en JSON, mais elle pourrait ajouter du texte autour.
+
+**[Les appels de fonctions, est-ce que c’est compliqué à mettre en place ?]**
+Ça dépend. Si vous utilisez une plateforme qui le propose (comme certains outils no-code), c’est assez simple. Si vous devez le coder vous-même, il faudra un minimum de connaissances en développement. Mais le jeu en vaut la chandelle pour automatiser des tâches complexes.
