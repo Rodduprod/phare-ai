@@ -1,0 +1,137 @@
+---
+title: "Comprendre Shumai, l’alternative open source à Frame.io pour les créatifs"
+description: "Shumai propose une plateforme collaborative open source pour les équipes créatives, alternative à Frame.io. Décryptage technique et business."
+date: "2026-06-23"
+generated_at: "2026-06-23T12:13:27.456Z"
+tags: ["shumai", "frame.io", "open source", "collaboration", "créatifs"]
+level: "amateur"
+topic: "comprendre-shumai-l-alternative-open-source-a-frame-io-pour-les-creatifs"
+image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Comprendre Shumai, l’alternative open source à Frame.io pour les créatifs
+
+On ne va pas se mentir : Frame.io, c’est pratique. Très pratique, même. Mais quand Adobe a racheté la plateforme en 2021, beaucoup de créatifs ont serré les dents. Entre les abonnements qui grimpent, les fonctionnalités qui disparaissent derrière des paywalls et cette sensation désagréable de dépendre d’un géant qui peut changer les règles du jeu du jour au lendemain, l’envie d’une alternative open source se faisait sentir.
+
+C’est là que **Shumai** entre en scène. Développé par une équipe qui semble avoir compris que les créatifs en avaient marre des boîtes noires, ce projet se présente comme une plateforme collaborative pour le travail créatif, avec un accent mis sur la transparence, la personnalisation et, surtout, le contrôle total sur ses données.
+
+## Contexte et enjeux : pourquoi Shumai pourrait faire mal à Frame.io
+
+Frame.io a révolutionné la collaboration pour les équipes de post-production, de motion design et de création visuelle. Mais comme souvent avec les outils SaaS, le modèle économique repose sur la captivité : plus vous stockez, plus vous payez. Plus vous collaborez, plus vous payez. Plus vous voulez des fonctionnalités avancées, plus vous payez.
+
+Shumai, lui, mise sur l’open source. Pas de licence, pas de restriction arbitraire, et surtout, la possibilité d’héberger la plateforme sur ses propres serveurs. Pour les studios indépendants, les freelances ou même les grandes agences qui veulent garder la main sur leurs assets, c’est une proposition alléchante.
+
+Et puis il y a l’aspect technique. Frame.io est optimisé pour le cloud, avec toutes les contraintes que ça implique en termes de latence, de bande passante et de dépendance à une connexion internet. Shumai, en revanche, peut être déployé localement, ce qui change la donne pour les équipes qui travaillent sur des fichiers lourds ou dans des environnements sensibles.
+
+D’ailleurs, si vous vous demandez comment d’autres outils open source s’en sortent dans des contextes similaires, [notre analyse sur les agents IA autonomes](articles/agents-ia-2026-etat-des-lieux) montre que la tendance est clairement à la décentralisation.
+
+## Fonctionnement : sous le capot de Shumai
+
+Shumai n’est pas juste un clone open source de Frame.io. L’architecture a été repensée pour tirer parti des avantages de l’open source tout en évitant les pièges classiques des solutions auto-hébergées.
+
+### Une stack technique moderne
+Le backend repose sur **Node.js** et **PostgreSQL**, avec une API RESTful qui permet une intégration facile avec d’autres outils. Le frontend, en **React**, est conçu pour être réactif même avec des milliers de fichiers. Et pour ceux qui veulent pousser plus loin la personnalisation, le code est modulaire : on peut remplacer des composants sans tout casser.
+
+Le stockage des fichiers est géré de manière intelligente : Shumai supporte le stockage local, mais aussi des solutions comme **S3** ou **MinIO** pour ceux qui veulent du cloud sans dépendre d’AWS. Et surtout, tout est chiffré en transit et au repos, ce qui n’est pas toujours le cas chez les concurrents.
+
+### Collaboration en temps réel
+L’un des points forts de Frame.io, c’est sa gestion des commentaires et des annotations directement sur les médias. Shumai reprend cette idée, mais avec une approche plus flexible. Les annotations sont stockées sous forme de métadonnées, ce qui signifie qu’on peut les exporter, les analyser, ou même les intégrer à d’autres workflows.
+
+Et pour les équipes qui utilisent déjà des outils comme **Blender**, **After Effects** ou **Premiere Pro**, Shumai propose des plugins pour une intégration fluide. Pas besoin de changer ses habitudes, juste de changer de plateforme.
+
+### Gestion des versions et historique
+Ici, Shumai innove. Plutôt que de se contenter d’un simple historique de modifications, la plateforme permet de créer des **branches** de projets, comme on le ferait avec Git. Une fonctionnalité particulièrement utile pour les équipes qui travaillent sur des versions alternatives d’un même projet, ou qui veulent tester des idées sans risquer de casser la version principale.
+
+## Cas d’usage business : qui a intérêt à adopter Shumai ?
+
+### Les studios indépendants et les freelances
+Pour les petites structures, le coût de Frame.io peut vite devenir prohibitif. Shumai permet de réduire les dépenses récurrentes à quasi zéro, à condition d’avoir un serveur sous la main. Et même sans serveur dédié, un VPS à 20€/mois peut suffire pour une équipe de 5-10 personnes.
+
+Le vrai gain, c’est la liberté. Plus besoin de s’inquiéter des limites de stockage ou du nombre de collaborateurs. Et si un client demande une modification de dernière minute, pas de malus parce que vous avez dépassé votre quota de téléchargements.
+
+### Les grandes agences et les entreprises
+Pour les grosses structures, l’enjeu est différent. Frame.io est souvent utilisé en complément d’autres outils comme **Adobe Creative Cloud** ou **Autodesk ShotGrid**. Shumai peut remplacer Frame.io, mais il peut aussi s’intégrer à ces écosystèmes existants.
+
+L’avantage ? La maîtrise des données. Dans un contexte où la souveraineté numérique devient un enjeu majeur, pouvoir héberger ses assets en interne ou chez un hébergeur de confiance est un argument de poids. D’ailleurs, si vous voulez creuser la question de la souveraineté, [notre article sur les usines à IA européennes](articles/comment-nebius-construit-des-usines-a-ia-en-europe-sans-faire-exploser-le-reseau--amateur) montre à quel point le sujet est brûlant.
+
+### Les équipes techniques et DevOps
+Shumai n’est pas qu’un outil pour les créatifs. C’est aussi une plateforme qui peut être étendue, modifiée, intégrée à des pipelines CI/CD. Par exemple, on peut imaginer un workflow où :
+- Un designer dépose une nouvelle version d’une animation sur Shumai
+- Un script détecte le changement et lance automatiquement un rendu sur une ferme de calcul
+- Une fois le rendu terminé, le fichier final est automatiquement importé dans Shumai et notifié à l’équipe
+
+Avec Frame.io, ce genre d’automatisation est possible, mais souvent limité par les API et les quotas. Avec Shumai, vous êtes maître à bord.
+
+## APIs disponibles : comment étendre Shumai
+
+Shumai propose une **API REST** complète, documentée et facile à utiliser. Voici ce qu’on peut faire avec :
+
+- **Gestion des projets** : créer, supprimer, lister les projets
+- **Gestion des fichiers** : upload, téléchargement, suppression, métadonnées
+- **Collaboration** : ajouter/supprimer des utilisateurs, gérer les permissions
+- **Commentaires et annotations** : créer, modifier, supprimer des feedbacks
+- **Webhooks** : recevoir des notifications en temps réel sur des événements (nouveau fichier, commentaire, etc.)
+
+Un exemple concret d’utilisation de l’API, pour automatiser l’upload d’un fichier depuis un script Python :
+
+```python
+import requests
+
+API_KEY = "votre_clé_api"
+PROJECT_ID = "12345"
+FILE_PATH = "/chemin/vers/votre/fichier.mp4"
+
+url = f"https://votre-instance-shumai.com/api/projects/{PROJECT_ID}/files"
+headers = {"Authorization": f"Bearer {API_KEY}"}
+
+with open(FILE_PATH, "rb") as f:
+    files = {"file": f}
+    response = requests.post(url, headers=headers, files=files)
+
+print(response.json())
+```
+
+Et pour ceux qui veulent aller plus loin, Shumai est conçu pour être étendu. Vous voulez ajouter une fonctionnalité de transcodage automatique ? Un système de tagging intelligent ? C’est possible, et le code est là pour ça.
+
+## ROI et impact sur les équipes : est-ce que ça vaut le coup ?
+
+### Le coût
+Comparons rapidement les coûts entre Frame.io et Shumai pour une équipe de 10 personnes :
+
+| Poste | Frame.io (Pro) | Shumai (auto-hébergé) |
+|-------|----------------|-----------------------|
+| Abonnement | ~300€/mois | 0€ |
+| Stockage (1To) | ~100€/mois | 20€/mois (VPS + stockage) |
+| Bandwidth | Variable | Inclus dans le VPS |
+| **Total** | **~400€/mois** | **~20€/mois** |
+
+Évidemment, ces chiffres sont indicatifs. Si vous avez besoin de plus de puissance ou de redondance, les coûts peuvent monter. Mais même en doublant le budget Shumai, on reste largement en dessous de Frame.io.
+
+### L’impact sur les workflows
+Passer de Frame.io à Shumai, ce n’est pas juste une question de coût. C’est aussi une question d’adoption. Les créatifs sont habitués à Frame.io, et changer d’outil peut prendre du temps.
+
+Mais Shumai a un avantage : son interface est **volontairement proche** de celle de Frame.io. Les concepts sont les mêmes (projets, fichiers, commentaires, annotations), ce qui réduit la courbe d’apprentissage.
+
+Et puis, il y a l’aspect psychologique. Quand une équipe sait qu’elle contrôle ses données et ses outils, la productivité peut augmenter. Moins de temps perdu à gérer des quotas, moins de stress lié aux coûts imprévus.
+
+### Les limites
+On ne va pas se mentir : Shumai n’est pas parfait. C’est un projet open source, donc :
+- La documentation peut être moins complète que celle de Frame.io
+- Certaines fonctionnalités avancées (comme l’intégration avec des outils spécifiques) peuvent manquer
+- Le support est communautaire, pas 24/7 avec un compte dédié
+
+Mais c’est aussi ce qui fait sa force. La communauté grandit, les contributions sont les bienvenues, et les fonctionnalités manquantes peuvent être développées en interne si besoin.
+
+---
+
+## FAQ
+
+**[Shumai est-il vraiment gratuit ?]**
+Oui, le code est open source et peut être auto-hébergé sans frais de licence. Les seuls coûts sont liés à l’hébergement et au stockage, que vous gérez vous-même.
+
+**[Peut-on migrer facilement depuis Frame.io vers Shumai ?]**
+Shumai propose des outils pour importer des projets depuis Frame.io, mais la migration peut nécessiter un peu de travail manuel, surtout pour les métadonnées et les commentaires.
+
+**[Shumai est-il adapté aux très grandes équipes ?]**
+Oui, mais il faudra prévoir une infrastructure adaptée. Shumai est conçu pour scalabilité, mais comme toute solution auto-hébergée, les performances dépendent de votre setup.

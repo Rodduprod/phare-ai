@@ -1,0 +1,188 @@
+---
+title: "Comprendre Shumai, l’alternative open source à Frame.io pour les créatifs"
+description: "Deep dive technique sur Shumai, la plateforme open source qui veut remplacer Frame.io pour la collaboration créative."
+date: "2026-06-23"
+generated_at: "2026-06-23T12:13:59.888Z"
+tags: ["shumai", "open source", "collaboration", "créatifs", "frame.io"]
+level: "confirmé"
+topic: "comprendre-shumai-l-alternative-open-source-a-frame-io-pour-les-creatifs"
+image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Shumai : quand l’open source s’attaque à Frame.io (et ça promet du lourd)
+
+Frame.io, ce cher outil d’Adobe qui fait saliver les monteurs et pleurer les budgets, a un nouveau concurrent. Et celui-ci, il est open source, gratuit, et surtout, il ne demande pas votre premier-né en échange d’un abonnement. **Shumai** débarque avec une promesse simple : offrir une alternative technique solide pour la collaboration créative, sans les contraintes des solutions propriétaires.
+
+On ne va pas se mentir, Frame.io a ses qualités. Mais quand on voit le prix, les limitations de stockage, et cette sensation désagréable de dépendre d’un écosystème fermé, on comprend vite pourquoi des projets comme Shumai émergent. Alors, est-ce que ce nouveau venu tient la route techniquement ? Spoiler : oui, et on va voir pourquoi.
+
+---
+
+## Les fondements techniques : comment Shumai veut jouer dans la cour des grands
+
+Shumai se présente comme une plateforme tout-en-un pour les workflows créatifs : gestion de fichiers, commentaires en temps réel, versioning, et intégration avec les outils de montage. Mais ce qui intéresse vraiment les ingénieurs ML, c’est l’architecture sous le capot.
+
+### Une stack moderne et modulaire
+Le projet repose sur une stack **React + Node.js + PostgreSQL**, avec un focus particulier sur la performance et la scalabilité. Rien de révolutionnaire, mais c’est propre, bien documenté, et surtout, c’est open source. Le code est disponible sur [GitHub](https://github.com/shumaiOne/shumai), et la communauté semble déjà active.
+
+**Le point clé** : Shumai mise sur une architecture microservices pour isoler les différentes fonctionnalités (gestion des médias, commentaires, authentification, etc.). Chaque service peut être déployé indépendamment, ce qui est un vrai plus pour les équipes qui veulent personnaliser ou étendre la plateforme.
+
+Pour les fichiers, Shumai utilise un système de stockage distribué compatible avec **S3, MinIO, ou même un simple filesystem local**. Pas de lock-in ici : vous choisissez où et comment stocker vos assets. Et pour les gros fichiers vidéo, le projet intègre un système de **chunking** et de **streaming** pour éviter de saturer la bande passante.
+
+### Gestion des médias : pas de magie, mais du solide
+Contrairement à certaines solutions qui promettent des miracles avec l’IA pour analyser vos rushs, Shumai reste pragmatique. La plateforme permet :
+- **L’ingestion de fichiers** (vidéo, image, audio) avec métadonnées personnalisables.
+- **La génération de proxies** pour un aperçu fluide, même avec des fichiers 4K.
+- **Le versioning** avec historique des modifications et restauration en un clic.
+
+Pas de deep learning ici pour détecter automatiquement les scènes ou les visages (enfin, pas encore). Mais pour une première version, c’est déjà un bon point. Et si vous voulez ajouter de l’IA plus tard, rien ne vous en empêche : l’architecture est conçue pour être étendue.
+
+---
+## Implémentation : comment ça se déploie en vrai ?
+
+Shumai propose plusieurs options pour le déploiement, et c’est là que ça devient intéressant pour les ingénieurs.
+
+### Option 1 : Docker Compose pour les pressés
+Le projet fournit un `docker-compose.yml` prêt à l’emploi qui lance tous les services nécessaires (frontend, backend, base de données, stockage). En une commande, vous avez une instance fonctionnelle. Parfait pour tester ou pour un petit projet.
+
+```yaml
+version: '3.8'
+services:
+  frontend:
+    image: shumai/frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://backend:4000
+  backend:
+    image: shumai/backend:latest
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/shumai
+      - STORAGE_TYPE=local
+      - STORAGE_PATH=/data
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=shumai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
+```
+
+**Attention** : pour la prod, il faudra quand même sécuriser tout ça (HTTPS, sauvegardes, monitoring). Mais pour un POC, c’est imbatable.
+
+### Option 2 : Kubernetes pour les puristes
+Si vous voulez du sérieux, Shumai propose aussi des manifests Kubernetes. Chaque service a son propre deployment, et vous pouvez scaler horizontalement selon vos besoins. Le projet utilise **Helm** pour simplifier le déploiement, ce qui est une bonne nouvelle pour les équipes DevOps.
+
+```bash
+helm repo add shumai https://shumai-one.github.io/helm-charts
+helm install shumai shumai/shumai
+```
+
+### Option 3 : Self-hosted avec un reverse proxy
+Pour ceux qui veulent intégrer Shumai dans une infrastructure existante, il est possible de déployer chaque composant séparément et de les exposer via un reverse proxy (Nginx, Traefik, etc.). C’est un peu plus technique, mais ça offre un contrôle total.
+
+---
+## Benchmarks : Shumai vs Frame.io, le match (in)équitable
+
+Comparer Shumai à Frame.io directement, c’est un peu comme comparer une Clio à une Tesla : les échelles ne sont pas les mêmes. Mais on peut quand même tirer quelques enseignements.
+
+### Performance pure
+Shumai, en local ou sur un petit serveur, tient la charge pour des équipes de 5 à 10 personnes sans problème. Les temps de réponse pour les opérations de base (upload, commentaires, versioning) sont comparables à ceux de Frame.io, à condition d’avoir une bonne connexion et un stockage performant.
+
+**Où Frame.io gagne** : sur les très gros fichiers (100 Go+) et les équipes de 50+ personnes. Adobe a des data centers optimisés pour ça, et leur CDN est ultra-rapide. Shumai, lui, dépend de votre infrastructure.
+
+**Où Shumai gagne** : sur la personnalisation. Vous voulez ajouter un module de transcodage custom ? Un système de tags automatique avec un modèle ML maison ? Avec Shumai, c’est possible. Avec Frame.io, bonne chance.
+
+### Coût
+Là, c’est sans appel. Frame.io, c’est **à partir de 15/mois/utilisateur** pour les petites équipes, et ça monte très vite. Shumai, c’est **gratuit** (à part le coût de votre infrastructure).
+
+Pour une équipe de 10 personnes avec 1 To de stockage, voici une estimation :
+- **Frame.io** : ~150/mois (sans compter les options premium).
+- **Shumai** : ~50/mois (un VPS chez OVH ou Hetzner + stockage S3).
+
+Et si vous avez déjà une infrastructure, Shumai peut coûter **0€**.
+
+### Fonctionnalités manquantes (pour l’instant)
+Shumai est jeune, et il manque encore quelques trucs :
+- **Pas d’intégration native avec Premiere Pro ou Final Cut** (mais des plugins communautaires commencent à apparaître).
+- **Pas de gestion avancée des droits** (ACL fines, groupes, etc.). Pour l’instant, c’est basique.
+- **Pas de collaboration en temps réel** (style Google Docs). Les commentaires sont asynchrones.
+
+Mais le projet évolue vite, et la roadmap est ambitieuse.
+
+---
+## Limitations : les pièges à éviter
+
+### Le stockage, toujours le stockage
+Shumai gère bien les fichiers, mais si vous comptez stocker des centaines de To de rushs 8K, il faudra prévoir :
+- Un **stockage objet performant** (MinIO, S3, etc.).
+- Une **bonne bande passante** pour éviter les goulots d’étranglement.
+- Un **système de cache** pour les proxies (Redis, par exemple).
+
+Sinon, vos monteurs vont râler. Et un monteur qui râle, c’est pire qu’un dev qui râle.
+
+### La sécurité
+Shumai est open source, mais la sécurité, c’est à vous de la gérer. Pas de SSO intégré, pas de chiffrement des fichiers au repos par défaut, pas de WAF. Si vous déployez en prod, il faudra :
+- **Activer HTTPS** (obligatoire, non négociable).
+- **Sécuriser PostgreSQL** (mots de passe forts, réseau privé).
+- **Mettre en place des sauvegardes** (parce que oui, les disques durs meurent).
+
+### L’écosystème
+Frame.io a des années d’avance en termes d’intégrations (Adobe Suite, Avid, etc.). Shumai, lui, part de zéro. Si vous dépendez d’outils spécifiques, vérifiez d’abord qu’ils sont compatibles.
+
+---
+## Recherche et évolutions futures : vers où va Shumai ?
+
+Le projet est encore jeune, mais la feuille de route est prometteuse. Voici ce qui est prévu (ou en discussion) :
+
+### L’IA, mais pas n’importe comment
+Contrairement à beaucoup de projets qui collent de l’IA partout pour faire buzz, Shumai semble vouloir l’intégrer de manière **utile et discrète**. Parmi les idées en cours :
+- **Transcription automatique** des rushs (avec Whisper ou un modèle custom).
+- **Détection de scènes** pour faciliter le montage.
+- **Recommandation de plans** basées sur les métadonnées.
+
+Rien de révolutionnaire, mais des fonctionnalités qui pourraient vraiment faire gagner du temps aux monteurs.
+
+### Une meilleure gestion des droits
+Actuellement, les permissions sont basiques. À terme, Shumai veut implémenter :
+- Des **rôles personnalisables** (admin, éditeur, spectateur, etc.).
+- Des **ACL fines** (accès par dossier, par projet, etc.).
+- Un **système d’audit** pour suivre qui a fait quoi.
+
+### Des intégrations plus poussées
+L’équipe travaille sur :
+- Un **plugin pour Premiere Pro** (le Saint-Graal pour beaucoup).
+- Une **API plus complète** pour permettre des intégrations custom.
+- Un **système de webhooks** pour déclencher des actions externes (ex : lancer un rendu après un upload).
+
+---
+## Pourquoi ça mérite l’attention des ingénieurs ML ?
+
+Shumai, c’est bien plus qu’un simple clone open source de Frame.io. C’est une **opportunité** pour les équipes techniques de :
+1. **Rependre le contrôle** sur leurs workflows créatifs, sans dépendre d’un SaaS propriétaire.
+2. **Personnaliser** la plateforme selon leurs besoins (ajout de modèles ML, intégrations custom, etc.).
+3. **Économiser** des milliers d’euros par an en coûts de licence.
+
+Et surtout, c’est un projet qui montre que l’open source peut rivaliser avec les géants du SaaS, même dans des domaines aussi niche que la post-production.
+
+Si vous bossez dans la vidéo, le montage, ou même juste la gestion de médias, **testez-le**. Le code est propre, la communauté est active, et les possibilités sont immenses.
+
+Et si vous voulez aller plus loin dans l’analyse des outils open source pour les créatifs, on a déjà parlé de [comment l’IA transforme les outils pour les créateurs de contenu](/articles/ia-pour-creatifs-outils-createurs-contenu). Spoiler : ça bouge vite.
+
+---
+## FAQ
+
+**[Shumai est-il vraiment gratuit ?]**
+Oui, le code est open source (licence MIT) et vous pouvez l’autohéberger sans payer. Seuls les coûts d’infrastructure (serveurs, stockage) sont à votre charge.
+
+**[Peut-on utiliser Shumai en production aujourd’hui ?]**
+Oui, mais avec des limites. Pour des petites équipes ou des projets pilotes, c’est tout à fait jouable. Pour des workflows critiques avec des centaines de To de données, attendez encore un peu.
+
+**[Shumai remplace-t-il complètement Frame.io ?]**
+Pas encore. Frame.io a des années d’avance en termes de fonctionnalités et d’intégrations. Mais Shumai comble rapidement l’écart, et son approche open source le rend bien plus flexible.
