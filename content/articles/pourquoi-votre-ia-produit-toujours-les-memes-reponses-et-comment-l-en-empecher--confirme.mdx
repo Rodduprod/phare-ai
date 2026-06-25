@@ -1,0 +1,114 @@
+---
+title: "Comprendre la distillation on-policy et son impact sur la diversité des IA"
+description: "Décryptage technique de la distillation on-policy avec démonstrations échantillonnées et ses effets sur la diversité des sorties."
+date: "2026-06-25"
+generated_at: "2026-06-25T11:47:47.589Z"
+tags: ["distillation", "on-policy", "diversité", "ia", "apprentissage"]
+level: "confirmé"
+topic: "pourquoi-votre-ia-produit-toujours-les-memes-reponses-et-comment-l-en-empecher"
+image: "https://images.unsplash.com/photo-1694903110330-cc64b7e1d21d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODIzODc5NjN8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Comprendre la distillation on-policy et son impact sur la diversité des IA
+
+On ne va pas se mentir : l’IA adore se copier. Et quand elle se copie trop, elle finit par produire toujours les mêmes réponses, comme un perroquet en boucle. La distillation on-policy avec démonstrations échantillonnées, c’est un peu la thérapie pour éviter ça.
+
+## Fondements techniques : pourquoi votre IA s’ennuie
+
+La distillation, en ML, c’est comme faire réviser un élève par un autre, plus fort. Sauf que là, l’élève et le prof, c’est la même IA. **On-policy**, ça veut dire qu’on utilise la même politique (le même modèle) pour générer les démonstrations et pour apprendre. Résultat : l’IA s’entraîne sur ses propres sorties, ce qui peut créer un effet miroir.
+
+Le problème ? Si votre modèle de base a un biais ou une préférence pour certaines réponses, la distillation on-policy va l’amplifier. C’est comme si vous ne mangiez que des pâtes : à force, vous oubliez que les légumes existent. D’après [l’étude récente sur arXiv](http://arxiv.org/abs/2606.26095v1), les démonstrations échantillonnées permettent d’introduire un peu de hasard dans le processus. Au lieu de toujours prendre la sortie la plus probable, on en tire quelques-unes au hasard dans la distribution de probabilité.
+
+C’est un peu comme si, au lieu de toujours choisir le plat le plus populaire au resto, vous fermiez les yeux et pointiez le menu au hasard. Parfois, vous tombez sur un truc immangeable. Parfois, vous découvrez un nouveau favori. **La diversité augmente**, et votre IA évite de s’enfermer dans ses propres préjugés.
+
+Pour les architectes ML, ça signifie qu’il faut :
+- **Gérer la température** : un paramètre qui contrôle à quel point vos sorties sont aléatoires. Plus elle est élevée, plus vos démonstrations seront variées (mais aussi potentiellement moins pertinentes).
+- **Équilibrer exploration/exploitation** : trop d’exploration, et votre IA part dans tous les sens. Trop d’exploitation, et elle reste coincée dans ses habitudes.
+
+## Implémentation : comment coder ça sans tout casser
+
+Prenons un cas concret avec un modèle de langage. Vous voulez distiller un petit modèle à partir d’un grand, en utilisant des démonstrations échantillonnées.
+
+### Architecture de base
+Vous avez besoin de :
+1. Un **modèle enseignant** (le grand, celui qui sait déjà bien faire)
+2. Un **modèle étudiant** (le petit, celui qu’on veut améliorer)
+3. Un **jeu de données de démonstrations** généré par l’enseignant
+
+Le code, en PyTorch, pourrait ressembler à ça :
+
+```python
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# Charger le modèle enseignant
+teacher_model = AutoModelForCausalLM.from_pretrained("big-model")
+teacher_tokenizer = AutoTokenizer.from_pretrained("big-model")
+
+# Générer des démonstrations avec échantillonnage
+def generate_demonstrations(prompt, temperature=0.7, num_samples=5):
+    inputs = teacher_tokenizer(prompt, return_tensors="pt")
+    outputs = teacher_model.generate(
+        **inputs,
+        do_sample=True,
+        temperature=temperature,
+        num_return_sequences=num_samples,
+        max_length=50
+    )
+    return [teacher_tokenizer.decode(out, skip_special_tokens=True) for out in outputs]
+
+# Exemple d'utilisation
+prompt = "Explique la distillation en ML"
+demonstrations = generate_demonstrations(prompt)
+for i, demo in enumerate(demonstrations):
+    print(f"Démonstration {i+1}: {demo}")
+```
+
+### Optimisations possibles
+- **Température adaptative** : ajuster la température en fonction de la complexité de la tâche. Pour des tâches créatives, montez-la. Pour des tâches factuelles, baissez-la.
+- **Filtrage des démonstrations** : ne garder que les sorties qui dépassent un certain seuil de qualité (mesuré par un score de perplexité ou un modèle de récompense).
+- **Distillation progressive** : commencer avec une température élevée, puis la réduire au fil des itérations pour affiner le modèle.
+
+Franchement, si vous ne faites pas attention à ces détails, votre modèle étudiant va juste reproduire les biais du modèle enseignant, mais en moins bon. **C’est comme photocopier une photocopie** : à chaque étape, la qualité baisse, et les erreurs s’accumulent.
+
+## Benchmarks : est-ce que ça marche vraiment ?
+
+Les benchmarks montrent que la distillation on-policy avec échantillonnage améliore la diversité des sorties, mais à quel prix ?
+
+D’après les résultats de l’étude, sur des tâches de génération de texte :
+- **Diversité** : +20 à 30% de réponses uniques par rapport à une distillation classique (sans échantillonnage).
+- **Qualité** : légère baisse de 5 à 10% sur les métriques de pertinence (BLEU, ROUGE). Parce que oui, plus de diversité, ça veut aussi dire plus de réponses "bizarres".
+
+Sur des tâches de classification, l’impact est moins marqué, mais toujours présent. **La distillation on-policy avec échantillonnage semble surtout utile pour les tâches génératives**, où la diversité est un critère clé.
+
+Pour les ingénieurs ML qui bossent sur des [agents autonomes en IA](articles/comprendre-les-agents-autonomes-en-ia-ce-que-cache-vraiment-la-folie-actuelle--confirme), cette technique peut être un bon moyen d’éviter que vos agents ne se comportent tous de la même manière. Parce qu’on ne va pas se mentir, un essaim d’agents qui font tous la même erreur, c’est le cauchemar.
+
+## Limitations : les pièges à éviter
+
+1. **Coût computationnel** : générer plusieurs démonstrations par prompt, c’est gourmand en ressources. Si vous avez un budget serré, bonne chance.
+2. **Bruit dans les données** : plus vous échantillonnez, plus vous risquez d’inclure des sorties de mauvaise qualité. Il faut un bon mécanisme de filtrage.
+3. **Stabilité de l’apprentissage** : avec trop de diversité, votre modèle étudiant peut avoir du mal à converger. C’est comme essayer d’apprendre à cuisiner en changeant de recette à chaque fois.
+
+Et puis, il y a le problème de **l’alignement**. Si votre modèle enseignant a des biais éthiques ou culturels, la distillation on-policy va les propager, voire les amplifier. **Ce n’est pas parce que votre IA produit des réponses variées qu’elles sont toutes bonnes à prendre.**
+
+## Recherche et évolutions futures
+
+Cette approche ouvre des pistes intéressantes :
+- **Distillation multi-enseignants** : utiliser plusieurs modèles enseignants pour générer des démonstrations encore plus variées.
+- **Échantillonnage guidé** : utiliser un modèle de récompense pour guider l’échantillonnage vers des sorties à la fois diverses et de qualité.
+- **Applications en RL** : en apprentissage par renforcement, cette technique pourrait aider à explorer plus efficacement l’espace des actions.
+
+D’un point de vue industriel, on voit déjà des entreprises comme [Mistral AI](articles/mistral-ai-leve-830m-l-europe-joue-t-elle-les-cow-boys-face-aux-gafam--confirme) s’intéresser à ces méthodes pour améliorer leurs modèles. **La course à la diversité est lancée**, et ceux qui sauront la maîtriser sans sacrifier la qualité auront un sérieux avantage.
+
+---
+## FAQ
+
+**[La distillation on-policy, c’est juste pour les modèles de langage ?]**
+Non, cette technique s’applique à tout type de modèle génératif : images, audio, etc. L’idée reste la même : éviter que le modèle étudiant ne reproduise trop fidèlement les sorties du modèle enseignant.
+
+**[Est-ce que l’échantillonnage améliore toujours la diversité ?]**
+Pas toujours. Si votre température est trop basse ou si votre modèle enseignant est déjà très déterministe, l’échantillonnage aura peu d’effet. Il faut trouver le bon équilibre.
+
+**[Quels sont les risques de cette méthode ?]**
+Le principal risque, c’est d’introduire trop de bruit dans les données d’entraînement, ce qui peut dégrader les performances du modèle étudiant. Il faut donc bien contrôler la qualité des démonstrations générées.
