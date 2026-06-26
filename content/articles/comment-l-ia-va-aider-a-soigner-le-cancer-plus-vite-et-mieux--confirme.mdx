@@ -1,0 +1,133 @@
+---
+title: "Oncologie et IA : ce que la chaire Paris Cité change vraiment pour les ingénieurs ML"
+description: "Deep dive technique sur la chaire IA et oncologie de Paris Cité : architectures, benchmarks et défis concrets pour les pros du ML."
+date: "2026-06-26"
+generated_at: "2026-06-26T11:48:51.570Z"
+tags: ["oncologie", "ia", "recherche clinique", "ml", "santé"]
+level: "confirmé"
+topic: "comment-l-ia-va-aider-a-soigner-le-cancer-plus-vite-et-mieux"
+image: "https://images.unsplash.com/photo-1781643434395-5c83f8f9c9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODI0NzQ0NTJ8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Oncologie et IA : ce que la chaire Paris Cité change vraiment pour les ingénieurs ML
+
+L’annonce est tombée, et comme d’habitude, les communiqués de presse ont plus de buzzwords que de détails techniques. Une chaire dédiée à l’**IA et à la recherche clinique en oncologie** voit le jour à l’Université Paris Cité. Super. Mais entre les promesses marketing et la réalité du code, il y a un fossé. Alors on plonge dans ce que ça signifie *vraiment* pour ceux qui bossent sur des modèles, des pipelines ou des architectures ML.
+
+---
+
+## Les fondements techniques : quand le ML rencontre la biologie
+
+L’oncologie, c’est un terrain de jeu complexe pour le ML. On ne parle pas de classer des images de chats, mais de **comprendre des mécanismes biologiques**, prédire des réponses thérapeutiques ou détecter des biomarqueurs dans des données bruitées.
+
+### Les données : le nerf de la guerre
+En oncologie, les datasets sont **hétérogènes, rares et coûteux**. On a :
+- Des **images médicales** (IRM, scanner, histopathologie) avec des résolutions variables et des annotations souvent subjectives.
+- Des **données omiques** (génomique, transcriptomique, protéomique) qui explosent en dimensionnalité.
+- Des **dossiers patients** structurés ou non, avec des biais cliniques et des missing values à gogo.
+
+Bref, un cauchemar pour le préprocessing. La chaire va devoir s’attaquer à des problèmes concrets :
+**Fusion de données multi-modales** : comment combiner des images, des séquences ADN et des données cliniques sans que tout s’effondre en overfitting ?
+**Transfer learning** : les modèles pré-entraînés sur ImageNet ou des corpus textuels médicaux (comme [ceux qu’on a déjà explorés pour les LLM en médecine](/articles/comment-les-medecins-utilisent-vraiment-les-ia-conversationnelles--confirme)) peuvent-ils vraiment aider ici, ou faut-il tout réapprendre depuis zéro ?
+
+### Les architectures : du CNN au transformer, en passant par le graph neural network
+Les approches classiques en imagerie médicale reposent encore beaucoup sur des **CNN** (ResNet, U-Net) pour la segmentation de tumeurs. Mais aujourd’hui, on voit émerger :
+- **Les Vision Transformers (ViT)** : adaptés aux images haute résolution, mais gourmands en données. Parfait pour les datasets publics comme TCGA, moins pour les cohortes locales sous-annotées.
+- **Les Graph Neural Networks (GNN)** : pour modéliser les interactions entre gènes, protéines ou cellules dans un tissu. Idéal pour la **biologie des systèmes**, mais bonjour la complexité d’entraînement.
+- **Les modèles hybrides** : CNN + Transformers pour l’imagerie, ou LLM + GNN pour intégrer des rapports cliniques et des données omiques.
+
+Un exemple concret : **PathAI** utilise des architectures de ce type pour améliorer le diagnostic en pathologie digitale. La chaire Paris Cité va-t-elle suivre cette voie, ou innover avec des approches plus légères, adaptées aux contraintes hospitalières ?
+
+---
+
+## Implémentation : du labo à l’hôpital
+
+Passer d’un PoC en Python à un outil utilisé en routine clinique, c’est un peu comme essayer de faire tenir un éléphant dans une Smart. Voici les défis *réels* :
+
+### 1. L’intégration dans les workflows existants
+Les hôpitaux utilisent des **PACS** (Picture Archiving and Communication System) pour les images, des **LIMS** (Laboratory Information Management System) pour les données de labo, et des **EHR** (Electronic Health Records) pour les dossiers patients. Votre modèle doit :
+- **Tourner en local** (RGPD oblige) ou dans un cloud souverain (bon courage pour trouver des GPU en France).
+- **S’intégrer via des APIs** (DICOM pour l’imagerie, HL7/FHIR pour les données cliniques).
+- **Être expliquable** : un médecin ne va pas accepter une décision de traitement basée sur une boîte noire. Il faut des **méthodes d’interprétabilité** (SHAP, LIME, attention maps) et des **benchmarks cliniques** pour valider l’impact.
+
+### 2. La validation réglementaire
+En Europe, un outil d’IA en santé doit obtenir le **marquage CE** (règlement MDR). Cela implique :
+- Des **études cliniques** pour prouver l’efficacité (et la non-infériorité par rapport aux méthodes existantes).
+- Une **documentation technique** lourde (spécifications, gestion des risques, traçabilité des données).
+- Une **maintenance continue** : votre modèle doit être mis à jour sans casser la certification.
+
+Franchement, si vous pensiez que déployer un modèle en prod était compliqué, essayez de le faire dans un hôpital. [Même Airbus a dû bricoler des architectures spécifiques pour protéger ses données sensibles](/articles/comment-airbus-utilise-l-ia-pour-proteger-ses-secrets-comme-une-grand-mere-son-livre-de-recettes--confirme), alors imaginez pour des données médicales.
+
+### 3. L’optimisation pour le edge
+Dans un bloc opératoire ou un service d’urgence, on n’a pas toujours accès à un cluster de GPU. Il faut donc :
+- **Des modèles légers** : distillation, pruning, quantification (INT8, FP16).
+- **De l’inference optimisée** : TensorRT, ONNX Runtime, ou des frameworks comme **Apache TVM** pour déployer sur des machines locales.
+- **Du federated learning** : pour entraîner des modèles sur des données décentralisées (plusieurs hôpitaux) sans partager les données brutes.
+
+---
+## Benchmarks : comment évaluer un modèle en oncologie ?
+
+En ML classique, on a l’accuracy, le F1-score, le ROC-AUC. En oncologie, c’est plus subtil.
+
+### Métriques cliniques > métriques ML
+Un modèle peut avoir une **sensibilité de 99%** en détection de tumeurs, mais si son **taux de faux positifs** est trop élevé, il va générer des biopsies inutiles (et coûter cher au système de santé). Les métriques qui comptent :
+- **Valeur prédictive positive (VPP)** : probabilité que le patient ait vraiment un cancer si le test est positif.
+- **Courbe de survie (Kaplan-Meier)** : pour évaluer l’impact sur la prise en charge.
+- **Net Benefit** : une métrique qui pondère les vrais positifs, faux positifs, et le coût des décisions.
+
+### Datasets de référence
+Quelques benchmarks publics pour tester vos modèles :
+- **TCGA (The Cancer Genome Atlas)** : données génomiques et cliniques pour 33 types de cancer.
+- **CAMELYON** : images histopathologiques de ganglions lymphatiques (détection de métastases).
+- **BraTS** : IRM de gliomes cérébraux (segmentation, survie).
+- **MIMIC-IV** : dossiers patients anonymisés (texte + données structurées).
+
+Attention : ces datasets sont **biaisés** (surreprésentation de certains cancers, populations spécifiques). Il faut **toujours valider en conditions réelles**.
+
+---
+## Limitations : les murs contre lesquels vous allez vous cogner
+
+### 1. Le manque de données labellisées
+En oncologie, l’annotation est **coûteuse et subjective**. Un pathologiste peut mettre 30 minutes à annoter une lame histologique. Résultat :
+- On utilise du **weak supervision** (labels bruités, semi-supervisé).
+- On fait du **self-supervised learning** (SimCLR, MoCo) pour pré-entraîner sur des données non labellisées.
+- On collabore avec des **consortiums** (comme **OHDSI**) pour partager des données de manière sécurisée.
+
+### 2. Le biais des données
+Les modèles entraînés sur des populations **occidentales** peuvent mal performer sur des patients **asiatiques ou africains**. Idem pour les **disparités socio-économiques** (accès aux soins, suivi thérapeutique).
+
+### 3. L’interprétabilité vs. performance
+Un **Random Forest** est facile à expliquer, mais moins performant qu’un **Transformer**. Un **GNN** capture bien les interactions biologiques, mais bonjour pour justifier une décision à un clinicien.
+
+---
+## Recherche et évolutions futures : où en sera-t-on dans 5 ans ?
+
+### 1. L’IA générative en oncologie
+Pas que pour générer des images de tumeurs (même si c’est utile pour l’augmentation de données). On parle aussi de :
+- **Génération de rapports cliniques** : résumer automatiquement une IRM ou un compte-rendu de pathologie.
+- **Synthèse de molécules** : pour la découverte de nouveaux traitements (comme **AlphaFold** pour les protéines).
+- **Simulation de patients virtuels** : pour tester des protocoles thérapeutiques in silico.
+
+### 2. L’IA et l’immunothérapie
+L’immunothérapie (comme les **CAR-T cells**) est une révolution en oncologie, mais son efficacité varie énormément d’un patient à l’autre. Le ML peut aider à :
+- **Prédire la réponse** à un traitement en fonction du profil génomique.
+- **Optimiser les combinaisons** de thérapies.
+- **Surveiller les effets secondaires** en temps réel.
+
+### 3. L’IA embarquée dans les dispositifs médicaux
+Imaginez un **endoscope intelligent** qui détecte des lésions précancéreuses en temps réel, ou un **patch connecté** qui surveille la récidive d’un cancer du sein. Ça existe déjà en prototype, mais il faut :
+- Des **modèles ultra-légers** (quelques Mo).
+- Une **latence minimale** (on ne peut pas attendre 10 secondes pour un diagnostic).
+- Une **sécurité à toute épreuve** (un bug = risque vital).
+
+---
+## FAQ
+
+**[Quels frameworks ML sont les plus utilisés en oncologie aujourd’hui ?]**
+PyTorch et TensorFlow dominent, surtout pour les modèles custom (CNN, Transformers). MONAI (Medical Open Network for AI) est une bibliothèque spécialisée pour l’imagerie médicale, avec des implémentations optimisées pour DICOM et les pipelines cliniques. Pour les données omiques, on voit aussi des outils comme **Scanpy** (single-cell) ou **DEEPgx** (pharmacogénomique).
+
+**[Comment accéder à des données médicales pour entraîner mes modèles ?]**
+Les données médicales sont ultra-réglementées. Commencez par les datasets publics (TCGA, BraTS, CAMELYON). Pour des données hospitalières, il faut un **partenariat avec un CHU** (comme [ce qui se fait déjà à Montpellier](/articles/comment-l-ia-ameliore-vraiment-le-travail-des-soignants-au-chu-de-montpellier--debutant)) et une **autorisation de la CNIL**. Le **Health Data Hub** français peut aussi être une piste, mais les démarches sont longues.
+
+**[Quels sont les principaux défis éthiques de l’IA en oncologie ?]**
+Le **biais algorithmique** (mauvaise performance sur certaines populations), la **responsabilité en cas d’erreur** (qui est responsable si le modèle se trompe ?), et la **transparence** (comment expliquer une décision à un patient). Sans oublier la **protection des données** : une fuite de données médicales, c’est le cauchemar absolu.
