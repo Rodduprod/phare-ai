@@ -1,0 +1,102 @@
+---
+title: "Combien coûte vraiment un modèle d’IA local à la maison"
+description: "Découvrez le coût réel d’un LLM local, en euros par million de tokens, avec des exemples concrets et sans jargon technique."
+date: "2026-07-15"
+generated_at: "2026-07-15T10:59:45.417Z"
+tags: ["ia locale", "llm", "coût", "tokens", "hardware"]
+level: "débutant"
+topic: "combien-coute-vraiment-un-modele-d-ia-local-a-la-maison"
+image: "https://images.unsplash.com/photo-1603357465999-241beecc2629?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODQxMTMxODl8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Combien coûte vraiment un modèle d’IA local à la maison
+
+On nous vend l’IA locale comme la solution miracle : plus de confidentialité, pas de dépendance aux géants du cloud, et surtout, la liberté de faire ce qu’on veut avec ses données. **Spoiler** : c’est un peu plus compliqué que ça. Entre le matériel qui chauffe comme un four à pizza et l’électricité qui s’envole comme votre budget courses, on a décidé de faire le point. Parce que oui, faire tourner un LLM chez soi, c’est possible. Mais à quel prix ?
+
+---
+
+## L’IA locale, c’est comme un chat : ça a l’air mignon, mais ça coûte cher
+
+Imaginons que vous voulez faire tourner un modèle d’IA chez vous, comme un petit ChatGPT perso. Pas besoin d’être un ingénieur en machine learning pour comprendre que ça demande deux choses : **du matériel** et **de l’énergie**.
+
+Le matériel, c’est le cœur du problème. Un LLM, même petit, a besoin d’une carte graphique (GPU) digne de ce nom. On ne parle pas d’une GTX 1050 qui traîne dans votre vieux PC, mais bien d’une bête de course comme une **RTX 4090** ou, pour les plus ambitieux, un cluster de cartes pro du style **H100** (bon courage pour trouver ça à prix raisonnable). Selon les tests de *Towards Data Science*, un modèle comme **Llama 3 8B** (8 milliards de paramètres, un "petit" modèle) peut coûter entre **0,10€ et 0,50€ par million de tokens** en inférence, selon votre config. Un million de tokens, c’est à peu près **750 000 mots**, soit l’équivalent de 7 à 8 romans de 100 pages.
+
+Pour vous donner une idée, si vous voulez faire tourner **Mistral 7B** (un modèle open source populaire), comptez **0,20€ à 1€ par million de tokens** sur une RTX 4090. Et si vous passez sur un modèle plus gros comme **Llama 3 70B**, là, on monte à **2€ à 5€ par million de tokens**. À ce rythme, discuter avec votre IA locale pendant une heure peut vite coûter plus cher qu’un abonnement Netflix.
+
+Et puis il y a l’électricité. Une RTX 4090, ça consomme **450W en charge**. Si vous la faites tourner 24h/24 (parce que pourquoi pas, hein), ça fait **10,8 kWh par jour**, soit **environ 2€ par jour** (à 0,20€/kWh, le tarif moyen en France aujourd’hui). Sur un mois, ça fait **60€**. Juste pour l’électricité. Sans compter le coût d’achat de la carte, qui tourne autour de **2000€**.
+
+---
+## Des exemples concrets pour y voir plus clair
+
+Prenons trois scénarios réalistes, avec des modèles et du matériel accessibles.
+
+### 1. Le bricoleur du dimanche : un Raspberry Pi et un petit modèle
+Vous avez un **Raspberry Pi 5** (100€) et vous voulez faire tourner **TinyLlama 1.1B** (1,1 milliard de paramètres). Résultat :
+- **Coût matériel** : 100€ (le Pi) + 50€ (une clé USB 3.0 pour stocker le modèle).
+- **Coût électricité** : 15W en charge, soit **0,003€ par heure**. Presque gratuit.
+- **Performances** : **0,5 token par seconde**. Autant dire que vous allez avoir le temps de boire un café entre chaque réponse.
+- **Coût par million de tokens** : **10€ à 20€** (parce que ça met une éternité).
+
+**Verdict** : C’est lent, mais ça marche. Parfait pour s’amuser, moins pour un usage sérieux.
+
+### 2. L’amateur éclairé : une RTX 4070 et Llama 3 8B
+Vous investissez dans une **RTX 4070** (1200€) et vous faites tourner **Llama 3 8B** :
+- **Coût matériel** : 1200€ (la carte) + 200€ (alimentation et boîtier adaptés).
+- **Coût électricité** : 200W en charge, soit **0,04€ par heure**.
+- **Performances** : **10 à 20 tokens par seconde**. Assez fluide pour une conversation.
+- **Coût par million de tokens** : **0,50€ à 1€**.
+
+**Verdict** : C’est jouable. Vous pouvez discuter avec votre IA sans vous ruiner, mais il faut avoir les moyens pour l’investissement initial.
+
+### 3. Le pro (ou le fou) : un serveur avec 4x H100 et Llama 3 70B
+Là, on passe aux choses sérieuses. Un serveur avec **4 cartes H100** (comptez **40 000€** pour le matériel), et vous faites tourner **Llama 3 70B** :
+- **Coût matériel** : 40 000€ (oui, vous avez bien lu).
+- **Coût électricité** : 4x 700W = 2800W en charge, soit **0,56€ par heure**.
+- **Performances** : **100 à 200 tokens par seconde**. Ultra-rapide.
+- **Coût par million de tokens** : **2€ à 5€**.
+
+**Verdict** : Si vous avez un budget "startup en levée de fonds", pourquoi pas. Sinon, passez votre chemin.
+
+---
+## Et dans la vraie vie, ça change quoi ?
+
+Franchement, pour 99% des gens, **faire tourner un LLM local, c’est du luxe**. À moins que vous ayez :
+- **Un usage très spécifique** (confidentialité absolue, pas de connexion internet, etc.).
+- **Un budget hardware conséquent** (ou un employeur qui paie).
+- **De la patience** (pour configurer, optimiser, et gérer les bugs).
+
+Pour la plupart d’entre nous, les solutions cloud (ChatGPT, Mistral, etc.) restent bien plus simples et économiques. **0,01€ à 0,10€ par million de tokens** en API, c’est imbattable. Sauf que, comme on l’a vu dans [cet article sur les agents IA autonomes](/articles/agents-autonomes-et-erp-comment-l-ia-va-vraiment-automatiser-votre-entreprise--amateur), certains veulent absolument garder le contrôle sur leurs données.
+
+Et puis il y a l’aspect écologique. Faire tourner un LLM local, c’est **moins efficace énergétiquement** que de mutualiser les ressources dans un data center. Un data center, c’est optimisé pour refroidir, pour partager l’électricité, pour recycler la chaleur. Chez vous, votre GPU va chauffer comme un radiateur, et vous allez payer le prix fort.
+
+---
+## Alors, on fait quoi ?
+
+Si vous voulez vraiment tester, voici quelques conseils :
+- **Commencez petit** : Un modèle comme **Phi-3-mini** (3,8 milliards de paramètres) tourne très bien sur une RTX 3060. Coût par million de tokens : **0,20€ à 0,50€**.
+- **Optimisez votre setup** : Utilisez des outils comme **LM Studio** ou **Ollama** pour gérer vos modèles localement. Ils simplifient grandement la vie.
+- **Partagez les coûts** : Si vous avez des potes geeks, montez un petit cluster entre vous. Comme ça, vous divisez les frais (et la facture d’électricité).
+- **Pensez à l’usage** : Si c’est juste pour discuter, un abonnement cloud sera toujours moins cher. Si c’est pour du traitement de données sensibles, là, oui, le local peut valoir le coup.
+
+Et surtout, **ne vous laissez pas avoir par le marketing**. Les entreprises qui vendent des "solutions IA locales clés en main" omettent souvent de mentionner que ça coûte une blinde en électricité et en matériel. Comme on l’a vu avec [les promesses d’Apple en IA](/articles/apple-et-l-ia-ce-que-votre-iphone-va-vraiment-faire-spoiler-pas-la-vaisselle--debutant), entre la théorie et la pratique, il y a souvent un fossé.
+
+---
+## Conclusion : l’IA locale, c’est comme un 4x4
+
+C’est super quand vous en avez besoin, mais **90% du temps, une Clio fait très bien l’affaire**. Et puis, à moins d’avoir un garage rempli de pièces détachées et un budget essence illimité, vous allez vite regretter votre achat.
+
+Alors oui, l’IA locale, c’est l’avenir pour certains. Mais pour la plupart d’entre nous, c’est encore un jouet de riche. En attendant que les prix baissent (et ils baisseront, c’est une question de temps), on peut toujours rêver. Ou se contenter de ChatGPT.
+
+---
+
+## FAQ
+
+**[Est-ce que je peux faire tourner un LLM sur mon vieux PC ?]**
+Oui, mais ce sera très lent. Un modèle comme TinyLlama peut tourner sur un PC avec 8 Go de RAM, mais comptez quelques secondes par réponse. Pour quelque chose de fluide, il faut au minimum une carte graphique récente (RTX 3060 ou équivalent).
+
+**[Combien coûte l’électricité pour faire tourner un LLM 24h/24 ?]**
+Ça dépend de votre matériel. Une RTX 4090 consomme environ 450W, soit **10,8 kWh par jour** (environ 2€/jour à 0,20€/kWh). Une RTX 4070, c’est plutôt 200W, soit **0,86€/jour**.
+
+**[Est-ce que c’est légal de télécharger et faire tourner un LLM localement ?]**
+Oui, tant que vous utilisez des modèles open source (comme ceux de Mistral, Llama, etc.) et que vous respectez leurs licences. En revanche, attention à l’usage que vous en faites : certains modèles ont des restrictions (pas de génération de contenu illégal, etc.).
