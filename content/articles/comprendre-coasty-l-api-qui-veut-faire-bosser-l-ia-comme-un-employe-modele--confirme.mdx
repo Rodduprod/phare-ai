@@ -1,0 +1,161 @@
+---
+title: "Coasty : comment cette API veut faire bosser l’IA comme un employé modèle"
+description: "Deep dive technique sur l'API Coasty pour agents autonomes, ses architectures, benchmarks et limites réelles."
+date: "2026-07-16"
+generated_at: "2026-07-16T11:10:04.478Z"
+tags: ["api", "agents ia", "automatisation", "y combinator", "computer use"]
+level: "confirmé"
+topic: "comprendre-coasty-l-api-qui-veut-faire-bosser-l-ia-comme-un-employe-modele"
+image: "https://images.unsplash.com/photo-1678483789105-2720201bee03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5NzIzMzB8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODQyMDAxMTJ8&ixlib=rb-4.1.0&q=80&w=1080&w=1200&q=80&auto=format&fit=crop"
+published: true
+---
+
+# Coasty : quand l’IA passe du chatbot à l’employé (presque) fiable
+
+On ne va pas se mentir : les annonces du genre *"notre IA va révolutionner votre workflow"* pullulent comme les pigeons à Paris. Mais Coasty, fraîchement sorti du four Y Combinator, propose quelque chose de plus concret : une API pour **faire bosser des agents IA comme des employés sur un poste de travail**. Pas de blabla marketing sur la "révolution", juste des machines qui cliquent, tapent, naviguent et exécutent des tâches comme un humain… ou presque.
+
+## Les fondements techniques : un agent, un navigateur, un problème
+
+Coasty se positionne comme une couche d’abstraction au-dessus des **Computer Use Agents** (ces LLM capables d’interagir avec des interfaces utilisateur). Leur approche repose sur trois piliers :
+
+**L’orchestration de tâches**
+Contrairement aux solutions qui se contentent de lancer un LLM dans un sandbox avec un navigateur, Coasty propose un système de **workflows composables**. Chaque tâche (remplir un formulaire, extraire des données, valider un processus) est découpée en sous-étapes, avec gestion des erreurs et replanning automatique. C’est un peu comme un chef d’atelier qui supervise des apprentis : si l’un se plante, un autre prend le relais.
+
+**L’environnement isolé et contrôlé**
+Les agents tournent dans des machines virtuelles dédiées, avec un **navigateur headless** (Chromium-based, d’après leur doc) et un accès restreint aux outils. Pas de *"oh, l’IA a décidé de vider votre base de données par curiosité"*. Coasty gère les sessions, les cookies, et même les CAPTCHAs (oui, ils ont pensé à ça). Leur système de **streaming d’événements** permet de suivre en temps réel ce que fait l’agent, avec la possibilité de **prise de contrôle manuelle** si ça part en sucette.
+
+**L’intégration avec les LLM du marché**
+Coasty ne réinvente pas le LLM. Leur API est agnostique : vous pouvez brancher votre modèle préféré (Claude, GPT-4, Llama, etc.) via une simple configuration. Leur valeur ajoutée ? **La couche d’exécution**, pas l’intelligence. Franchement, c’est rafraîchissant de voir une startup qui ne prétend pas avoir inventé la poudre à canon.
+
+Pour ceux qui veulent creuser les architectures d’agents autonomes, on avait déjà décortiqué le sujet dans [cet article sur les agents IA et ERP](/articles/agents-autonomes-et-erp-comment-l-ia-va-vraiment-automatiser-votre-entreprise--amateur). Spoiler : c’est moins simple que ce que vendent les commerciaux.
+
+---
+
+## Implémentation : du code à la production
+
+Passons aux choses sérieuses. Voici comment ça se traduit en pratique, avec un exemple concret.
+
+### Un cas d’usage : automatiser la saisie de factures
+
+Imaginons que vous ayez 500 factures PDF à saisir dans un logiciel de compta en ligne. Avec Coasty, ça ressemble à ça :
+
+1. **Définir le workflow** :
+   Vous décrivez la tâche en JSON (oui, encore du JSON, désolé) :
+   ```json
+   {
+     "tasks": [
+       {
+         "id": "download_invoice",
+         "action": "download",
+         "url": "https://votre-erp.com/invoices/{{invoice_id}}",
+         "output": "invoice_{{invoice_id}}.pdf"
+       },
+       {
+         "id": "extract_data",
+         "action": "llm_extract",
+         "input": "invoice_{{invoice_id}}.pdf",
+         "prompt": "Extrais le numéro de facture, le montant HT, la TVA et le fournisseur. Retourne un JSON.",
+         "model": "gpt-4o"
+       },
+       {
+         "id": "fill_form",
+         "action": "browser_interact",
+         "steps": [
+           {"type": "navigate", "url": "https://compta-online.fr/new_invoice"},
+           {"type": "fill", "selector": "#invoice_number", "value": "{{invoice_number}}"},
+           {"type": "fill", "selector": "#amount", "value": "{{amount_ht}}"},
+           {"type": "click", "selector": "#submit"}
+         ]
+       }
+     ]
+   }
+   ```
+   Rien de révolutionnaire, mais c’est propre, modulaire, et surtout **exécutable sans écrire 300 lignes de Selenium**.
+
+2. **Lancer l’agent** :
+   Un simple appel API :
+   ```bash
+   curl -X POST https://api.coasty.ai/v1/workflows \
+     -H "Authorization: Bearer YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"workflow": [LE_JSON_CI_DESSUS], "max_retries": 3}'
+   ```
+   Coasty s’occupe du reste : allocation de la VM, exécution des tâches, gestion des erreurs.
+
+3. **Récupérer les résultats** :
+   Les événements sont streamés en temps réel via WebSocket, et vous pouvez aussi récupérer un rapport final avec :
+   - Les logs de chaque étape
+   - Les captures d’écran en cas d’erreur
+   - Le temps d’exécution par tâche
+
+**Optimisations notables** :
+- **Réutilisation des sessions** : Si votre workflow nécessite de se connecter à un site, Coasty peut conserver la session entre les tâches (cookies, tokens, etc.).
+- **Gestion des rate limits** : Leur système détecte les 429 et ajuste automatiquement le rythme.
+- **Sandboxing** : Chaque workflow tourne dans un conteneur isolé, avec des limites de temps et de ressources.
+
+---
+## Benchmarks : ça marche, mais jusqu’où ?
+
+Coasty fournit quelques chiffres (à prendre avec des pincettes, comme toujours avec les benchmarks maison) :
+
+| Tâche | Temps moyen (humain) | Temps moyen (Coasty) | Taux de succès |
+|-------|----------------------|----------------------|----------------|
+| Saisie de facture (5 champs) | 2 min 30 | 45 sec | 92% |
+| Extraction de données PDF → CSV | 10 min | 1 min 20 | 88% |
+| Navigation complexe (3 étapes) | 5 min | 1 min 50 | 75% |
+
+**Ce qui marche bien** :
+- Les tâches **répétitives et structurées** (saisie, extraction, validation simple).
+- Les workflows où **l’interface est prévisible** (pas de pop-ups aléatoires, pas de CAPTCHAs imprévisibles).
+
+**Ce qui coince** :
+- Les sites avec **beaucoup de JavaScript dynamique** (React/Angular qui rechargent tout en AJAX). Leur navigateur headless a du mal à suivre.
+- Les tâches nécessitant **du jugement humain** (ex : "Cette facture semble suspecte, que fais-tu ?"). Là, bon courage avec ça.
+- Les **CAPTCHAs avancés** (reCAPTCHA v3, hCaptcha). Coasty propose des solutions de contournement, mais c’est du bricolage.
+
+Pour comparer avec d’autres approches, on avait testé [Claude Computer Use](/articles/claude-computer-use-ia-utilise-ordinateur) récemment. Verdict : Coasty est plus orienté "production" et moins "démo technique".
+
+---
+## Limitations : le diable se cache dans les détails
+
+**1. Le coût**
+Coasty facture à l’**usage** (temps d’exécution + nombre de tâches). Pour un workflow simple, comptez **0,01`à 0,10` par exécution**. Ça peut monter vite si vous avez des milliers de tâches complexes. Et n’oubliez pas : vous payez aussi le LLM sous-jacent (GPT-4, c’est 0,03`par requête en entrée, 0,06` en sortie).
+
+**2. La latence**
+Même avec des optimisations, un agent IA reste **10 à 100x plus lent qu’un humain** sur des tâches simples. Pourquoi ? Parce qu’à chaque étape, il faut :
+- Attendre la réponse du LLM
+- Exécuter l’action dans le navigateur
+- Vérifier le résultat
+- Recommencer en cas d’erreur
+
+**3. La fiabilité**
+Le taux de succès de 92% pour la saisie de factures, c’est bien. Mais dans la vraie vie, **8% d’échecs, c’est 8 factures à resaisir manuellement**. Et si votre workflow a 10 étapes, le taux d’échec global explose (merci les probabilités).
+
+**4. La sécurité**
+Même avec du sandboxing, **faire tourner un LLM dans un navigateur avec accès à vos données**, c’est comme donner les clés de votre appartement à un inconnu en lui disant *"fais comme chez toi, mais ne touche pas à mon frigo"*. Coasty propose des options de **chiffrement des données** et de **restriction d’accès réseau**, mais la responsabilité vous incombe.
+
+---
+## Recherche et évolutions futures : vers l’agent "parfait" ?
+
+Coasty ne part pas de zéro. Leur approche s’inspire de travaux académiques et industriels récents :
+
+- **Les agents avec mémoire** : Des papers comme [ReAct](https://arxiv.org/abs/2210.03629) (2022) montrent comment combiner **raisonnement** (la partie LLM) et **action** (la partie navigateur). Coasty implémente une version simplifiée de ça.
+- **L’apprentissage par renforcement pour les agents** : Des projets comme [BrowserGym](https://github.com/ServiceNow/BrowserGym) (ServiceNow) permettent d’entraîner des agents à naviguer sur le web. Coasty pourrait intégrer ça pour améliorer ses taux de succès.
+- **La détection d’anomalies** : Pour repérer quand un agent "déraille" (ex : boucle infinie, action inattendue). Aujourd’hui, Coasty se base sur des timeouts et des règles simples, mais une approche plus intelligente serait bienvenue.
+
+**Ce qu’on aimerait voir** :
+- **Un mode "hybride"** : L’agent propose, un humain valide en un clic. Comme un stagiaire qui vous montre son travail avant de l’envoyer.
+- **Des benchmarks publics** : Aujourd’hui, les chiffres viennent de Coasty. On aimerait voir des tests indépendants sur des workflows réels.
+- **Une intégration avec des outils low-code** : Pour que même votre cousin qui code en Excel puisse créer des agents.
+
+---
+## FAQ
+
+**[Coasty est-il compatible avec tous les LLM ?]**
+Oui, leur API est agnostique. Vous pouvez utiliser n’importe quel modèle compatible avec leur format (OpenAI, Anthropic, Mistral, etc.). Il suffit de fournir votre clé API et de configurer le modèle dans le workflow.
+
+**[Quelle est la différence entre Coasty et des outils comme AutoGen ou LangChain ?]**
+AutoGen et LangChain sont des frameworks pour **orchestrer des conversations entre LLM**. Coasty, lui, se concentre sur **l’exécution de tâches dans un environnement contrôlé** (navigateur, VM, etc.). C’est complémentaire : vous pourriez utiliser LangChain pour la logique et Coasty pour l’exécution.
+
+**[Peut-on utiliser Coasty pour automatiser des tâches sur des sites sensibles (banque, admin) ?]**
+Techniquement, oui. Mais **non, ne faites pas ça**. Les risques de sécurité (fuites de données, actions non autorisées) sont trop élevés. Coasty recommande d’utiliser des environnements dédiés et isolés pour ce type d’usage, mais la responsabilité vous revient. Et franchement, bonne chance pour convaincre votre DSI.
